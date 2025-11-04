@@ -1861,9 +1861,24 @@
             const elapsedTime = (now - startTime) - pausedDuration;
             let progress = Math.min(1.0, Math.max(0.0, elapsedTime / totalTime));
             
+            // Accélérer la progression pour la rendre plus visible et réaliste
+            // Multiplier par un facteur d'accélération (1.5x = 50% plus rapide)
+            const speedMultiplier = 1.5;
+            progress = Math.min(1.0, progress * speedMultiplier);
+            
             // Pour picked_up, commencer à 10% minimum
             if (shipment.status === 'picked_up' && progress < 0.1) {
                 progress = 0.1;
+            }
+            
+            // Pour in_transit, s'assurer que la progression est au moins à 40%
+            if (shipment.status === 'in_transit' && progress < 0.4) {
+                progress = Math.max(0.4, progress);
+            }
+            
+            // Pour out_for_delivery, s'assurer que la progression est au moins à 80%
+            if (shipment.status === 'out_for_delivery' && progress < 0.8) {
+                progress = Math.max(0.8, progress);
             }
             
             return progress;
@@ -1969,7 +1984,7 @@
             
             const trackingId = shipment.trackingId;
             
-            // Démarrer la progression continue (toutes les secondes pour animation fluide)
+            // Démarrer la progression continue (toutes les 500ms pour animation fluide et rapide)
             if (shipment.status !== 'pending' && shipment.status !== 'delivered') {
                 continuousProgressionInterval = setInterval(() => {
                     if (!map || !currentMarker || !shipment) return;
@@ -1986,11 +2001,11 @@
                     const newCoords = calculateCurrentPosition(originCoords, destCoords, shipment.status, shipment.events, shipment);
                     const oldCoords = currentMarker.getLatLng();
                     
-                    // Mettre à jour si la position change
+                    // Mettre à jour si la position change (seuil plus petit pour plus de sensibilité)
                     const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
                     const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
                     
-                    if (latDiff > 0.00001 || lngDiff > 0.00001) {
+                    if (latDiff > 0.000001 || lngDiff > 0.000001) {
                         // Animer le mouvement du marqueur
                         currentMarker.setLatLng(newCoords);
                         
@@ -2016,7 +2031,7 @@
                             progressBar.style.width = progress + '%';
                         }
                     }
-                }, 1000); // Mise à jour toutes les secondes pour progression fluide
+                }, 500); // Mise à jour toutes les 500ms (2 fois par seconde) pour progression plus rapide et fluide
             }
             
             // Poll API every 10 seconds to get updates from admin (more frequent for better UX)
