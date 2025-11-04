@@ -245,7 +245,17 @@ async function readUsers() {
             return [];
         }
 
-        return data;
+        // Transform DB format to application format
+        return data.map(user => ({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            password: user.password,
+            role: user.role,
+            firstName: user.first_name || '',
+            lastName: user.last_name || '',
+            createdAt: user.created_at
+        }));
     } catch (error) {
         console.error('❌ Error reading users:', error);
         return [];
@@ -254,9 +264,21 @@ async function readUsers() {
 
 async function createUser(user) {
     try {
+        // Transform user object to match DB schema
+        const dbUser = {
+            id: user.id,
+            username: user.username,
+            email: user.email.toLowerCase(),
+            password: user.password,
+            role: user.role || 'user',
+            first_name: user.firstName || user.first_name || null,
+            last_name: user.lastName || user.last_name || null,
+            created_at: user.createdAt || new Date().toISOString()
+        };
+
         const { data, error } = await supabase
             .from('users')
-            .insert([user])
+            .insert([dbUser])
             .select()
             .single();
 
@@ -265,7 +287,17 @@ async function createUser(user) {
             return null;
         }
 
-        return data;
+        // Transform back to application format
+        return {
+            id: data.id,
+            username: data.username,
+            email: data.email,
+            password: data.password,
+            role: data.role,
+            firstName: data.first_name || '',
+            lastName: data.last_name || '',
+            createdAt: data.created_at
+        };
     } catch (error) {
         console.error('❌ Error creating user:', error);
         return null;
@@ -288,7 +320,17 @@ async function getUserByEmail(email) {
             return null;
         }
 
-        return data;
+        // Transform DB format to application format
+        return {
+            id: data.id,
+            username: data.username,
+            email: data.email,
+            password: data.password,
+            role: data.role,
+            firstName: data.first_name || '',
+            lastName: data.last_name || '',
+            createdAt: data.created_at
+        };
     } catch (error) {
         console.error('❌ Error fetching user:', error);
         return null;

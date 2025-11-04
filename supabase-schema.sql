@@ -1,4 +1,6 @@
--- CargoWatch Supabase Database Schema
+-- CargoWatch Supabase Database Schema (Version Simplifiée)
+-- ⚠️ Pour le schéma complet avec toutes les tables (chats améliorés, vues, fonctions),
+-- utilisez le fichier: supabase-schema-complete.sql
 -- Run this SQL in your Supabase SQL Editor
 
 -- Enable UUID extension
@@ -11,6 +13,8 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
     role VARCHAR(50) DEFAULT 'user',
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );

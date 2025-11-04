@@ -134,6 +134,12 @@ async function ensureDataDir() {
 
 // Fonctions utilitaires
 async function readUsers() {
+    // Use Supabase if available
+    if (USE_SUPABASE && db) {
+        return await db.readUsers();
+    }
+    
+    // Fallback to JSON files
     try {
         const data = await fs.readFile(USERS_FILE, 'utf8');
         return JSON.parse(data);
@@ -144,6 +150,14 @@ async function readUsers() {
 }
 
 async function writeUsers(users) {
+    // Note: In Supabase, we don't write all users at once
+    // This function is kept for backward compatibility
+    if (USE_SUPABASE && db) {
+        console.log('⚠️ writeUsers() called - individual updates should use createUser() or updateUser()');
+        return true;
+    }
+    
+    // Fallback to JSON files
     try {
         await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
         return true;
@@ -154,13 +168,32 @@ async function writeUsers(users) {
 }
 
 async function findUserByUsername(username) {
+    // Use Supabase if available
+    if (USE_SUPABASE && db) {
+        // Try to find by username first
+        const users = await db.readUsers();
+        let user = users.find(u => u.username === username);
+        if (!user) {
+            // Try by email
+            user = users.find(u => u.email === username);
+        }
+        return user || null;
+    }
+    
+    // Fallback to JSON files
     const users = await readUsers();
-    return users.find(u => u.username === username || u.email === username);
+    return users.find(u => u.username === username || u.email === username) || null;
 }
 
 async function findUserByEmail(email) {
+    // Use Supabase if available
+    if (USE_SUPABASE && db) {
+        return await db.getUserByEmail(email);
+    }
+    
+    // Fallback to JSON files
     const users = await readUsers();
-    return users.find(u => u.email === email);
+    return users.find(u => u.email === email) || null;
 }
 
 async function readShipments() {
@@ -210,6 +243,12 @@ async function writeShipments(shipments) {
 }
 
 async function readChats() {
+    // Use Supabase if available
+    if (USE_SUPABASE && db) {
+        return await db.readChats();
+    }
+    
+    // Fallback to JSON files
     try {
         const data = await fs.readFile(CHATS_FILE, 'utf8');
         return JSON.parse(data);
@@ -220,6 +259,14 @@ async function readChats() {
 }
 
 async function writeChats(chats) {
+    // Note: In Supabase, we don't write all chats at once
+    // This function is kept for backward compatibility
+    if (USE_SUPABASE && db) {
+        console.log('⚠️ writeChats() called - individual updates should use createChat()');
+        return true;
+    }
+    
+    // Fallback to JSON files
     try {
         await fs.writeFile(CHATS_FILE, JSON.stringify(chats, null, 2));
         return true;
@@ -561,15 +608,14 @@ app.post('/api/auth/register', async (req, res) => {
             return res.status(400).json({ error: 'Password must be at least 6 characters long' });
         }
 
-        const users = await readUsers();
-
-        // Check if username already exists
-        if (users.find(u => u.username === username)) {
+        // Check if username or email already exists
+        const existingUser = await findUserByUsername(username);
+        if (existingUser) {
             return res.status(400).json({ error: 'Username already exists' });
         }
 
-        // Check if email already exists
-        if (users.find(u => u.email === email)) {
+        const existingEmail = await findUserByEmail(email);
+        if (existingEmail) {
             return res.status(400).json({ error: 'Email already registered' });
         }
 
@@ -586,8 +632,20 @@ app.post('/api/auth/register', async (req, res) => {
             createdAt: new Date().toISOString()
         };
 
-        users.push(newUser);
-        await writeUsers(users);
+        // Save to database (Supabase or JSON)
+        if (USE_SUPABASE && db) {
+            const created = await db.createUser(newUser);
+            if (!created) {
+                return res.status(500).json({ error: 'Failed to create user in database' });
+            }
+            console.log(`✅ User created in Supabase: ${created.username}`);
+            newUser.id = created.id;
+            newUser.createdAt = created.created_at || newUser.createdAt;
+        } else {
+            const users = await readUsers();
+            users.push(newUser);
+            await writeUsers(users);
+        }
 
         // Auto-login after registration
         req.session.userId = newUser.id;

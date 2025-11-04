@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: cargowatch
+    runtime: node
+    plan: free
+    buildCommand: npm install && npm run build:css
+    startCommand: npm start
+    healthCheckPath: /api
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Note: Les autres variables d'environnement (SUPABASE_URL, SUPABASE_ANON_KEY, etc.)
+      # doivent être configurées dans l'interface Render après le déploiement
+      # ou via l'interface Settings > Environment
+
