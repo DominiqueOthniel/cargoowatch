@@ -2013,11 +2013,16 @@
                     const newCoords = calculateCurrentPosition(originCoords, destCoords, currentShipment.status, currentShipment.events, currentShipment);
                     const oldCoords = currentMarker.getLatLng();
                     
-                    // Mettre à jour si la position change (seuil plus petit pour plus de sensibilité)
+                    // Calculer la progression pour logging
+                    const progress = calculateContinuousProgress(currentShipment);
+                    
+                    // TOUJOURS mettre à jour pour animation fluide (même si changement minime)
+                    // Le temps s'écoule, donc la position doit changer
                     const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
                     const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
                     
-                    if (latDiff > 0.000001 || lngDiff > 0.000001) {
+                    // Mettre à jour même si le changement est très petit (progression continue)
+                    if (latDiff > 0.0000001 || lngDiff > 0.0000001 || true) { // Toujours mettre à jour pour progression fluide
                         // Animer le mouvement du marqueur
                         currentMarker.setLatLng(newCoords);
                         
@@ -2036,11 +2041,21 @@
                         const routeDistance = calculateRouteDistance(originCoords, newCoords, destCoords);
                         updateMapInfo(currentShipment, originCoords, destCoords, newCoords, routeDistance);
                         
-                        // Mettre à jour la barre de progression
-                        const progress = calculateContinuousProgress(currentShipment) * 100;
+                        // Mettre à jour la barre de progression (utiliser la progression calculée)
+                        const progressPercent = progress * 100;
                         const progressBar = document.getElementById('progress-bar');
                         if (progressBar) {
-                            progressBar.style.width = progress + '%';
+                            progressBar.style.width = progressPercent + '%';
+                        }
+                        
+                        // Log pour déboguer (toutes les 10 secondes seulement pour éviter spam)
+                        if (Math.random() < 0.1) { // 10% de chance = environ toutes les 5 secondes
+                            console.log('🔄 Continuous progression:', {
+                                progress: (progress * 100).toFixed(2) + '%',
+                                status: currentShipment.status,
+                                coords: newCoords.map(c => c.toFixed(6)),
+                                oldCoords: [oldCoords.lat.toFixed(6), oldCoords.lng.toFixed(6)]
+                            });
                         }
                     }
                 }, 500); // Mise à jour toutes les 500ms (2 fois par seconde) pour progression plus rapide et fluide
