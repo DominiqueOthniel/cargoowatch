@@ -1397,9 +1397,16 @@
             }
             
             if (contentChat) {
+                // Force remove hidden class and ensure display
                 contentChat.classList.remove('hidden');
+                contentChat.style.display = ''; // Reset inline style if any
+                contentChat.style.visibility = 'visible';
                 console.log('✅ Chat content shown - hidden class removed');
                 console.log('🔍 contentChat classes:', contentChat.className);
+                console.log('🔍 contentChat display style:', window.getComputedStyle(contentChat).display);
+                console.log('🔍 contentChat visibility:', window.getComputedStyle(contentChat).visibility);
+                // Force a reflow to ensure display
+                contentChat.offsetHeight;
             } else {
                 console.error('❌ content-chat element not found!');
                 alert('Error: Chat content element not found. Please refresh the page.');
