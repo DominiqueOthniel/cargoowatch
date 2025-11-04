@@ -1138,7 +1138,6 @@ app.post('/api/shipments/:trackingId/receipt/generate', requireAuth, requireAdmi
         console.log('📄 Generating receipt for shipment:', trackingId, 'in language:', language);
 
         // Get shipment from database
-        let shipment;
         const shipments = await readShipments();
         const shipmentIndex = shipments.findIndex(s => s.trackingId === trackingId.toUpperCase());
         if (shipmentIndex === -1) {
