@@ -770,6 +770,10 @@
                 clearInterval(trackingInterval);
                 trackingInterval = null;
             }
+            if (continuousProgressionInterval) {
+                clearInterval(continuousProgressionInterval);
+                continuousProgressionInterval = null;
+            }
 
             // Hide all sections first
             document.getElementById('tracking-results').classList.add('hidden');
