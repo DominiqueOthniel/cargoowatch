@@ -14,23 +14,8 @@ const { Server } = require('socket.io');
 const multer = require('multer');
 const PDFDocument = require('pdfkit');
 
-// Database: Use Supabase if configured, otherwise use JSON files
-const USE_SUPABASE = process.env.USE_SUPABASE === 'true' || (process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY));
-let db;
-
-if (USE_SUPABASE) {
-    try {
-        db = require('./supabase-db');
-        console.log('✅ Using Supabase database');
-    } catch (error) {
-        console.error('❌ Failed to load Supabase:', error.message);
-        console.log('⚠️ Falling back to JSON files');
-    }
-}
-
-if (!USE_SUPABASE || !db) {
-    console.log('📄 Using JSON file storage');
-}
+// Database: Using JSON file storage
+console.log('📄 Using JSON file storage');
 
 const app = express();
 const server = http.createServer(app);
