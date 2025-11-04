@@ -1522,6 +1522,44 @@
                 alert(`Downloading ${allReceipts.length} receipt(s)...`);
             });
 
+            // Attach tab switching event listeners
+            console.log('🔧 Attaching tab event listeners...');
+            const tabShipments = document.getElementById('tab-shipments');
+            const tabChat = document.getElementById('tab-chat');
+            const tabReviews = document.getElementById('tab-reviews');
+            const viewLiveChatsBtn = document.getElementById('view-live-chats-btn');
+            
+            if (tabShipments) {
+                tabShipments.addEventListener('click', switchToShipmentsTab);
+                console.log('✅ Tab shipments listener attached');
+            } else {
+                console.error('❌ tab-shipments element not found');
+            }
+            
+            if (tabChat) {
+                tabChat.addEventListener('click', switchToChatTab);
+                console.log('✅ Tab chat listener attached');
+            } else {
+                console.error('❌ tab-chat element not found');
+            }
+            
+            if (tabReviews) {
+                tabReviews.addEventListener('click', switchToReviewsTab);
+                console.log('✅ Tab reviews listener attached');
+            } else {
+                console.error('❌ tab-reviews element not found');
+            }
+            
+            if (viewLiveChatsBtn) {
+                viewLiveChatsBtn.addEventListener('click', () => {
+                    console.log('View Live Chats button clicked');
+                    switchToChatTab();
+                });
+                console.log('✅ View Live Chats button listener attached');
+            } else {
+                console.error('❌ view-live-chats-btn element not found');
+            }
+
             document.getElementById('upload-receipt-btn')?.addEventListener('click', async () => {
                 if (!currentReceiptTrackingId) {
                     alert('No tracking ID selected');
@@ -1631,10 +1669,10 @@
                 }, 30000);
             }
 
-        // ==================== CHAT FUNCTIONALITY ====================
-        // Tab switching
+        // ==================== TAB SWITCHING FUNCTIONS ====================
         // Function to switch to shipments tab
         function switchToShipmentsTab() {
+            console.log('Switching to shipments tab');
             const tabShipments = document.getElementById('tab-shipments');
             const tabChat = document.getElementById('tab-chat');
             const tabReviews = document.getElementById('tab-reviews');
@@ -1654,13 +1692,22 @@
                 tabReviews.classList.remove('active', 'border-primary', 'text-primary');
                 tabReviews.classList.add('border-transparent', 'text-text-secondary');
             }
-            if (contentShipments) contentShipments.classList.remove('hidden');
-            if (contentChat) contentChat.classList.add('hidden');
-            if (contentReviews) contentReviews.classList.add('hidden');
+            if (contentShipments) {
+                contentShipments.classList.remove('hidden');
+                console.log('✅ Shipments content shown');
+            }
+            if (contentChat) {
+                contentChat.classList.add('hidden');
+                console.log('✅ Chat content hidden');
+            }
+            if (contentReviews) {
+                contentReviews.classList.add('hidden');
+            }
         }
 
         // Function to switch to chat tab
         function switchToChatTab() {
+            console.log('Switching to chat tab');
             const tabShipments = document.getElementById('tab-shipments');
             const tabChat = document.getElementById('tab-chat');
             const tabReviews = document.getElementById('tab-reviews');
@@ -1671,6 +1718,7 @@
             if (tabChat) {
                 tabChat.classList.add('active', 'border-primary', 'text-primary');
                 tabChat.classList.remove('border-transparent', 'text-text-secondary');
+                console.log('✅ Chat tab activated');
             }
             if (tabShipments) {
                 tabShipments.classList.remove('active', 'border-primary', 'text-primary');
@@ -1680,37 +1728,54 @@
                 tabReviews.classList.remove('active', 'border-primary', 'text-primary');
                 tabReviews.classList.add('border-transparent', 'text-text-secondary');
             }
-            if (contentShipments) contentShipments.classList.add('hidden');
-            if (contentChat) contentChat.classList.remove('hidden');
-            if (contentReviews) contentReviews.classList.add('hidden');
+            if (contentShipments) {
+                contentShipments.classList.add('hidden');
+            }
+            if (contentChat) {
+                contentChat.classList.remove('hidden');
+                console.log('✅ Chat content shown');
+            }
+            if (contentReviews) {
+                contentReviews.classList.add('hidden');
+            }
             
-            initAdminSocket();
-            loadChats();
-            initializeChatButtons(); // Ensure buttons are initialized when chat tab is opened
+            // Initialize chat functionality
+            if (typeof initAdminSocket === 'function') {
+                initAdminSocket();
+            }
+            if (typeof loadChats === 'function') {
+                loadChats();
+            }
+            if (typeof initializeChatButtons === 'function') {
+                initializeChatButtons();
+            }
         }
 
-        document.getElementById('tab-shipments')?.addEventListener('click', switchToShipmentsTab);
-        document.getElementById('tab-chat')?.addEventListener('click', switchToChatTab);
-
-        // Add event listener for "View Live Chats" button
-        document.getElementById('view-live-chats-btn')?.addEventListener('click', () => {
-            console.log('View Live Chats button clicked');
-            switchToChatTab();
-        });
-
-        document.getElementById('tab-reviews')?.addEventListener('click', () => {
-            document.getElementById('tab-reviews').classList.add('active', 'border-primary', 'text-primary');
-            document.getElementById('tab-reviews').classList.remove('border-transparent', 'text-text-secondary');
-            document.getElementById('tab-shipments').classList.remove('active', 'border-primary', 'text-primary');
-            document.getElementById('tab-shipments').classList.add('border-transparent', 'text-text-secondary');
-            document.getElementById('tab-chat').classList.remove('active', 'border-primary', 'text-primary');
-            document.getElementById('tab-chat').classList.add('border-transparent', 'text-text-secondary');
-            document.getElementById('content-shipments').classList.add('hidden');
-            document.getElementById('content-chat').classList.add('hidden');
-            document.getElementById('content-reviews').classList.remove('hidden');
-        });
-
-        });
+        // Function to switch to reviews tab
+        function switchToReviewsTab() {
+            const tabShipments = document.getElementById('tab-shipments');
+            const tabChat = document.getElementById('tab-chat');
+            const tabReviews = document.getElementById('tab-reviews');
+            const contentShipments = document.getElementById('content-shipments');
+            const contentChat = document.getElementById('content-chat');
+            const contentReviews = document.getElementById('content-reviews');
+            
+            if (tabReviews) {
+                tabReviews.classList.add('active', 'border-primary', 'text-primary');
+                tabReviews.classList.remove('border-transparent', 'text-text-secondary');
+            }
+            if (tabShipments) {
+                tabShipments.classList.remove('active', 'border-primary', 'text-primary');
+                tabShipments.classList.add('border-transparent', 'text-text-secondary');
+            }
+            if (tabChat) {
+                tabChat.classList.remove('active', 'border-primary', 'text-primary');
+                tabChat.classList.add('border-transparent', 'text-text-secondary');
+            }
+            if (contentShipments) contentShipments.classList.add('hidden');
+            if (contentChat) contentChat.classList.add('hidden');
+            if (contentReviews) contentReviews.classList.remove('hidden');
+        }
 
         // ==================== CHAT FUNCTIONALITY ====================
         let chatSocket = null;

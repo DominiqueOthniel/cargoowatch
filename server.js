@@ -119,9 +119,6 @@ async function ensureDataDir() {
 
 // Fonctions utilitaires
 async function readUsers() {
-    if (db && db.readUsers) {
-        return await db.readUsers();
-    }
     try {
         const data = await fs.readFile(USERS_FILE, 'utf8');
         return JSON.parse(data);
@@ -148,17 +145,11 @@ async function findUserByUsername(username) {
 }
 
 async function findUserByEmail(email) {
-    if (db && db.getUserByEmail) {
-        return await db.getUserByEmail(email);
-    }
     const users = await readUsers();
     return users.find(u => u.email === email) || null;
 }
 
 async function readShipments() {
-    if (db && db.readShipments) {
-        return await db.readShipments();
-    }
     try {
         const data = await fs.readFile(SHIPMENTS_FILE, 'utf8');
         const shipments = JSON.parse(data);
@@ -179,10 +170,6 @@ async function readShipments() {
 }
 
 async function writeShipments(shipments) {
-    // Note: Supabase writeShipments is kept for compatibility but doesn't do bulk writes
-    if (db && db.writeShipments) {
-        return await db.writeShipments(shipments);
-    }
     try {
         await fs.writeFile(SHIPMENTS_FILE, JSON.stringify(shipments, null, 2));
         console.log(`💾 Written ${shipments.length} shipment(s) to ${SHIPMENTS_FILE}`);
@@ -195,9 +182,6 @@ async function writeShipments(shipments) {
 }
 
 async function readChats() {
-    if (db && db.readChats) {
-        return await db.readChats();
-    }
     try {
         const data = await fs.readFile(CHATS_FILE, 'utf8');
         return JSON.parse(data);
@@ -208,10 +192,6 @@ async function readChats() {
 }
 
 async function writeChats(chats) {
-    // Note: Supabase writeChats is kept for compatibility but doesn't do bulk writes
-    if (db && db.writeChats) {
-        return await db.writeChats(chats);
-    }
     try {
         await fs.writeFile(CHATS_FILE, JSON.stringify(chats, null, 2));
         return true;
@@ -892,32 +872,22 @@ app.post('/api/shipments', async (req, res) => {
             newShipment.estimatedDelivery = deliveryDate.toISOString();
         }
 
-        // Save to database
+        // Save to database (JSON files)
         let savedShipment;
-        if (db && db.createShipment) {
-            // Use Supabase directly
-            savedShipment = await db.createShipment(newShipment);
-            if (!savedShipment) {
-                throw new Error('Failed to create shipment in Supabase');
-            }
-            console.log(`✅ Shipment created in Supabase: ${savedShipment.trackingId}`);
+        const shipments = await readShipments();
+        shipments.push(newShipment);
+        const writeSuccess = await writeShipments(shipments);
+        if (!writeSuccess) {
+            throw new Error('Failed to save shipment to database');
+        }
+        
+        // Verify the shipment was written
+        const verifyShipments = await readShipments();
+        savedShipment = verifyShipments.find(s => s.trackingId === newShipment.trackingId);
+        if (!savedShipment) {
+            console.error('⚠️ Warning: Shipment was not found after write!');
         } else {
-            // Use JSON file storage
-            const shipments = await readShipments();
-            shipments.push(newShipment);
-            const writeSuccess = await writeShipments(shipments);
-            if (!writeSuccess) {
-                throw new Error('Failed to save shipment to database');
-            }
-            
-            // Verify the shipment was written
-            const verifyShipments = await readShipments();
-            savedShipment = verifyShipments.find(s => s.trackingId === newShipment.trackingId);
-            if (!savedShipment) {
-                console.error('⚠️ Warning: Shipment was not found after write!');
-            } else {
-                console.log(`✅ Shipment created and verified: ${newShipment.trackingId} (Total shipments: ${verifyShipments.length})`);
-            }
+            console.log(`✅ Shipment created and verified: ${newShipment.trackingId} (Total shipments: ${verifyShipments.length})`);
         }
         
         res.status(201).json(savedShipment || newShipment);
