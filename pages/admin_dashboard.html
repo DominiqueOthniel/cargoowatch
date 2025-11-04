@@ -326,66 +326,80 @@
         </div>
                 </div>
 
-        <!-- Chat Tab Content -->
+        <!-- Chat Tab Content - NOUVELLE INTERFACE SIMPLIFIÉE -->
         <div id="content-chat" class="hidden">
-            <div class="grid lg:grid-cols-3 gap-8">
-                <!-- Chat List -->
-                <div class="lg:col-span-1">
+            <div class="grid lg:grid-cols-2 gap-6">
+                <!-- Liste des Chats (Colonne Gauche) -->
                 <div class="card">
-                        <div class="flex items-center justify-between mb-4">
-                            <h3 class="text-lg font-semibold text-text-primary">Active Chats</h3>
-                            <select id="chat-status-filter" class="text-sm border border-border rounded px-2 py-1">
-                                <option value="">All</option>
-                                <option value="open">Open</option>
-                                <option value="active">Active</option>
-                                <option value="closed">Closed</option>
-                            </select>
-                            </div>
-                        <div id="chat-list" class="space-y-2 max-h-[600px] overflow-y-auto">
-                            <!-- Chat items will be loaded here -->
+                    <div class="flex items-center justify-between mb-4 pb-4 border-b border-border">
+                        <h3 class="text-xl font-bold text-text-primary">💬 Conversations</h3>
+                        <select id="chat-status-filter" class="text-sm border border-border rounded-lg px-3 py-2 bg-surface">
+                            <option value="">Tous</option>
+                            <option value="open">Ouvert</option>
+                            <option value="active">Actif</option>
+                            <option value="closed">Fermé</option>
+                        </select>
+                    </div>
+                    <div id="chat-list" class="space-y-3 max-h-[700px] overflow-y-auto">
+                        <div class="text-center py-8 text-text-muted">
+                            <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                            <p class="text-sm">Chargement des conversations...</p>
                         </div>
-                            </div>
-                        </div>
-
-                <!-- Chat Messages -->
-                <div class="lg:col-span-2">
-                    <div id="chat-container" class="card flex flex-col" style="height: 700px;">
-                        <div id="no-chat-selected" class="flex-1 flex items-center justify-center text-center p-8">
-                                            <div>
-                                <svg class="w-16 h-16 text-text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-                                </svg>
-                                <p class="text-text-secondary">Select a chat to start messaging</p>
-                            </div>
-                        </div>
-
-                        <div id="chat-messages-panel" class="hidden flex-1 flex flex-col">
-                            <!-- Chat Header -->
-                            <div class="border-b border-border p-4 flex items-center justify-between">
-                                <div>
-                                    <h4 id="chat-client-name" class="font-semibold text-text-primary"></h4>
-                                    <p id="chat-client-email" class="text-sm text-text-secondary"></p>
-                                    <p id="chat-subject-admin" class="text-xs text-text-muted mt-1"></p>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <button id="assign-chat-btn" class="btn-secondary text-sm px-3 py-1">Assign to Me</button>
-                                    <button id="close-chat-btn" class="btn-secondary text-sm px-3 py-1 bg-error-100 text-error hover:bg-error-200">Close Chat</button>
                     </div>
                 </div>
 
-                            <!-- Messages Area -->
-                            <div id="admin-chat-messages" class="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4">
-                                <!-- Messages will be inserted here -->
+                <!-- Zone de Messages (Colonne Droite) -->
+                <div class="card flex flex-col" style="min-height: 700px;">
+                    <!-- État: Aucun chat sélectionné -->
+                    <div id="no-chat-selected" class="flex-1 flex items-center justify-center text-center p-8">
+                        <div>
+                            <div class="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                                <svg class="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                            </div>
+                            <h3 class="text-lg font-semibold text-text-primary mb-2">Sélectionnez une conversation</h3>
+                            <p class="text-text-secondary text-sm">Choisissez une conversation dans la liste pour voir les messages</p>
+                        </div>
+                    </div>
+
+                    <!-- État: Chat sélectionné avec messages -->
+                    <div id="chat-messages-panel" class="hidden flex-1 flex flex-col">
+                        <!-- En-tête du Chat -->
+                        <div class="border-b border-border p-4 bg-surface">
+                            <div class="flex items-center justify-between">
+                                <div class="flex-1">
+                                    <h4 id="chat-client-name" class="font-bold text-lg text-text-primary mb-1"></h4>
+                                    <p id="chat-client-email" class="text-sm text-text-secondary mb-1"></p>
+                                    <p id="chat-subject-admin" class="text-xs text-text-muted"></p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button id="assign-chat-btn" class="btn-secondary text-sm px-4 py-2">M'assigner</button>
+                                    <button id="close-chat-btn" class="text-sm px-4 py-2 bg-error-100 text-error hover:bg-error-200 rounded-lg">Fermer</button>
+                                </div>
+                            </div>
                         </div>
 
-                            <!-- Message Input -->
-                            <div class="border-t border-border p-4">
-                                <div class="flex items-center space-x-2 mb-2">
-                                    <input type="text" id="admin-chat-message-input" class="input-field flex-1" placeholder="Type your message...">
-                                    <button id="admin-chat-send-btn" class="btn-primary px-4 py-2">Send</button>
+                        <!-- Zone des Messages -->
+                        <div id="admin-chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50" style="min-height: 400px;">
+                            <!-- Messages seront insérés ici -->
                         </div>
-                        </div>
-                        </div>
+
+                        <!-- Zone de Saisie -->
+                        <div class="border-t border-border p-4 bg-white">
+                            <div class="flex items-center space-x-3">
+                                <input 
+                                    type="text" 
+                                    id="admin-chat-message-input" 
+                                    class="input-field flex-1 px-4 py-3 rounded-lg border border-border focus:border-primary focus:ring-2 focus:ring-primary-50" 
+                                    placeholder="Tapez votre message..."
+                                >
+                                <button id="admin-chat-send-btn" class="btn-primary px-6 py-3 rounded-lg font-semibold">
+                                    Envoyer
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1601,49 +1615,107 @@
         // Load chats list
         async function loadChats() {
             try {
+                console.log('📥 loadChats() called');
                 const status = document.getElementById('chat-status-filter')?.value || '';
                 const url = status ? `/api/chat?status=${status}` : '/api/chat';
+                console.log('📡 Fetching chats from:', url);
                 const response = await fetch(url, { credentials: 'include' });
-                if (!response.ok) throw new Error('Failed to load chats');
+                if (!response.ok) {
+                    console.error('❌ Failed to load chats, status:', response.status);
+                    throw new Error('Failed to load chats');
+                }
                 
                 const chats = await response.json();
+                console.log('📨 Received chats:', chats.length, 'chats');
+                console.log('📨 Chats data:', chats);
+                
                 const chatList = document.getElementById('chat-list');
                 if (!chatList) {
                     console.error('❌ chat-list element not found');
                     return;
                 }
+                console.log('✅ chat-list element found');
                 chatList.innerHTML = '';
                 
                 if (chats.length === 0) {
+                    console.log('⚠️ No chats available, showing empty message');
                     chatList.innerHTML = '<p class="text-sm text-text-muted p-4">No chats available</p>';
                     return;
                 }
                 
-                chats.forEach(chat => {
-                    const chatItem = document.createElement('div');
-                    chatItem.className = `chat-item p-4 border border-border rounded-lg mb-2 cursor-pointer hover:bg-surface ${chat.id === currentAdminChatId ? 'bg-surface' : ''}`;
-                    chatItem.dataset.chatId = chat.id;
+                console.log('🔄 Processing', chats.length, 'chats');
+                chats.forEach((chat, index) => {
+                    console.log(`📝 Processing chat ${index + 1}:`, chat.id, chat.clientName);
                     
+                    const chatItem = document.createElement('div');
                     const unreadCount = chat.messages?.filter(m => !m.read && m.senderType === 'client').length || 0;
                     const lastMessage = chat.messages && chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
+                    const isActive = chat.id === currentAdminChatId;
+                    
+                    chatItem.className = `p-4 border-2 rounded-lg cursor-pointer transition-all mb-3 ${
+                        isActive 
+                            ? 'border-primary bg-primary-50 shadow-md' 
+                            : 'border-border hover:border-primary-200 hover:bg-surface'
+                    }`;
+                    chatItem.dataset.chatId = chat.id;
+                    
+                    const lastMessageTime = lastMessage 
+                        ? new Date(lastMessage.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+                        : '';
                     
                     chatItem.innerHTML = `
-                        <div class="flex items-center justify-between mb-2">
-                            <div class="font-medium text-text-primary">${chat.clientName || 'Client'}</div>
-                            ${unreadCount > 0 ? `<span class="bg-accent text-white text-xs rounded-full px-2 py-1">${unreadCount}</span>` : ''}
+                        <div class="flex items-start justify-between mb-2">
+                            <div class="flex-1">
+                                <div class="flex items-center space-x-3 mb-2">
+                                    <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span class="text-primary font-bold text-base">${(chat.clientName || 'C')[0].toUpperCase()}</span>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-bold text-text-primary truncate">${chat.clientName || 'Client'}</div>
+                                        <div class="text-xs text-text-muted truncate">${chat.clientEmail || ''}</div>
+                                    </div>
+                                </div>
+                            </div>
+                            ${unreadCount > 0 ? `<span class="bg-error text-white text-xs font-bold rounded-full px-2.5 py-1 min-w-[24px] text-center flex-shrink-0">${unreadCount}</span>` : ''}
                         </div>
-                        <div class="text-xs text-text-muted">${lastMessage ? lastMessage.text.substring(0, 50) : 'No messages'}...</div>
-                        <div class="text-xs text-text-muted mt-1">${chat.status || 'open'}</div>
+                        <div class="mt-2">
+                            ${lastMessage ? `
+                                <div class="text-sm text-text-primary mb-2 line-clamp-2">${lastMessage.text.substring(0, 60)}${lastMessage.text.length > 60 ? '...' : ''}</div>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs px-2 py-1 rounded ${
+                                        chat.status === 'open' ? 'bg-warning-100 text-warning' : 
+                                        chat.status === 'active' ? 'bg-success-100 text-success' : 
+                                        'bg-gray-100 text-gray-600'
+                                    }">${chat.status || 'open'}</span>
+                                    <span class="text-xs text-text-muted">${lastMessageTime}</span>
+                                </div>
+                            ` : `
+                                <div class="text-sm text-text-muted italic mb-2">Aucun message</div>
+                                <div class="text-xs text-text-muted">${chat.status || 'open'}</div>
+                            `}
+                        </div>
                     `;
                     
                     chatItem.addEventListener('click', () => {
+                        console.log('🖱️ Chat item clicked:', chat.id);
+                        // Mettre à jour le style visuel
+                        document.querySelectorAll('[data-chat-id]').forEach(item => {
+                            item.classList.remove('border-primary', 'bg-primary-50', 'shadow-md');
+                            item.classList.add('border-border');
+                        });
+                        chatItem.classList.add('border-primary', 'bg-primary-50', 'shadow-md');
+                        chatItem.classList.remove('border-border');
+                        
                         if (typeof openChat === 'function') {
                             openChat(chat.id);
                         }
                     });
                     
                     chatList.appendChild(chatItem);
+                    console.log(`✅ Chat item ${index + 1} appended to chat-list`);
                 });
+                
+                console.log('✅ All chats processed. chat-list now has', chatList.children.length, 'children');
                 
                 if (typeof updateChatBadge === 'function') {
                     updateChatBadge(chats);
@@ -1676,29 +1748,73 @@
 
         async function openChat(chatId) {
             try {
+                console.log('🔓 Opening chat:', chatId);
                 currentAdminChatId = chatId;
+                
                 const response = await fetch(`/api/chat/${chatId}`, { credentials: 'include' });
-                if (!response.ok) throw new Error('Failed to load chat');
+                if (!response.ok) {
+                    console.error('❌ Failed to load chat, status:', response.status);
+                    throw new Error('Failed to load chat');
+                }
                 
                 const chat = await response.json();
+                console.log('📨 Chat loaded:', {
+                    id: chat.id,
+                    clientName: chat.clientName,
+                    messageCount: chat.messages?.length || 0
+                });
+                
                 const messagesContainer = document.getElementById('admin-chat-messages');
                 const noChatSelected = document.getElementById('no-chat-selected');
                 const chatMessagesPanel = document.getElementById('chat-messages-panel');
+                const chatClientName = document.getElementById('chat-client-name');
+                const chatClientEmail = document.getElementById('chat-client-email');
+                const chatSubjectAdmin = document.getElementById('chat-subject-admin');
                 
                 if (!messagesContainer || !noChatSelected || !chatMessagesPanel) {
                     console.error('❌ Chat elements not found');
                     return;
                 }
                 
-                messagesContainer.innerHTML = '';
-                chat.messages.forEach(msg => {
-                    if (typeof addAdminMessageToChat === 'function') {
-                        addAdminMessageToChat(msg);
-                    }
-                });
+                // Mettre à jour l'en-tête
+                if (chatClientName) chatClientName.textContent = chat.clientName || 'Client';
+                if (chatClientEmail) chatClientEmail.textContent = chat.clientEmail || '';
+                if (chatSubjectAdmin) {
+                    const subject = chat.subject || 'Aucun sujet';
+                    const tracking = chat.trackingId ? ` | Suivi: ${chat.trackingId}` : '';
+                    chatSubjectAdmin.textContent = `${subject}${tracking}`;
+                }
                 
+                // Vider et remplir les messages
+                messagesContainer.innerHTML = '';
+                console.log('📝 Rendering', chat.messages?.length || 0, 'messages');
+                
+                if (chat.messages && chat.messages.length > 0) {
+                    chat.messages.forEach((msg, index) => {
+                        console.log(`📨 Message ${index + 1}:`, {
+                            senderType: msg.senderType,
+                            senderName: msg.senderName,
+                            text: msg.text?.substring(0, 30)
+                        });
+                        if (typeof addAdminMessageToChat === 'function') {
+                            addAdminMessageToChat(msg);
+                        }
+                    });
+                } else {
+                    console.log('⚠️ No messages in chat');
+                    messagesContainer.innerHTML = `
+                        <div class="text-center py-8 text-text-muted">
+                            <p class="text-sm">Aucun message dans cette conversation</p>
+                        </div>
+                    `;
+                }
+                
+                // Afficher le panneau de messages
                 noChatSelected.classList.add('hidden');
                 chatMessagesPanel.classList.remove('hidden');
+                
+                console.log('✅ Chat panel displayed');
+                
                 if (typeof scrollAdminChatToBottom === 'function') {
                     scrollAdminChatToBottom();
                 }
@@ -1707,27 +1823,64 @@
                     initializeChatButtons();
                 }
             } catch (error) {
-                console.error('Error opening chat:', error);
+                console.error('❌ Error opening chat:', error);
+                alert('Erreur lors du chargement de la conversation: ' + error.message);
             }
         }
 
          function addAdminMessageToChat(message) {
              const messagesContainer = document.getElementById('admin-chat-messages');
-             if (!messagesContainer) return;
+             if (!messagesContainer) {
+                 console.error('❌ admin-chat-messages container not found');
+                 return;
+             }
+             
              const isAdmin = message.senderType === 'admin';
+             const isClient = message.senderType === 'client';
+             
+             console.log('📨 Adding message to chat:', {
+                 senderType: message.senderType,
+                 senderName: message.senderName,
+                 text: message.text?.substring(0, 50),
+                 isAdmin,
+                 isClient
+             });
              
              const messageDiv = document.createElement('div');
-             messageDiv.className = `flex ${isAdmin ? 'justify-end' : 'justify-start'}`;
+             messageDiv.className = `flex ${isAdmin ? 'justify-end' : 'justify-start'} mb-4`;
              
-             messageDiv.innerHTML = `
-                 <div class="max-w-xs lg:max-w-sm ${isAdmin ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3 overflow-hidden">
-                     <div class="text-xs font-semibold mb-1">${message.senderName}</div>
-                     ${message.text ? `<div class="mb-2 break-words">${message.text}</div>` : ''}
-                     <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
-                 </div>
-             `;
+             // Format de date
+             const messageDate = new Date(message.timestamp);
+             const timeString = messageDate.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+             
+             // Message de l'admin (à droite, bleu)
+             if (isAdmin) {
+                 messageDiv.innerHTML = `
+                     <div class="flex flex-col items-end max-w-[70%]">
+                         <div class="bg-primary text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-md">
+                             <div class="text-sm font-medium mb-1">${message.senderName || 'Admin'}</div>
+                             <div class="text-white break-words">${message.text || ''}</div>
+                         </div>
+                         <span class="text-xs text-text-muted mt-1 px-2">${timeString}</span>
+                     </div>
+                 `;
+             } 
+             // Message du client (à gauche, gris)
+             else if (isClient) {
+                 messageDiv.innerHTML = `
+                     <div class="flex flex-col items-start max-w-[70%]">
+                         <div class="bg-white border border-border rounded-2xl rounded-tl-sm px-4 py-3 shadow-sm">
+                             <div class="text-sm font-semibold text-primary mb-1">${message.senderName || 'Client'}</div>
+                             <div class="text-text-primary break-words">${message.text || ''}</div>
+                         </div>
+                         <span class="text-xs text-text-muted mt-1 px-2">${timeString}</span>
+                     </div>
+                 `;
+             }
              
              messagesContainer.appendChild(messageDiv);
+             console.log('✅ Message added to container. Total messages:', messagesContainer.children.length);
+             
              if (typeof scrollAdminChatToBottom === 'function') {
                  scrollAdminChatToBottom();
              }
