@@ -1891,77 +1891,112 @@
                     if (response.ok) {
                         const updatedShipment = await response.json();
                         
-                        // Always update map if we have coordinates (even if status is pending)
+                        // Calculer les coordonnées même si currentLocation n'existe pas
+                        const originCoords = updatedShipment.sender?.address?.lat && updatedShipment.sender?.address?.lng
+                            ? [updatedShipment.sender.address.lat, updatedShipment.sender.address.lng]
+                            : getCityCoordinates(updatedShipment.sender?.address?.city || 'New York');
+                        
+                        const destCoords = updatedShipment.recipient?.address?.lat && updatedShipment.recipient?.address?.lng
+                            ? [updatedShipment.recipient.address.lat, updatedShipment.recipient.address.lng]
+                            : getCityCoordinates(updatedShipment.recipient?.address?.city || 'Washington');
+                        
+                        // Déterminer les nouvelles coordonnées
+                        let newCoords = null;
                         if (updatedShipment.currentLocation?.lat && updatedShipment.currentLocation?.lng) {
-                            const originCoords = updatedShipment.sender?.address?.lat && updatedShipment.sender?.address?.lng
-                                ? [updatedShipment.sender.address.lat, updatedShipment.sender.address.lng]
-                                : getCityCoordinates(updatedShipment.sender?.address?.city || 'New York');
+                            // Utiliser les coordonnées réelles du serveur
+                            newCoords = [updatedShipment.currentLocation.lat, updatedShipment.currentLocation.lng];
+                            console.log('📍 Using server coordinates:', newCoords);
+                        } else {
+                            // Calculer la position basée sur le statut et la progression
+                            newCoords = calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events);
+                            console.log('📍 Calculated position based on status:', {
+                                status: updatedShipment.status,
+                                progress: calculateProgress(updatedShipment.events || [], updatedShipment.status),
+                                coords: newCoords
+                            });
+                        }
+                        
+                        if (currentMarker && map && newCoords && Array.isArray(newCoords) && newCoords.length === 2) {
+                            const oldCoords = currentMarker.getLatLng();
                             
-                            const destCoords = updatedShipment.recipient?.address?.lat && updatedShipment.recipient?.address?.lng
-                                ? [updatedShipment.recipient.address.lat, updatedShipment.recipient.address.lng]
-                                : getCityCoordinates(updatedShipment.recipient?.address?.city || 'Washington');
+                            // Calculer la différence
+                            const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
+                            const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
                             
-                            const newCoords = [updatedShipment.currentLocation.lat, updatedShipment.currentLocation.lng];
+                            // Mettre à jour si la position change (seuil réduit pour plus de sensibilité)
+                            const coordinateChanged = latDiff > 0.0001 || lngDiff > 0.0001;
                             
-                            if (currentMarker && map) {
-                                const oldCoords = currentMarker.getLatLng();
-                                // Update if position changed (with smaller threshold for more sensitivity)
-                                const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
-                                const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
-                                
-                                // Always update if coordinates changed (smaller threshold for auto-progression)
-                                const coordinateChanged = latDiff > 0.00001 || lngDiff > 0.00001;
-                                
-                                // Extract current city from popup or marker data
-                                let currentCityInPopup = '';
-                                try {
-                                    const popupContent = currentMarker.getPopup()?.getContent() || '';
-                                    const cityMatch = popupContent.match(/<br>(.*?)(?:<|$)/);
-                                    currentCityInPopup = cityMatch ? cityMatch[1].replace(/🚚 Current Location|In Transit/g, '').trim() : '';
-                                } catch (e) {
-                                    currentCityInPopup = shipment.currentLocation?.city || '';
-                                }
-                                const cityChanged = updatedShipment.currentLocation.city && 
-                                                   updatedShipment.currentLocation.city !== currentCityInPopup &&
-                                                   updatedShipment.currentLocation.city !== 'In Transit';
-                                
-                                if (coordinateChanged || cityChanged) {
-                                    console.log(`📍 Map updating: ${updatedShipment.currentLocation.city} at [${newCoords[0].toFixed(4)}, ${newCoords[1].toFixed(4)}]`);
-                                    
-                                    // Smoothly animate marker movement
-                                    currentMarker.setLatLng(newCoords);
-                                    currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${updatedShipment.currentLocation.city || 'In Transit'}`);
-                                    
-                                    // Update route with real coordinates
-                                    const routeDistance = calculateRouteDistance(originCoords, newCoords, destCoords);
-                                    
-                                    if (routePolyline && map) {
-                                        map.removeLayer(routePolyline);
-                                        routePolyline = L.polyline([originCoords, newCoords, destCoords], {
-                                            color: '#3b82f6',
-                                            weight: 5,
-                                            opacity: 0.8,
-                                            dashArray: '10, 10'
-                                        }).addTo(map);
-                                    }
-                                    
-                                    // Update info with route distance
-                                    updateMapInfo(updatedShipment, originCoords, destCoords, newCoords, routeDistance);
-                                    
-                                    // Smoothly pan to new location (only if it's a significant move)
-                                    const distanceMoved = calculateDistance([oldCoords.lat, oldCoords.lng], newCoords);
-                                    if (distanceMoved > 10) { // Only pan if moved more than 10 miles
-                                        map.panTo(newCoords, { animate: true, duration: 1.5 });
-                                    }
-                                } else {
-                                    // Even if coordinates haven't changed, update the info in case status changed
-                                    updateMapInfo(updatedShipment, originCoords, destCoords, newCoords);
-                                }
-                            } else if (!currentMarker && map) {
-                                // Reinitialize map if marker was lost
-                                console.log('Reinitializing map - marker was lost');
-                                initMap(updatedShipment);
+                            // Extraire la ville actuelle
+                            let currentCityInPopup = '';
+                            try {
+                                const popupContent = currentMarker.getPopup()?.getContent() || '';
+                                const cityMatch = popupContent.match(/<br>(.*?)(?:<|$)/);
+                                currentCityInPopup = cityMatch ? cityMatch[1].replace(/🚚 Current Location|In Transit/g, '').trim() : '';
+                            } catch (e) {
+                                currentCityInPopup = updatedShipment.currentLocation?.city || '';
                             }
+                            
+                            const newCity = updatedShipment.currentLocation?.city || 
+                                          (updatedShipment.events && updatedShipment.events.length > 0 
+                                           ? updatedShipment.events[updatedShipment.events.length - 1].location 
+                                           : 'In Transit');
+                            const cityChanged = newCity && newCity !== currentCityInPopup && newCity !== 'In Transit';
+                            
+                            // Toujours mettre à jour si coordonnées ou ville changent, ou si le statut change
+                            const statusChanged = updatedShipment.status !== shipment.status;
+                            
+                            if (coordinateChanged || cityChanged || statusChanged) {
+                                console.log(`📍 Map updating:`, {
+                                    city: newCity,
+                                    coords: newCoords,
+                                    status: updatedShipment.status,
+                                    coordinateChanged,
+                                    cityChanged,
+                                    statusChanged
+                                });
+                                
+                                // Animer le mouvement du marqueur
+                                currentMarker.setLatLng(newCoords);
+                                currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${newCity}`);
+                                
+                                // Mettre à jour la route
+                                const routeDistance = calculateRouteDistance(originCoords, newCoords, destCoords);
+                                
+                                if (routePolyline && map) {
+                                    map.removeLayer(routePolyline);
+                                }
+                                routePolyline = L.polyline([originCoords, newCoords, destCoords], {
+                                    color: '#3b82f6',
+                                    weight: 5,
+                                    opacity: 0.8,
+                                    dashArray: '10, 10'
+                                }).addTo(map);
+                                
+                                // Mettre à jour les infos
+                                updateMapInfo(updatedShipment, originCoords, destCoords, newCoords, routeDistance);
+                                
+                                // Centrer la carte si le mouvement est significatif
+                                const distanceMoved = calculateDistance([oldCoords.lat, oldCoords.lng], newCoords);
+                                if (distanceMoved > 5) { // Pan si déplacé de plus de 5 miles
+                                    map.panTo(newCoords, { animate: true, duration: 1.5 });
+                                }
+                                
+                                // Mettre à jour la barre de progression
+                                const progress = calculateProgress(updatedShipment.events || [], updatedShipment.status);
+                                const progressBar = document.getElementById('progress-bar');
+                                if (progressBar) {
+                                    progressBar.style.width = progress + '%';
+                                }
+                            } else {
+                                // Mettre à jour les infos même si la position n'a pas changé
+                                updateMapInfo(updatedShipment, originCoords, destCoords, newCoords);
+                            }
+                            
+                            // Mettre à jour shipment pour la prochaine itération
+                            shipment = updatedShipment;
+                        } else if (!currentMarker || !map) {
+                            console.warn('⚠️ Map or marker not initialized, reinitializing...');
+                            initMap(updatedShipment);
                         } else {
                             console.log('⚠️ No coordinates available for shipment:', updatedShipment.currentLocation);
                         }
