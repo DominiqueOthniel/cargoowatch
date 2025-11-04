@@ -2165,6 +2165,20 @@
                             console.log('⚠️ No coordinates available for shipment:', updatedShipment.currentLocation);
                         }
                         
+                        // Mettre à jour shipment pour la progression continue
+                        shipment = updatedShipment;
+                        
+                        // Arrêter la progression continue si livré ou pending
+                        if (updatedShipment.status === 'delivered' || updatedShipment.status === 'pending') {
+                            if (continuousProgressionInterval) {
+                                clearInterval(continuousProgressionInterval);
+                                continuousProgressionInterval = null;
+                            }
+                        } else if (!continuousProgressionInterval) {
+                            // Redémarrer la progression continue si le statut change vers actif
+                            startRealtimeTracking(updatedShipment);
+                        }
+                        
                         // Stop tracking if delivered
                         if (updatedShipment.status === 'delivered') {
                             if (trackingInterval) {
