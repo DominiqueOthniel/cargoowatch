@@ -1,0 +1,20 @@
+[
+  {
+    "id": "46432134-7ab8-45ce-a2cf-dc0dc2df43cc",
+    "username": "admin",
+    "email": "admin@cargowatch.com",
+    "password": "$2a$10$yD.jUcIncGwMYHbaTntK5Owl3n2XzVCXE1HD5MePWLRrn6ZUCGTlm",
+    "role": "admin",
+    "createdAt": "2025-11-02T17:18:21.358Z"
+  },
+  {
+    "id": "5718a885-ca83-486a-994c-37a77372f900",
+    "username": "Dau",
+    "email": "merciel2006@icloud.com",
+    "password": "$2a$10$vooB9vDSRz/I8ql6q0KRo.AJMIV4wTjgweYFD1dPxDxxCnhKsKCse",
+    "firstName": "Dominique",
+    "lastName": "Othniel",
+    "role": "client",
+    "createdAt": "2025-11-02T17:21:21.601Z"
+  }
+]

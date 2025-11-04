@@ -1,0 +1,3387 @@
+[
+  {
+    "id": "36b7a266-72e0-4b33-9adb-b798b2c78c0f",
+    "trackingId": "CW202511027FZUBXEF",
+    "status": "pending",
+    "createdAt": "2025-11-02T20:33:24.227Z",
+    "updatedAt": "2025-11-02T20:34:04.908Z",
+    "sender": {
+      "name": "Mike Johnson",
+      "email": "mike.johnson@email.com",
+      "phone": "+1-405-555-0300",
+      "address": {
+        "street": "789 Oak Avenue",
+        "city": "Oklahoma City",
+        "state": "OK",
+        "zipCode": "73102",
+        "country": "US",
+        "lat": null,
+        "lng": null
+      }
+    },
+    "recipient": {
+      "name": "Sarah Williams",
+      "email": "sarah.williams@email.com",
+      "phone": "+1-323-555-0400",
+      "address": {
+        "street": "123 Hollywood Boulevard",
+        "city": "Los Angeles",
+        "state": "CA",
+        "zipCode": "90028",
+        "country": "US",
+        "lat": 34.0522,
+        "lng": -118.2437
+      }
+    },
+    "package": {
+      "type": "vehicle",
+      "weight": 4200,
+      "dimensions": {
+        "length": 205,
+        "width": 78,
+        "height": 58
+      },
+      "description": "Dodge Vehicle",
+      "value": 9000,
+      "vehicle": {
+        "make": "Dodge",
+        "condition": "running",
+        "model": "Charger",
+        "year": "2020",
+        "vin": ""
+      }
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "a8faf56f-fd5f-4bfc-870d-21c38578d75c",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Oklahoma City",
+        "timestamp": "2025-11-02T20:33:24.227Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 30,
+      "shipping": 180,
+      "insurance": 90,
+      "total": 300
+    },
+    "estimatedDelivery": null,
+    "currentLocation": {
+      "lat": null,
+      "lng": null,
+      "city": "Oklahoma City"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "receipt": "/receipts/receipt-CW202511027FZUBXEF-1762115644803.pdf",
+    "receiptUploadedAt": "2025-11-02T20:34:04.908Z"
+  },
+  {
+    "id": "a8c5d9e2-4f1a-4b6c-8e3d-2f7a9b4c5d6e",
+    "trackingId": "CW20251102ANYCAR7X",
+    "status": "in_transit",
+    "createdAt": "2025-11-02T18:15:30.000Z",
+    "updatedAt": "2025-11-02T21:21:27.274Z",
+    "sender": {
+      "name": "AnyCar Dealership",
+      "email": "shipping@anycar.com",
+      "phone": "+1-555-0123",
+      "address": {
+        "street": "456 Auto Boulevard",
+        "city": "Miami",
+        "state": "FL",
+        "zipCode": "33139",
+        "country": "US",
+        "lat": 25.7617,
+        "lng": -80.1918
+      }
+    },
+    "recipient": {
+      "name": "David Martinez",
+      "email": "david.martinez@email.com",
+      "phone": "+1-214-555-0500",
+      "address": {
+        "street": "789 Commerce Street",
+        "city": "Dallas",
+        "state": "TX",
+        "zipCode": "75201",
+        "country": "US",
+        "lat": 32.7767,
+        "lng": -96.797
+      }
+    },
+    "package": {
+      "type": "vehicle",
+      "weight": 3800,
+      "dimensions": {
+        "length": 185,
+        "width": 73,
+        "height": 57
+      },
+      "description": "Tesla Model 3 Vehicle",
+      "value": 42000,
+      "vehicle": {
+        "make": "Tesla",
+        "condition": "running",
+        "model": "Model 3",
+        "year": "2023",
+        "vin": "5YJ3E1EA3PF123456"
+      }
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Miami",
+        "timestamp": "2025-11-02T18:15:30.000Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
+        "status": "picked_up",
+        "title": "Package Picked Up",
+        "description": "Vehicle has been picked up from sender location",
+        "location": "Miami, FL",
+        "timestamp": "2025-11-02T19:30:00.000Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "d3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a",
+        "status": "in_transit",
+        "title": "In Transit",
+        "description": "Vehicle is in transit to destination",
+        "location": "Tampa, FL",
+        "timestamp": "2025-11-02T21:45:12.000Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 45,
+      "shipping": 850,
+      "insurance": 420,
+      "total": 1315
+    },
+    "estimatedDelivery": "2025-11-05T17:00:00.000Z",
+    "currentLocation": {
+      "lat": 30.014689012649878,
+      "lng": -90.25904635108392,
+      "city": "In Transit"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-02T19:30:00.000Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "receipt": "/receipts/receipt-CW20251102ANYCAR7X-1762118486876.pdf",
+    "receiptUploadedAt": "2025-11-02T21:21:27.274Z"
+  },
+  {
+    "id": "f3a554ef-6ad0-4362-8377-c108a428860c",
+    "trackingId": "CW20251102GTVUZQ54",
+    "status": "pending",
+    "createdAt": "2025-11-02T22:00:00.000Z",
+    "updatedAt": "2025-11-02T22:14:36.192Z",
+    "sender": {
+      "name": "Robert Chen",
+      "email": "robert.chen@email.com",
+      "phone": "+1-415-555-0600",
+      "address": {
+        "street": "456 Market Street",
+        "city": "San Francisco",
+        "state": "CA",
+        "zipCode": "94102",
+        "country": "US",
+        "lat": 37.7749,
+        "lng": -122.4194
+      }
+    },
+    "recipient": {
+      "name": "Emily Davis",
+      "email": "emily.davis@email.com",
+      "phone": "+1-206-555-0700",
+      "address": {
+        "street": "789 Pike Street",
+        "city": "Seattle",
+        "state": "WA",
+        "zipCode": "98101",
+        "country": "US",
+        "lat": 47.6062,
+        "lng": -122.3321
+      }
+    },
+    "package": {
+      "type": "custom",
+      "weight": 25.5,
+      "dimensions": {
+        "length": 24,
+        "width": 18,
+        "height": 12
+      },
+      "description": "Electronics - Laptop and accessories",
+      "value": 1500,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "e4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "San Francisco",
+        "timestamp": "2025-11-02T22:00:00.000Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 25,
+      "shipping": 65,
+      "insurance": 75,
+      "total": 165
+    },
+    "estimatedDelivery": "2025-11-06T18:00:00.000Z",
+    "currentLocation": {
+      "lat": 37.7749,
+      "lng": -122.4194,
+      "city": "San Francisco"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "receipt": "/receipts/receipt-CW20251102GTVUZQ54-1762121676100.pdf",
+    "receiptUploadedAt": "2025-11-02T22:14:36.192Z"
+  },
+  {
+    "id": "6f398fa4-4440-425c-a580-770b094c8477",
+    "trackingId": "CW20251102THWTVK7S",
+    "status": "pending",
+    "createdAt": "2025-11-02T22:28:48.592Z",
+    "updatedAt": "2025-11-02T22:29:45.998Z",
+    "sender": {
+      "name": "Alice Brown",
+      "email": "alice.brown@email.com",
+      "phone": "+1-512-555-0500",
+      "address": {
+        "street": "321 Tech Park Drive",
+        "city": "Austin",
+        "state": "TX",
+        "zipCode": "78701",
+        "country": "US",
+        "lat": null,
+        "lng": null
+      }
+    },
+    "recipient": {
+      "name": "Robert Davis",
+      "email": "robert.davis@email.com",
+      "phone": "+1-305-555-0600",
+      "address": {
+        "street": "654 Ocean View Street",
+        "city": "Miami",
+        "state": "FL",
+        "zipCode": "33101",
+        "country": "US",
+        "lat": 25.7617,
+        "lng": -80.1918
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 25.5,
+      "dimensions": {
+        "length": 30,
+        "width": 20,
+        "height": 15
+      },
+      "description": "Electronic equipment shipment",
+      "value": 3500,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "eb985dd9-e97d-43d5-b5a1-58e7b9953f41",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Austin",
+        "timestamp": "2025-11-02T22:28:48.592Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 20,
+      "shipping": 45,
+      "insurance": 35,
+      "total": 100
+    },
+    "estimatedDelivery": null,
+    "currentLocation": {
+      "lat": null,
+      "lng": null,
+      "city": "Austin"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "receipt": "/receipts/receipt-CW20251102THWTVK7S-1762122585063.pdf",
+    "receiptUploadedAt": "2025-11-02T22:29:45.998Z"
+  },
+  {
+    "id": "946915c8-6fbf-45b3-be4b-30cca2299cfc",
+    "trackingId": "CW20251102PEFDZNPT",
+    "status": "pending",
+    "createdAt": "2025-11-02T22:49:37.018Z",
+    "updatedAt": "2025-11-02T22:49:37.018Z",
+    "sender": {
+      "name": "Pierre Dubois",
+      "email": "pierre@example.com",
+      "phone": "+33 1 23 45 67 89",
+      "address": {
+        "street": "15 Avenue des Champs-�?lysées",
+        "city": "Paris",
+        "state": "�Zle-de-France",
+        "zipCode": "75008",
+        "country": "FR",
+        "lat": 48.8566,
+        "lng": 2.3522
+      }
+    },
+    "recipient": {
+      "name": "Ahmed Hassan",
+      "email": "ahmed@example.com",
+      "phone": "+234 1 234 5678",
+      "address": {
+        "street": "10 Broad Street",
+        "city": "Lagos",
+        "state": "Lagos State",
+        "zipCode": "101001",
+        "country": "NG",
+        "lat": 6.5244,
+        "lng": 3.3792
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 5.5,
+      "dimensions": {
+        "length": 30,
+        "width": 20,
+        "height": 15
+      },
+      "description": "Electronics shipment from France to Nigeria",
+      "value": 500,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "008bc81b-416b-4e40-b5d6-121d5f269b51",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-02T22:49:37.018Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 25,
+      "shipping": 45,
+      "insurance": 10,
+      "total": 80
+    },
+    "estimatedDelivery": "2025-11-09T07:49:37.018Z",
+    "currentLocation": {
+      "lat": 48.8566,
+      "lng": 2.3522,
+      "city": "Paris"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    }
+  },
+  {
+    "id": "2f182eaa-bb62-4bf0-9a24-f3f037cfe3ed",
+    "trackingId": "CW20251102YZDX05JY",
+    "status": "pending",
+    "createdAt": "2025-11-02T22:51:00.860Z",
+    "updatedAt": "2025-11-02T22:51:00.860Z",
+    "sender": {
+      "name": "Pierre Dubois",
+      "email": "pierre@example.com",
+      "phone": "+33 1 23 45 67 89",
+      "address": {
+        "street": "15 Avenue des Champs-�?lysées",
+        "city": "Paris",
+        "state": "�Zle-de-France",
+        "zipCode": "75008",
+        "country": "FR",
+        "lat": 48.8566,
+        "lng": 2.3522
+      }
+    },
+    "recipient": {
+      "name": "Ahmed Hassan",
+      "email": "ahmed@example.com",
+      "phone": "+234 1 234 5678",
+      "address": {
+        "street": "10 Broad Street",
+        "city": "Lagos",
+        "state": "Lagos State",
+        "zipCode": "101001",
+        "country": "NG",
+        "lat": 6.5244,
+        "lng": 3.3792
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 5.5,
+      "dimensions": {
+        "length": 30,
+        "width": 20,
+        "height": 15
+      },
+      "description": "Electronics shipment from France to Nigeria",
+      "value": 500,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "24267ed6-e8fe-42ad-9dce-c8a4f3ea6136",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-02T22:51:00.860Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 25,
+      "shipping": 45,
+      "insurance": 10,
+      "total": 80
+    },
+    "estimatedDelivery": "2025-11-09T07:49:37.018Z",
+    "currentLocation": {
+      "lat": 48.8566,
+      "lng": 2.3522,
+      "city": "Paris"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    }
+  },
+  {
+    "id": "86e00bf0-d987-4545-8a8a-55b2ca975c46",
+    "trackingId": "CW20251102HT20376E",
+    "status": "out_for_delivery",
+    "createdAt": "2025-11-02T22:51:14.574Z",
+    "updatedAt": "2025-11-02T22:55:59.269Z",
+    "sender": {
+      "name": "Pierre Dubois",
+      "email": "pierre@example.com",
+      "phone": "+33 1 23 45 67 89",
+      "address": {
+        "street": "15 Avenue des Champs-�?lysées",
+        "city": "Paris",
+        "state": "�Zle-de-France",
+        "zipCode": "75008",
+        "country": "FR",
+        "lat": 48.8566,
+        "lng": 2.3522
+      }
+    },
+    "recipient": {
+      "name": "Ahmed Hassan",
+      "email": "ahmed@example.com",
+      "phone": "+234 1 234 5678",
+      "address": {
+        "street": "10 Broad Street",
+        "city": "Lagos",
+        "state": "Lagos State",
+        "zipCode": "101001",
+        "country": "NG",
+        "lat": 6.5244,
+        "lng": 3.3792
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 5.5,
+      "dimensions": {
+        "length": 30,
+        "width": 20,
+        "height": 15
+      },
+      "description": "Electronics shipment from France to Nigeria",
+      "value": 500,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "89e761ec-1d52-4d93-bb2e-44595d472542",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-02T22:51:14.574Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "bb15e827-ebb2-4db6-b3c5-c7587ed79945",
+        "status": "out_for_delivery",
+        "title": "Out for Delivery",
+        "description": "Status changed to out_for_delivery - Location: Paris",
+        "location": "Paris",
+        "timestamp": "2025-11-02T22:55:59.268Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 25,
+      "shipping": 45,
+      "insurance": 10,
+      "total": 80
+    },
+    "estimatedDelivery": "2025-11-09T07:49:37.018Z",
+    "currentLocation": {
+      "lat": 38.14086425192756,
+      "lng": 2.6121690215313733,
+      "city": "In Transit"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-02T22:55:59.268Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    }
+  },
+  {
+    "id": "44df9da7-0e51-449c-bf86-c4de722713f0",
+    "trackingId": "CW20251103XUX3F6G8",
+    "status": "picked_up",
+    "createdAt": "2025-11-02T23:14:04.987Z",
+    "updatedAt": "2025-11-03T10:55:55.120Z",
+    "sender": {
+      "name": "Klaus Schmidt",
+      "email": "klaus.schmidt@email.com",
+      "phone": "+49-30-12345678",
+      "address": {
+        "street": "Friedrichstra�Ye 123",
+        "city": "Berlin",
+        "state": "",
+        "zipCode": "10117",
+        "country": "DE",
+        "lat": 52.52,
+        "lng": 13.405
+      }
+    },
+    "recipient": {
+      "name": "Anna Müller",
+      "email": "anna.mueller@email.com",
+      "phone": "+49-89-98765432",
+      "address": {
+        "street": "Marienplatz 15",
+        "city": "Munich",
+        "state": "",
+        "zipCode": "80331",
+        "country": "DE",
+        "lat": 48.1351,
+        "lng": 11.582
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 12.5,
+      "dimensions": {
+        "length": 25,
+        "width": 18,
+        "height": 12
+      },
+      "description": "Electronics equipment shipment",
+      "value": 1200,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "c5fb4ce8-50d3-4fe6-befe-40621b6cf5db",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Berlin",
+        "timestamp": "2025-11-02T23:14:04.987Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "fe62ef16-a5a9-436f-831b-b95205f537f6",
+        "status": "pending",
+        "title": "Pending Pickup",
+        "description": "Status changed to pending - Location: Berlin",
+        "location": "Berlin",
+        "timestamp": "2025-11-03T10:55:47.709Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "99f86620-51a2-4e1a-abde-502376e3439e",
+        "status": "picked_up",
+        "title": "Picked Up",
+        "description": "Status changed to picked_up - Location: Berlin",
+        "location": "Berlin",
+        "timestamp": "2025-11-03T10:55:55.120Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 15,
+      "shipping": 25,
+      "insurance": 12,
+      "total": 52
+    },
+    "estimatedDelivery": "2025-11-03T15:14:04.987Z",
+    "currentLocation": {
+      "lat": 48.1351,
+      "lng": 11.582,
+      "city": "Munich"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T10:55:55.120Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    }
+  },
+  {
+    "id": "60bfda71-8980-4af0-b02a-4010bc4380b9",
+    "trackingId": "CW202511037Q6WFRLM",
+    "status": "in_transit",
+    "createdAt": "2025-11-03T00:07:24.020Z",
+    "updatedAt": "2025-11-03T10:55:45.000Z",
+    "sender": {
+      "name": "Marie Dubois",
+      "email": "marie.dubois@email.com",
+      "phone": "+33-1-42-34-56-78",
+      "address": {
+        "street": "45 Rue de la République",
+        "city": "Lyon",
+        "state": "",
+        "zipCode": "69001",
+        "country": "FR",
+        "lat": 45.764,
+        "lng": 4.8357
+      }
+    },
+    "recipient": {
+      "name": "John Smith",
+      "email": "john.smith@email.com",
+      "phone": "+44-20-7123-4567",
+      "address": {
+        "street": "123 High Street",
+        "city": "London",
+        "state": "",
+        "zipCode": "SW1A 1AA",
+        "country": "GB",
+        "lat": 51.5074,
+        "lng": -0.1278
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 8.5,
+      "dimensions": {
+        "length": 20,
+        "width": 15,
+        "height": 10
+      },
+      "description": "Electronic devices shipment",
+      "value": 850,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "a072b2d4-3b8e-4a11-981c-76511275e236",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Lyon",
+        "timestamp": "2025-11-03T00:07:24.020Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "05e6f532-1937-4ad1-8fe9-5d57d3c57dc0",
+        "status": "in_transit",
+        "title": "In Transit",
+        "description": "Status changed to in_transit - Location: Lyon",
+        "location": "Lyon",
+        "timestamp": "2025-11-03T10:55:44.998Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 18,
+      "shipping": 35,
+      "insurance": 8.5,
+      "total": 61.5
+    },
+    "estimatedDelivery": "2025-11-05T20:07:24.020Z",
+    "currentLocation": {
+      "lat": 48.44586345115648,
+      "lng": 2.518008521117252,
+      "city": "In Transit"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T10:55:44.999Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "receipt": "/receipts/receipt-CW202511037Q6WFRLM-1762128555156.pdf",
+    "receiptUploadedAt": "2025-11-03T00:09:15.595Z"
+  },
+  {
+    "id": "85c44a11-94c1-48ec-9324-f64b7ab1d777",
+    "trackingId": "CW20251103BIR3XRG4",
+    "status": "exception",
+    "createdAt": "2025-11-03T00:25:58.919Z",
+    "updatedAt": "2025-11-03T10:55:36.777Z",
+    "sender": {
+      "name": "Carlos Rodriguez",
+      "email": "carlos.rodriguez@email.com",
+      "phone": "+34-91-123-4567",
+      "address": {
+        "street": "Calle Gran Vía 45",
+        "city": "Madrid",
+        "state": "",
+        "zipCode": "28013",
+        "country": "ES",
+        "lat": 40.4168,
+        "lng": -3.7038
+      }
+    },
+    "recipient": {
+      "name": "Emma Thompson",
+      "email": "emma.thompson@email.com",
+      "phone": "+44-20-7234-5678",
+      "address": {
+        "street": "456 King's Road",
+        "city": "London",
+        "state": "",
+        "zipCode": "SW10 0BB",
+        "country": "GB",
+        "lat": 51.5074,
+        "lng": -0.1278
+      }
+    },
+    "package": {
+      "type": "furniture",
+      "weight": 45,
+      "dimensions": {
+        "length": 60,
+        "width": 40,
+        "height": 35
+      },
+      "description": "Furniture shipment from Spain",
+      "value": 1250,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "86ffc2e0-06a6-43ef-bb43-c761ec8f9b08",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Madrid",
+        "timestamp": "2025-11-03T00:25:58.919Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "d022b1a3-0ec5-4f14-a448-4759fc9aaff9",
+        "status": "exception",
+        "title": "Exception",
+        "description": "Status changed to exception - Location: Madrid",
+        "location": "Madrid",
+        "timestamp": "2025-11-03T10:55:36.776Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 28,
+      "shipping": 85,
+      "insurance": 62.5,
+      "total": 175.5
+    },
+    "estimatedDelivery": "2025-11-03T23:25:58.920Z",
+    "currentLocation": {
+      "lat": 51.5074,
+      "lng": -0.1278,
+      "city": "London"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T10:55:36.777Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "receipt": "/receipts/receipt-CW20251103BIR3XRG4-1762129590699.pdf",
+    "receiptUploadedAt": "2025-11-03T00:26:30.905Z"
+  },
+  {
+    "id": "ae416cfd-8060-452e-875d-7eaf9b3f56da",
+    "trackingId": "CW202511037WBTW83V",
+    "status": "out_for_delivery",
+    "createdAt": "2025-11-03T00:33:46.722Z",
+    "updatedAt": "2025-11-03T10:55:29.550Z",
+    "sender": {
+      "name": "James Wilson",
+      "email": "james.wilson@email.com",
+      "phone": "+1-312-555-0123",
+      "address": {
+        "street": "789 Michigan Avenue",
+        "city": "Chicago",
+        "state": "IL",
+        "zipCode": "60611",
+        "country": "US",
+        "lat": 41.8781,
+        "lng": -87.6298
+      }
+    },
+    "recipient": {
+      "name": "Maria Garcia",
+      "email": "maria.garcia@email.com",
+      "phone": "+1-713-555-0456",
+      "address": {
+        "street": "321 Main Street",
+        "city": "Houston",
+        "state": "TX",
+        "zipCode": "77002",
+        "country": "US",
+        "lat": 29.7604,
+        "lng": -95.3698
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 18.5,
+      "dimensions": {
+        "length": 28,
+        "width": 22,
+        "height": 16
+      },
+      "description": "Computer equipment and accessories",
+      "value": 2200,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "a83ce8e6-58c6-4254-9ea4-c2b0937bb9cc",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Chicago",
+        "timestamp": "2025-11-03T00:33:46.722Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "645d9570-d3e0-4455-b27b-1592648da362",
+        "status": "out_for_delivery",
+        "title": "Out for Delivery",
+        "description": "Status changed to out_for_delivery - Location: Chicago",
+        "location": "Chicago",
+        "timestamp": "2025-11-03T10:55:29.549Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 22,
+      "shipping": 55,
+      "insurance": 22,
+      "total": 99
+    },
+    "estimatedDelivery": "2025-11-04T02:33:46.724Z",
+    "currentLocation": {
+      "lat": 29.7604,
+      "lng": -95.3698,
+      "city": "Houston"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T10:55:29.549Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    }
+  },
+  {
+    "id": "efe86feb-1b52-4bad-a3fe-86dc60bd3fd1",
+    "trackingId": "CW202511036VZKE68H",
+    "status": "in_transit",
+    "createdAt": "2025-11-03T00:43:18.587Z",
+    "updatedAt": "2025-11-03T01:01:17.176Z",
+    "sender": {
+      "name": "Sarah Johnson",
+      "email": "sarah.johnson@email.com",
+      "phone": "+1-415-555-0198",
+      "address": {
+        "street": "456 Market Street",
+        "city": "San Francisco",
+        "state": "CA",
+        "zipCode": "94102",
+        "country": "US",
+        "lat": 37.7749,
+        "lng": -122.4194
+      }
+    },
+    "recipient": {
+      "name": "David Chen",
+      "email": "david.chen@email.com",
+      "phone": "+1-206-555-0321",
+      "address": {
+        "street": "789 Pine Avenue",
+        "city": "Seattle",
+        "state": "WA",
+        "zipCode": "98101",
+        "country": "US",
+        "lat": 47.6062,
+        "lng": -122.3321
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 12.5,
+      "dimensions": {
+        "length": 24,
+        "width": 18,
+        "height": 12
+      },
+      "description": "Laptop and accessories package",
+      "value": 1500,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "9c60ecf6-b866-4e0b-a3eb-a29b85baf312",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "San Francisco",
+        "timestamp": "2025-11-03T00:43:18.587Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "16ab9ba8-4607-4179-88d7-a41dfeffd985",
+        "status": "in_transit",
+        "title": "In Transit",
+        "description": "Status changed to in_transit - Location: San Francisco",
+        "location": "San Francisco",
+        "timestamp": "2025-11-03T01:01:17.175Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 20,
+      "shipping": 45,
+      "insurance": 15,
+      "total": 80
+    },
+    "estimatedDelivery": "2025-11-03T21:43:18.588Z",
+    "currentLocation": {
+      "lat": 47.6062,
+      "lng": -122.3321,
+      "city": "Seattle"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T01:01:17.175Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "receipt": "/receipts/receipt-CW202511036VZKE68H-1762130625356.pdf",
+    "receiptUploadedAt": "2025-11-03T00:43:45.889Z"
+  },
+  {
+    "id": "6bcc6dd5-9033-4d85-9a45-aebc195bab58",
+    "trackingId": "CW20251103S7CPCP9K",
+    "status": "out_for_delivery",
+    "createdAt": "2025-11-03T01:05:43.895Z",
+    "updatedAt": "2025-11-03T01:18:14.805Z",
+    "sender": {
+      "name": "Pierre Nkeng",
+      "email": "pierre.nkeng@email.com",
+      "phone": "+237-6-5555-1234",
+      "address": {
+        "street": "123 Boulevard de la République",
+        "city": "Douala",
+        "state": "Littoral",
+        "zipCode": "00237",
+        "country": "CM",
+        "lat": 4.0511,
+        "lng": 9.7679
+      }
+    },
+    "recipient": {
+      "name": "Marie Mbarga",
+      "email": "marie.mbarga@email.com",
+      "phone": "+237-6-5555-5678",
+      "address": {
+        "street": "456 Avenue Kennedy",
+        "city": "Yaoundé",
+        "state": "Centre",
+        "zipCode": "00237",
+        "country": "CM",
+        "lat": 3.848,
+        "lng": 11.5021
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 8.5,
+      "dimensions": {
+        "length": 22,
+        "width": 16,
+        "height": 10
+      },
+      "description": "Electronics package",
+      "value": 450,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "f73d002c-7e93-46cf-9ec2-128c64b24c6a",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Douala",
+        "timestamp": "2025-11-03T01:05:43.895Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "283912a6-0e01-4e2e-9ede-b9c86211cc93",
+        "status": "picked_up",
+        "title": "Picked Up",
+        "description": "Status changed to picked_up - Location: Douala",
+        "location": "Douala",
+        "timestamp": "2025-11-03T01:17:31.531Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "9ee8d890-d229-44f4-af19-7f5514ffd31e",
+        "status": "in_transit",
+        "title": "In Transit",
+        "description": "Status changed to in_transit - Location: In Transit",
+        "location": "In Transit",
+        "timestamp": "2025-11-03T01:17:59.305Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "89486f94-79e6-443f-8155-d164b2dcbdbb",
+        "status": "out_for_delivery",
+        "title": "Out for Delivery",
+        "description": "Status changed to out_for_delivery - Location: In Transit",
+        "location": "In Transit",
+        "timestamp": "2025-11-03T01:18:14.805Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 15,
+      "shipping": 35,
+      "insurance": 4.5,
+      "total": 54.5
+    },
+    "estimatedDelivery": "2025-11-04T01:05:43.895Z",
+    "currentLocation": {
+      "lat": 3.848,
+      "lng": 11.5021,
+      "city": "Yaoundé"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T01:17:31.531Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "receipt": "/receipts/receipt-CW20251103S7CPCP9K-1762132657023.pdf",
+    "receiptUploadedAt": "2025-11-03T01:17:37.266Z"
+  },
+  {
+    "id": "b9084dbb-9ede-4cbc-8959-43d1be459269",
+    "trackingId": "CW20251103MRGP6VBJ",
+    "status": "delivered",
+    "createdAt": "2025-11-03T01:19:56.215Z",
+    "updatedAt": "2025-11-03T01:22:32.772Z",
+    "sender": {
+      "name": "Thomas Anderson",
+      "email": "thomas.anderson@email.com",
+      "phone": "+1-214-555-0888",
+      "address": {
+        "street": "789 Main Street",
+        "city": "Dallas",
+        "state": "TX",
+        "zipCode": "75201",
+        "country": "US",
+        "lat": 32.7767,
+        "lng": -96.797
+      }
+    },
+    "recipient": {
+      "name": "Jennifer Martinez",
+      "email": "jennifer.martinez@email.com",
+      "phone": "+1-512-555-0999",
+      "address": {
+        "street": "321 Congress Avenue",
+        "city": "Austin",
+        "state": "TX",
+        "zipCode": "78701",
+        "country": "US",
+        "lat": 30.2672,
+        "lng": -97.7431
+      }
+    },
+    "package": {
+      "type": "documents",
+      "weight": 2.5,
+      "dimensions": {
+        "length": 12,
+        "width": 9,
+        "height": 2
+      },
+      "description": "Important business documents",
+      "value": 150,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": false
+    },
+    "events": [
+      {
+        "id": "10dfc3b1-aeaf-41ce-9283-63dc6101e177",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Dallas",
+        "timestamp": "2025-11-03T01:19:56.215Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "fb77c27f-d1a4-4e73-b3ea-7fd0dd202186",
+        "status": "delivered",
+        "title": "Delivered",
+        "description": "Status changed to delivered - Location: Dallas",
+        "location": "Dallas",
+        "timestamp": "2025-11-03T01:22:32.772Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 18,
+      "shipping": 28,
+      "insurance": 0,
+      "total": 46
+    },
+    "estimatedDelivery": "2025-11-03T17:19:56.215Z",
+    "currentLocation": {
+      "lat": 30.2672,
+      "lng": -97.7431,
+      "city": "Austin"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "receipt": "/receipts/receipt-CW20251103MRGP6VBJ-1762132901344.pdf",
+    "receiptUploadedAt": "2025-11-03T01:21:41.475Z",
+    "deliveredAt": "2025-11-03T01:22:32.772Z"
+  },
+  {
+    "id": "8e277ebf-df3f-419d-930e-790c30cf8ebb",
+    "trackingId": "CW20251103SS4AGCXR",
+    "status": "in_transit",
+    "createdAt": "2025-11-03T01:23:37.974Z",
+    "updatedAt": "2025-11-03T01:35:49.893Z",
+    "sender": {
+      "name": "Robert Kim",
+      "email": "robert.kim@email.com",
+      "phone": "+1-305-555-0145",
+      "address": {
+        "street": "567 Ocean Drive",
+        "city": "Miami",
+        "state": "FL",
+        "zipCode": "33139",
+        "country": "US",
+        "lat": 25.7617,
+        "lng": -80.1918
+      }
+    },
+    "recipient": {
+      "name": "Amanda Rodriguez",
+      "email": "amanda.rodriguez@email.com",
+      "phone": "+1-404-555-0256",
+      "address": {
+        "street": "890 Peachtree Street",
+        "city": "Atlanta",
+        "state": "GA",
+        "zipCode": "30309",
+        "country": "US",
+        "lat": 33.749,
+        "lng": -84.388
+      }
+    },
+    "package": {
+      "type": "furniture",
+      "weight": 85,
+      "dimensions": {
+        "length": 60,
+        "width": 36,
+        "height": 42
+      },
+      "description": "Antique wooden table",
+      "value": 1200,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "b4e0722c-cf78-48bd-82ae-c240b20fdd8b",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Miami",
+        "timestamp": "2025-11-03T01:23:37.974Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "594ad3bf-5f01-41fb-a5b0-1cd147e400a4",
+        "status": "delivered",
+        "title": "Delivered",
+        "description": "Status changed to delivered - Location: Miami",
+        "location": "Miami",
+        "timestamp": "2025-11-03T01:25:13.983Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "94c4b0ab-8ae0-4a86-a68e-9b143c2f8e48",
+        "status": "in_transit",
+        "title": "In Transit",
+        "description": "Status changed to in_transit - Location: Atlanta",
+        "location": "Atlanta",
+        "timestamp": "2025-11-03T01:35:49.892Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 35,
+      "shipping": 120,
+      "insurance": 12,
+      "total": 167
+    },
+    "estimatedDelivery": "2025-11-05T01:23:37.974Z",
+    "currentLocation": {
+      "lat": 31.79134538416718,
+      "lng": -83.3595285141465,
+      "city": "In Transit"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "deliveredAt": "2025-11-03T01:25:13.984Z",
+    "receipt": "/receipts/receipt-CW20251103SS4AGCXR-1762133118933.pdf",
+    "receiptUploadedAt": "2025-11-03T01:25:19.097Z"
+  },
+  {
+    "id": "94e5316a-0053-4614-a7b1-0180648ecb82",
+    "trackingId": "CW20251103BNXGD7T1",
+    "status": "exception",
+    "createdAt": "2025-11-03T01:36:25.436Z",
+    "updatedAt": "2025-11-03T01:49:23.306Z",
+    "sender": {
+      "name": "Emma Thompson",
+      "email": "emma.thompson@email.com",
+      "phone": "+1-617-555-0789",
+      "address": {
+        "street": "890 Commonwealth Avenue",
+        "city": "Boston",
+        "state": "MA",
+        "zipCode": "02215",
+        "country": "US",
+        "lat": 42.3601,
+        "lng": -71.0589
+      }
+    },
+    "recipient": {
+      "name": "Michael Brown",
+      "email": "michael.brown@email.com",
+      "phone": "+1-202-555-0345",
+      "address": {
+        "street": "456 Pennsylvania Avenue",
+        "city": "Washington",
+        "state": "DC",
+        "zipCode": "20001",
+        "country": "US",
+        "lat": 38.9072,
+        "lng": -77.0369
+      }
+    },
+    "package": {
+      "type": "clothing",
+      "weight": 5.5,
+      "dimensions": {
+        "length": 18,
+        "width": 14,
+        "height": 8
+      },
+      "description": "Premium clothing collection",
+      "value": 750,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "06b70e32-0525-4bea-ae1e-b623a8167061",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Boston",
+        "timestamp": "2025-11-03T01:36:25.436Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "a68b180c-08ce-43e5-bb8c-52983a60188f",
+        "status": "in_transit",
+        "title": "In Transit",
+        "description": "Status changed to in_transit - Location: Boston",
+        "location": "Boston",
+        "timestamp": "2025-11-03T01:37:12.658Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "70d579f9-d3a6-4e52-8cc1-1beae940fe2f",
+        "status": "in_transit",
+        "title": "In Transit",
+        "description": "Status changed to in_transit - Location: Boston",
+        "location": "Boston",
+        "timestamp": "2025-11-03T01:37:24.786Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "739f6d89-9b62-405b-bd63-351c3576d3f3",
+        "status": "out_for_delivery",
+        "title": "Out for Delivery",
+        "description": "Status changed to out_for_delivery - Location: Boston",
+        "location": "Boston",
+        "timestamp": "2025-11-03T01:37:59.188Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "2b9e9d91-8a6f-4ac0-ade7-6db23db692b8",
+        "status": "exception",
+        "title": "Exception",
+        "description": "Status changed to exception - Location: Boston",
+        "location": "Boston",
+        "timestamp": "2025-11-03T01:38:13.553Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "241683d2-7764-4eff-abf4-d4cd02e00e79",
+        "status": "exception",
+        "title": "Exception",
+        "description": "Status changed to exception - Location: Boston",
+        "location": "Boston",
+        "timestamp": "2025-11-03T01:49:23.305Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 18,
+      "shipping": 42,
+      "insurance": 7.5,
+      "total": 67.5
+    },
+    "estimatedDelivery": "2025-11-03T16:36:25.437Z",
+    "currentLocation": {
+      "lat": 38.9072,
+      "lng": -77.0369,
+      "city": "Washington"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T01:37:12.659Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "receipt": "/receipts/receipt-CW20251103BNXGD7T1-1762133863423.pdf",
+    "receiptUploadedAt": "2025-11-03T01:37:43.679Z"
+  },
+  {
+    "id": "25691e91-77aa-42e7-aa10-0e75afef1121",
+    "trackingId": "CW20251103ZTQAGU1U",
+    "status": "exception",
+    "createdAt": "2025-11-03T01:44:47.035Z",
+    "updatedAt": "2025-11-03T01:50:06.954Z",
+    "sender": {
+      "name": "Lisa Wang",
+      "email": "lisa.wang@email.com",
+      "phone": "+1-415-555-0567",
+      "address": {
+        "street": "234 Market Street",
+        "city": "San Francisco",
+        "state": "CA",
+        "zipCode": "94105",
+        "country": "US",
+        "lat": 37.7749,
+        "lng": -122.4194
+      }
+    },
+    "recipient": {
+      "name": "Daniel Lee",
+      "email": "daniel.lee@email.com",
+      "phone": "+1-206-555-0789",
+      "address": {
+        "street": "567 Pike Street",
+        "city": "Seattle",
+        "state": "WA",
+        "zipCode": "98101",
+        "country": "US",
+        "lat": 47.6062,
+        "lng": -122.3321
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 15,
+      "dimensions": {
+        "length": 30,
+        "width": 20,
+        "height": 15
+      },
+      "description": "Gaming equipment and accessories",
+      "value": 1800,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "0272afb5-2445-4b73-9245-e0c94118e76d",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "San Francisco",
+        "timestamp": "2025-11-03T01:44:47.035Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "dff9220d-584b-4216-91ac-c2880b06a9e2",
+        "status": "out_for_delivery",
+        "title": "Out for Delivery",
+        "description": "Status changed to out_for_delivery - Location: San Francisco",
+        "location": "San Francisco",
+        "timestamp": "2025-11-03T01:48:22.769Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "8368e325-8af6-42aa-93fb-18ace23d517a",
+        "status": "delivered",
+        "title": "Delivered",
+        "description": "Status changed to delivered - Location: San Francisco",
+        "location": "San Francisco",
+        "timestamp": "2025-11-03T01:49:04.923Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "8cf631c2-de4c-4eaa-8da5-f5b94e5bc69d",
+        "status": "pending",
+        "title": "Pending Pickup",
+        "description": "Status changed to pending - Location: Seattle",
+        "location": "Seattle",
+        "timestamp": "2025-11-03T01:49:42.163Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "0123fddf-6203-4314-bc6e-37789dfed972",
+        "status": "exception",
+        "title": "Exception",
+        "description": "Status changed to exception - Location: San Francisco",
+        "location": "San Francisco",
+        "timestamp": "2025-11-03T01:49:56.540Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "4d201772-f485-489f-ad2f-d13726fc84e7",
+        "status": "exception",
+        "title": "Exception",
+        "description": "Status changed to exception - Location: San Francisco",
+        "location": "San Francisco",
+        "timestamp": "2025-11-03T01:50:06.954Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 25,
+      "shipping": 65,
+      "insurance": 18,
+      "total": 108
+    },
+    "estimatedDelivery": "2025-11-03T22:44:47.036Z",
+    "currentLocation": {
+      "lat": 47.6062,
+      "lng": -122.3321,
+      "city": "Seattle"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T01:49:56.540Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "deliveredAt": "2025-11-03T01:49:04.923Z",
+    "receipt": "/receipts/receipt-CW20251103ZTQAGU1U-1762134548902.pdf",
+    "receiptUploadedAt": "2025-11-03T01:49:09.054Z"
+  },
+  {
+    "id": "2c7fc3cf-b4fc-4b05-821a-9d61faa774d5",
+    "trackingId": "CW20251103G1TVNR8Y",
+    "status": "out_for_delivery",
+    "createdAt": "2025-11-03T01:50:35.897Z",
+    "updatedAt": "2025-11-03T10:57:09.084Z",
+    "sender": {
+      "name": "Carlos Rodriguez",
+      "email": "carlos.rodriguez@email.com",
+      "phone": "+1-713-555-0123",
+      "address": {
+        "street": "789 Main Street",
+        "city": "Houston",
+        "state": "TX",
+        "zipCode": "77002",
+        "country": "US",
+        "lat": 29.7604,
+        "lng": -95.3698
+      }
+    },
+    "recipient": {
+      "name": "Sophie Martin",
+      "email": "sophie.martin@email.com",
+      "phone": "+1-312-555-0456",
+      "address": {
+        "street": "123 State Street",
+        "city": "Chicago",
+        "state": "IL",
+        "zipCode": "60601",
+        "country": "US",
+        "lat": 41.8781,
+        "lng": -87.6298
+      }
+    },
+    "package": {
+      "type": "fragile",
+      "weight": 22.5,
+      "dimensions": {
+        "length": 40,
+        "width": 28,
+        "height": 24
+      },
+      "description": "Art pieces and sculptures",
+      "value": 2500,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "bdb0fb06-f09a-4534-9eb7-179c55798e08",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Houston",
+        "timestamp": "2025-11-03T01:50:35.897Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "38a5c7b8-531d-4fd4-8899-775667b74f9e",
+        "status": "exception",
+        "title": "Shipment Paused",
+        "description": "Maintenance",
+        "location": "Houston",
+        "timestamp": "2025-11-03T10:56:04.848Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "95b719a2-ff6d-432b-a9a7-2f9b691eacb0",
+        "status": "pending",
+        "title": "Pending Pickup",
+        "description": "Status changed to pending - Location: Houston",
+        "location": "Houston",
+        "timestamp": "2025-11-03T10:56:07.872Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "ca9644bd-b278-4f61-b460-3d1f463146a0",
+        "status": "out_for_delivery",
+        "title": "Out for Delivery",
+        "description": "Status changed to out_for_delivery - Location: Houston",
+        "location": "Houston",
+        "timestamp": "2025-11-03T10:57:09.084Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 32,
+      "shipping": 95,
+      "insurance": 25,
+      "total": 152
+    },
+    "estimatedDelivery": "2025-11-04T03:50:35.897Z",
+    "currentLocation": {
+      "lat": 41.8781,
+      "lng": -87.6298,
+      "city": "Chicago"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": "2025-11-03T10:56:04.846Z",
+      "pauseReason": "Maintenance",
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T10:57:09.084Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "receipt": "/receipts/receipt-CW20251103G1TVNR8Y-1762134665114.pdf",
+    "receiptUploadedAt": "2025-11-03T01:51:05.218Z"
+  },
+  {
+    "id": "828d98e8-f82d-4e06-bc02-b68c57dc7160",
+    "trackingId": "CW202511035M0BP4UC",
+    "status": "out_for_delivery",
+    "createdAt": "2025-11-03T10:50:47.623Z",
+    "updatedAt": "2025-11-03T10:57:03.849Z",
+    "sender": {
+      "name": "Alexandre Dubois",
+      "email": "alexandre.dubois@email.com",
+      "phone": "+33-1-42-78-90-12",
+      "address": {
+        "street": "78 Rue de Rivoli",
+        "city": "Paris",
+        "state": "�Zle-de-France",
+        "zipCode": "75004",
+        "country": "FR",
+        "lat": 48.8566,
+        "lng": 2.3522
+      }
+    },
+    "recipient": {
+      "name": "Emily Johnson",
+      "email": "emily.johnson@email.com",
+      "phone": "+1-212-555-0678",
+      "address": {
+        "street": "890 Broadway",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10003",
+        "country": "US",
+        "lat": 40.7128,
+        "lng": -74.006
+      }
+    },
+    "package": {
+      "type": "documents",
+      "weight": 3.5,
+      "dimensions": {
+        "length": 15,
+        "width": 11,
+        "height": 3
+      },
+      "description": "Legal documents and contracts",
+      "value": 800,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "323b6d36-d0e7-4b31-a78d-405e26ecc40f",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-03T10:50:47.623Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "ed8590d7-b764-4652-8bdc-e41ca492375e",
+        "status": "picked_up",
+        "title": "Picked Up",
+        "description": "Status changed to picked_up - Location: Paris",
+        "location": "Paris",
+        "timestamp": "2025-11-03T10:54:01.124Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "bb44ce33-1a43-4a14-9f59-6d8eee1ddb81",
+        "status": "out_for_delivery",
+        "title": "Out for Delivery",
+        "description": "Status changed to out_for_delivery - Location: In Transit",
+        "location": "In Transit",
+        "timestamp": "2025-11-03T10:57:03.849Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 22,
+      "shipping": 75,
+      "insurance": 8,
+      "total": 105
+    },
+    "estimatedDelivery": "2025-11-06T18:50:47.624Z",
+    "currentLocation": {
+      "lat": 46.13316293153004,
+      "lng": -23.18339178290761,
+      "city": "In Transit"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T10:54:01.124Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "receipt": "/receipts/receipt-CW202511035M0BP4UC-1762167213103.pdf",
+    "receiptUploadedAt": "2025-11-03T10:53:33.354Z"
+  },
+  {
+    "id": "cb47733f-522b-47a8-901e-75fb267bc229",
+    "trackingId": "CW20251103FXDWYNJF",
+    "status": "pending",
+    "createdAt": "2025-11-03T20:28:23.713Z",
+    "updatedAt": "2025-11-03T20:28:23.713Z",
+    "sender": {
+      "name": "Jean-Luc Martin",
+      "email": "jeanluc.martin@email.com",
+      "phone": "+33-1-42-56-78-90",
+      "address": {
+        "street": "45 Rue de la Paix",
+        "city": "Paris",
+        "state": "Île-de-France",
+        "zipCode": "75002",
+        "country": "FR",
+        "lat": 48.8698,
+        "lng": 2.3314
+      }
+    },
+    "recipient": {
+      "name": "Sophie Laurent",
+      "email": "sophie.laurent@email.com",
+      "phone": "+33-4-78-12-34-56",
+      "address": {
+        "street": "12 Place Bellecour",
+        "city": "Lyon",
+        "state": "Auvergne-Rhône-Alpes",
+        "zipCode": "69002",
+        "country": "FR",
+        "lat": 45.764,
+        "lng": 4.8357
+      }
+    },
+    "package": {
+      "type": "electronics",
+      "weight": 15.5,
+      "dimensions": {
+        "length": 35,
+        "width": 25,
+        "height": 18
+      },
+      "description": "Équipement électronique et accessoires",
+      "value": 1200,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-03T20:28:23.713Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 20,
+      "shipping": 45,
+      "insurance": 12,
+      "total": 77
+    },
+    "estimatedDelivery": null,
+    "currentLocation": {
+      "lat": 48.8698,
+      "lng": 2.3314,
+      "city": "Paris"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    }
+  },
+  {
+    "id": "0a8b8936-b9dd-4798-ab92-2aa9c6a049a6",
+    "trackingId": "CW20251103VYLPCRTV",
+    "status": "delivered",
+    "createdAt": "2025-11-03T22:09:37.224Z",
+    "updatedAt": "2025-11-03T22:10:11.185Z",
+    "sender": {
+      "name": "Line Beatrice",
+      "email": "Beatrice@gmail.com",
+      "phone": "654432338",
+      "address": {
+        "street": "123",
+        "city": "Paris",
+        "state": "ile de france",
+        "zipCode": "237",
+        "country": "FR",
+        "lat": 48.8566,
+        "lng": 2.3522
+      }
+    },
+    "recipient": {
+      "name": "Njike Diane",
+      "email": "merciel2006@icloud.com",
+      "phone": "+237696032676",
+      "address": {
+        "street": "123 rue",
+        "city": "arizona",
+        "state": "AZ",
+        "zipCode": "90210",
+        "country": "US",
+        "lat": null,
+        "lng": null
+      }
+    },
+    "package": {
+      "type": "small-box",
+      "weight": 2.5,
+      "dimensions": {
+        "length": 12,
+        "width": 8,
+        "height": 6
+      },
+      "description": "electronics",
+      "value": 350000,
+      "vehicle": {
+        "make": "",
+        "model": "",
+        "year": "",
+        "vin": "",
+        "condition": "running"
+      }
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": false
+    },
+    "events": [
+      {
+        "id": "fd280e87-65df-49cd-a00c-7fef8122e832",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-03T22:09:37.224Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "eacecc6e-6c3e-4e3c-a299-05e5a66058a2",
+        "status": "delivered",
+        "title": "Delivered",
+        "description": "Status changed to delivered - Location: Paris",
+        "location": "Paris",
+        "timestamp": "2025-11-03T22:10:06.858Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 0,
+      "shipping": 0,
+      "insurance": 0,
+      "total": 0
+    },
+    "estimatedDelivery": null,
+    "currentLocation": {
+      "lat": null,
+      "lng": null,
+      "city": "arizona"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "deliveredAt": "2025-11-03T22:10:06.858Z",
+    "receipt": "/receipts/receipt-CW20251103VYLPCRTV-1762207810857.pdf",
+    "receiptUploadedAt": "2025-11-03T22:10:11.185Z"
+  },
+  {
+    "id": "3da5dd46-09c3-4830-bdc9-c8bbaf11d3c8",
+    "trackingId": "CW202511033CR2L5TY",
+    "status": "delivered",
+    "createdAt": "2025-11-03T22:30:00.000Z",
+    "updatedAt": "2025-11-03T22:23:41.615Z",
+    "sender": {
+      "name": "Sophie Laurent",
+      "email": "sophie.laurent@email.com",
+      "phone": "+33-1-42-86-83-26",
+      "address": {
+        "street": "15 Avenue des Champs-Élysées",
+        "city": "Paris",
+        "state": "Île-de-France",
+        "zipCode": "75008",
+        "country": "FR",
+        "lat": 48.8566,
+        "lng": 2.3522
+      }
+    },
+    "recipient": {
+      "name": "Hans Müller",
+      "email": "hans.mueller@email.com",
+      "phone": "+49-30-12345678",
+      "address": {
+        "street": "Unter den Linden 1",
+        "city": "Berlin",
+        "state": "Berlin",
+        "zipCode": "10117",
+        "country": "DE",
+        "lat": 52.52,
+        "lng": 13.405
+      }
+    },
+    "package": {
+      "type": "custom",
+      "weight": 12.5,
+      "dimensions": {
+        "length": 40,
+        "width": 30,
+        "height": 20
+      },
+      "description": "Luxury Watch Collection",
+      "value": 3500,
+      "currency": "EUR",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "f7e8a9b0-d1c2-4e3f-8a9b-0c1d2e3f4a5b",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-03T22:30:00.000Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "82e54b24-14fd-4e1c-9555-7f64ae3f2ee2",
+        "status": "delivered",
+        "title": "Delivered",
+        "description": "Status changed to delivered - Location: Paris",
+        "location": "Paris",
+        "timestamp": "2025-11-03T22:23:37.121Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 35,
+      "shipping": 120,
+      "insurance": 175,
+      "total": 330,
+      "currency": "EUR"
+    },
+    "estimatedDelivery": "2025-11-06T18:00:00.000Z",
+    "currentLocation": {
+      "lat": 52.52,
+      "lng": 13.405,
+      "city": "Berlin"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "deliveredAt": "2025-11-03T22:23:37.121Z",
+    "receipt": "/receipts/receipt-CW202511033CR2L5TY-1762208621486.pdf",
+    "receiptUploadedAt": "2025-11-03T22:23:41.615Z"
+  },
+  {
+    "id": "54f00e23-66ac-4e73-9fa8-032bd16c2293",
+    "trackingId": "CW202511032NRCOK7Q",
+    "status": "delivered",
+    "createdAt": "2025-11-03T22:40:00.000Z",
+    "updatedAt": "2025-11-03T22:33:48.308Z",
+    "sender": {
+      "name": "James Anderson",
+      "email": "james.anderson@email.com",
+      "phone": "+1-212-555-0800",
+      "address": {
+        "street": "350 5th Avenue",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10118",
+        "country": "US",
+        "lat": 40.7489,
+        "lng": -73.968
+      }
+    },
+    "recipient": {
+      "name": "Maria Rodriguez",
+      "email": "maria.rodriguez@email.com",
+      "phone": "+1-305-555-0900",
+      "address": {
+        "street": "100 Biscayne Boulevard",
+        "city": "Miami",
+        "state": "FL",
+        "zipCode": "33132",
+        "country": "US",
+        "lat": 25.7617,
+        "lng": -80.1918
+      }
+    },
+    "package": {
+      "type": "custom",
+      "weight": 18.5,
+      "dimensions": {
+        "length": 30,
+        "width": 25,
+        "height": 15
+      },
+      "description": "Electronics Package - Smartphone and accessories",
+      "value": 850,
+      "currency": "USD",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "New York",
+        "timestamp": "2025-11-03T22:40:00.000Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "6f408783-58f3-45a4-82bd-d0ec14d481a7",
+        "status": "delivered",
+        "title": "Delivered",
+        "description": "Status changed to delivered - Location: New York",
+        "location": "New York",
+        "timestamp": "2025-11-03T22:33:44.468Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 20,
+      "shipping": 45,
+      "insurance": 42.5,
+      "total": 107.5,
+      "currency": "USD"
+    },
+    "estimatedDelivery": "2025-11-07T18:00:00.000Z",
+    "currentLocation": {
+      "lat": 25.7617,
+      "lng": -80.1918,
+      "city": "Miami"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "deliveredAt": "2025-11-03T22:33:44.468Z",
+    "receipt": "/receipts/receipt-CW202511032NRCOK7Q-1762209228162.pdf",
+    "receiptUploadedAt": "2025-11-03T22:33:48.308Z"
+  },
+  {
+    "id": "c9adffeb-0a4d-4e71-99d5-c8b889a01111",
+    "trackingId": "CW202511037DNK5FGE",
+    "status": "delivered",
+    "createdAt": "2025-11-03T22:45:00.000Z",
+    "updatedAt": "2025-11-03T22:36:49.822Z",
+    "sender": {
+      "name": "Thomas Schmidt",
+      "email": "thomas.schmidt@email.com",
+      "phone": "+49-89-12345678",
+      "address": {
+        "street": "Marienplatz 1",
+        "city": "Munich",
+        "state": "Bavaria",
+        "zipCode": "80331",
+        "country": "DE",
+        "lat": 48.1351,
+        "lng": 11.582
+      }
+    },
+    "recipient": {
+      "name": "Laura Petrov",
+      "email": "laura.petrov@email.com",
+      "phone": "+33-1-45-67-89-10",
+      "address": {
+        "street": "72 Rue de Rivoli",
+        "city": "Paris",
+        "state": "Île-de-France",
+        "zipCode": "75001",
+        "country": "FR",
+        "lat": 48.8606,
+        "lng": 2.3376
+      }
+    },
+    "package": {
+      "type": "custom",
+      "weight": 8.5,
+      "dimensions": {
+        "length": 35,
+        "width": 28,
+        "height": 18
+      },
+      "description": "Designer Handbags Collection",
+      "value": 2200,
+      "currency": "EUR",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Munich",
+        "timestamp": "2025-11-03T22:45:00.000Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "9281c69f-c458-432c-8ea7-1cbbfff55fe9",
+        "status": "delivered",
+        "title": "Delivered",
+        "description": "Status changed to delivered - Location: Munich",
+        "location": "Munich",
+        "timestamp": "2025-11-03T22:36:46.009Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 42,
+      "shipping": 95,
+      "insurance": 110,
+      "total": 247,
+      "currency": "EUR"
+    },
+    "estimatedDelivery": "2025-11-06T16:00:00.000Z",
+    "currentLocation": {
+      "lat": 48.8606,
+      "lng": 2.3376,
+      "city": "Paris"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "deliveredAt": "2025-11-03T22:36:46.009Z",
+    "receipt": "/receipts/receipt-CW202511037DNK5FGE-1762209409673.pdf",
+    "receiptUploadedAt": "2025-11-03T22:36:49.822Z"
+  },
+  {
+    "id": "fd439ff5-894a-46b8-845f-30b11a7d1fcd",
+    "trackingId": "CW20251103D1HJU0ST",
+    "status": "in_transit",
+    "createdAt": "2025-11-03T22:50:00.000Z",
+    "updatedAt": "2025-11-03T22:43:39.917Z",
+    "sender": {
+      "name": "Antonio Rossi",
+      "email": "antonio.rossi@email.com",
+      "phone": "+39-02-12345678",
+      "address": {
+        "street": "Piazza del Duomo 1",
+        "city": "Milan",
+        "state": "Lombardy",
+        "zipCode": "20121",
+        "country": "IT",
+        "lat": 45.4642,
+        "lng": 9.19
+      }
+    },
+    "recipient": {
+      "name": "Isabella Garcia",
+      "email": "isabella.garcia@email.com",
+      "phone": "+34-91-2345678",
+      "address": {
+        "street": "Plaza Mayor 1",
+        "city": "Madrid",
+        "state": "Madrid",
+        "zipCode": "28012",
+        "country": "ES",
+        "lat": 40.4168,
+        "lng": -3.7038
+      }
+    },
+    "package": {
+      "type": "custom",
+      "weight": 15.2,
+      "dimensions": {
+        "length": 45,
+        "width": 35,
+        "height": 25
+      },
+      "description": "Art Collection - Paintings and sculptures",
+      "value": 4800,
+      "currency": "EUR",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Milan",
+        "timestamp": "2025-11-03T22:50:00.000Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "d3117c89-7143-409b-b39d-f955b80a659c",
+        "status": "in_transit",
+        "title": "In Transit",
+        "description": "Status changed to in_transit - Location: Milan",
+        "location": "Milan",
+        "timestamp": "2025-11-03T22:43:39.916Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 55,
+      "shipping": 150,
+      "insurance": 240,
+      "total": 445,
+      "currency": "EUR"
+    },
+    "estimatedDelivery": "2025-11-07T14:00:00.000Z",
+    "currentLocation": {
+      "lat": 44.601990712695205,
+      "lng": 6.987449358352708,
+      "city": "In Transit"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T22:43:39.916Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "receipt": "/receipts/receipt-CW20251103D1HJU0ST-1762209784414.pdf",
+    "receiptUploadedAt": "2025-11-03T22:43:04.488Z"
+  },
+  {
+    "id": "e79e5e91-affb-47fc-9dda-26bd18bd8e08",
+    "trackingId": "CW20251103RRI3HGEM",
+    "status": "pending",
+    "createdAt": "2025-11-03T23:00:00.000Z",
+    "updatedAt": "2025-11-03T22:49:21.937Z",
+    "sender": {
+      "name": "Sophie Dubois",
+      "email": "sophie.dubois@email.com",
+      "phone": "+33-1-45-67-89-00",
+      "address": {
+        "street": "15 Avenue des Champs-Élysées",
+        "city": "Paris",
+        "state": "Île-de-France",
+        "zipCode": "75008",
+        "country": "FR",
+        "lat": 48.8698,
+        "lng": 2.3076
+      }
+    },
+    "recipient": {
+      "name": "Hans Mueller",
+      "email": "hans.mueller@email.com",
+      "phone": "+49-30-12345678",
+      "address": {
+        "street": "Unter den Linden 1",
+        "city": "Berlin",
+        "state": "Berlin",
+        "zipCode": "10117",
+        "country": "DE",
+        "lat": 52.517,
+        "lng": 13.3889
+      }
+    },
+    "package": {
+      "type": "custom",
+      "weight": 12.8,
+      "dimensions": {
+        "length": 40,
+        "width": 30,
+        "height": 20
+      },
+      "description": "Luxury Watch Collection - High-end timepieces",
+      "value": 6500,
+      "currency": "EUR",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-03T23:00:00.000Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 75,
+      "shipping": 180,
+      "insurance": 325,
+      "total": 580,
+      "currency": "EUR"
+    },
+    "estimatedDelivery": "2025-11-08T12:00:00.000Z",
+    "currentLocation": {
+      "lat": 48.8698,
+      "lng": 2.3076,
+      "city": "Paris"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "receipt": "/receipts/receipt-CW20251103RRI3HGEM-1762210161866.pdf",
+    "receiptUploadedAt": "2025-11-03T22:49:21.937Z"
+  },
+  {
+    "id": "06976630-7a42-4064-838b-7a13b4e8e530",
+    "trackingId": "CW20251103EDZ39HIG",
+    "status": "pending",
+    "createdAt": "2025-11-03T23:05:00.000Z",
+    "updatedAt": "2025-11-03T23:05:00.000Z",
+    "sender": {
+      "name": "Emily Johnson",
+      "email": "emily.johnson@email.com",
+      "phone": "+1-415-555-0123",
+      "address": {
+        "street": "123 Market Street",
+        "city": "San Francisco",
+        "state": "CA",
+        "zipCode": "94102",
+        "country": "US",
+        "lat": 37.7749,
+        "lng": -122.4194
+      }
+    },
+    "recipient": {
+      "name": "Robert Chen",
+      "email": "robert.chen@email.com",
+      "phone": "+1-213-555-0456",
+      "address": {
+        "street": "456 Sunset Boulevard",
+        "city": "Los Angeles",
+        "state": "CA",
+        "zipCode": "90028",
+        "country": "US",
+        "lat": 34.0522,
+        "lng": -118.2437
+      }
+    },
+    "package": {
+      "type": "custom",
+      "weight": 22.5,
+      "dimensions": {
+        "length": 50,
+        "width": 40,
+        "height": 30
+      },
+      "description": "Electronics Equipment - Professional camera gear",
+      "value": 3500,
+      "currency": "USD",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "San Francisco",
+        "timestamp": "2025-11-03T23:05:00.000Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 35,
+      "shipping": 65,
+      "insurance": 175,
+      "total": 275,
+      "currency": "USD"
+    },
+    "estimatedDelivery": "2025-11-08T18:00:00.000Z",
+    "currentLocation": {
+      "lat": 37.7749,
+      "lng": -122.4194,
+      "city": "San Francisco"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    }
+  },
+  {
+    "id": "74a3e396-b455-41eb-921b-5e648a81f99c",
+    "trackingId": "CW20251103FTYFOIQD",
+    "status": "pending",
+    "createdAt": "2025-11-03T23:10:00.000Z",
+    "updatedAt": "2025-11-03T22:59:23.036Z",
+    "sender": {
+      "name": "Clara Martinez",
+      "email": "clara.martinez@email.com",
+      "phone": "+34-93-4567890",
+      "address": {
+        "street": "Passeig de Gràcia 92",
+        "city": "Barcelona",
+        "state": "Catalonia",
+        "zipCode": "08008",
+        "country": "ES",
+        "lat": 41.3948,
+        "lng": 2.1647
+      }
+    },
+    "recipient": {
+      "name": "Pierre Lambert",
+      "email": "pierre.lambert@email.com",
+      "phone": "+33-1-56-78-90-12",
+      "address": {
+        "street": "25 Rue de la Paix",
+        "city": "Paris",
+        "state": "Île-de-France",
+        "zipCode": "75002",
+        "country": "FR",
+        "lat": 48.8698,
+        "lng": 2.3317
+      }
+    },
+    "package": {
+      "type": "custom",
+      "weight": 10.5,
+      "dimensions": {
+        "length": 38,
+        "width": 32,
+        "height": 22
+      },
+      "description": "Premium Jewelry Collection - Diamond and gold pieces",
+      "value": 8900,
+      "currency": "EUR",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Barcelona",
+        "timestamp": "2025-11-03T23:10:00.000Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 85,
+      "shipping": 200,
+      "insurance": 445,
+      "total": 730,
+      "currency": "EUR"
+    },
+    "estimatedDelivery": "2025-11-09T10:00:00.000Z",
+    "currentLocation": {
+      "lat": 41.3948,
+      "lng": 2.1647,
+      "city": "Barcelona"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "receipt": "/receipts/receipt-CW20251103FTYFOIQD-1762210762974.pdf",
+    "receiptUploadedAt": "2025-11-03T22:59:23.036Z"
+  },
+  {
+    "id": "b4634587-356a-451e-8000-c1707f96080c",
+    "trackingId": "CW20251104J7U47ORK",
+    "status": "pending",
+    "createdAt": "2025-11-04T00:00:00.000Z",
+    "updatedAt": "2025-11-03T23:04:43.707Z",
+    "sender": {
+      "name": "Giulia Romano",
+      "email": "giulia.romano@email.com",
+      "phone": "+39-06-12345678",
+      "address": {
+        "street": "Via del Corso 100",
+        "city": "Rome",
+        "state": "Lazio",
+        "zipCode": "00187",
+        "country": "IT",
+        "lat": 41.9028,
+        "lng": 12.4964
+      }
+    },
+    "recipient": {
+      "name": "Emma Weber",
+      "email": "emma.weber@email.com",
+      "phone": "+49-89-87654321",
+      "address": {
+        "street": "Maximilianstraße 15",
+        "city": "Munich",
+        "state": "Bavaria",
+        "zipCode": "80539",
+        "country": "DE",
+        "lat": 48.1404,
+        "lng": 11.5755
+      }
+    },
+    "package": {
+      "type": "custom",
+      "weight": 14.3,
+      "dimensions": {
+        "length": 42,
+        "width": 35,
+        "height": 28
+      },
+      "description": "Luxury Fashion Collection - Designer clothing and accessories",
+      "value": 5200,
+      "currency": "EUR",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Rome",
+        "timestamp": "2025-11-04T00:00:00.000Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 65,
+      "shipping": 140,
+      "insurance": 260,
+      "total": 465,
+      "currency": "EUR"
+    },
+    "estimatedDelivery": "2025-11-10T15:00:00.000Z",
+    "currentLocation": {
+      "lat": 41.9028,
+      "lng": 12.4964,
+      "city": "Rome"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "receipt": "/receipts/receipt-CW20251104J7U47ORK-1762211083544.pdf",
+    "receiptUploadedAt": "2025-11-03T23:04:43.707Z"
+  },
+  {
+    "id": "5e6609b9-e5f9-4252-9748-84a18c5192bd",
+    "trackingId": "CW20251104IY3PW46I",
+    "status": "delivered",
+    "createdAt": "2025-11-04T00:10:00.000Z",
+    "updatedAt": "2025-11-03T23:10:07.020Z",
+    "sender": {
+      "name": "Lucas Moreau",
+      "email": "lucas.moreau@email.com",
+      "phone": "+33-1-23-45-67-89",
+      "address": {
+        "street": "42 Avenue Montaigne",
+        "city": "Paris",
+        "state": "Île-de-France",
+        "zipCode": "75008",
+        "country": "FR",
+        "lat": 48.8655,
+        "lng": 2.3044
+      }
+    },
+    "recipient": {
+      "name": "Anna Kowalski",
+      "email": "anna.kowalski@email.com",
+      "phone": "+48-22-1234567",
+      "address": {
+        "street": "Nowy Świat 15",
+        "city": "Warsaw",
+        "state": "Mazovia",
+        "zipCode": "00-496",
+        "country": "PL",
+        "lat": 52.2297,
+        "lng": 21.0122
+      }
+    },
+    "package": {
+      "type": "custom",
+      "weight": 9.2,
+      "dimensions": {
+        "length": 36,
+        "width": 30,
+        "height": 20
+      },
+      "description": "Fine Art Collection - Original paintings and sculptures",
+      "value": 12500,
+      "currency": "EUR",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "express",
+      "priority": "high",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "b8c9d0e1-f2a3-4b4c-5d6e-7f8a9b0c1d2e",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-04T00:10:00.000Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "1730304f-7d21-4078-ae93-eff4e69dddd7",
+        "status": "delivered",
+        "title": "Delivered",
+        "description": "Status changed to delivered - Location: Paris",
+        "location": "Paris",
+        "timestamp": "2025-11-03T23:10:01.995Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 120,
+      "shipping": 280,
+      "insurance": 625,
+      "total": 1025,
+      "currency": "EUR"
+    },
+    "estimatedDelivery": "2025-11-12T16:00:00.000Z",
+    "currentLocation": {
+      "lat": 52.2297,
+      "lng": 21.0122,
+      "city": "Warsaw"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "deliveredAt": "2025-11-03T23:10:01.995Z",
+    "receipt": "/receipts/receipt-CW20251104IY3PW46I-1762211406809.pdf",
+    "receiptUploadedAt": "2025-11-03T23:10:07.020Z"
+  },
+  {
+    "id": "7670686c-4f35-45e4-8e28-38ce13865cd5",
+    "trackingId": "CW20251104EDRT9UC4",
+    "status": "out_for_delivery",
+    "createdAt": "2025-11-03T23:24:57.050Z",
+    "updatedAt": "2025-11-03T23:35:02.126Z",
+    "sender": {
+      "name": "Jean Dupont",
+      "email": "jean.dupont@example.com",
+      "phone": "+33123456789",
+      "address": {
+        "street": "123 Rue de la Paix",
+        "city": "Paris",
+        "state": "Île-de-France",
+        "zipCode": "75001",
+        "country": "FR",
+        "lat": 48.8566,
+        "lng": 2.3522
+      }
+    },
+    "recipient": {
+      "name": "Marie Martin",
+      "email": "marie.martin@example.com",
+      "phone": "+33987654321",
+      "address": {
+        "street": "456 Avenue des Champs-Élysées",
+        "city": "Lyon",
+        "state": "Auvergne-Rhône-Alpes",
+        "zipCode": "69001",
+        "country": "FR",
+        "lat": 45.764,
+        "lng": 4.8357
+      }
+    },
+    "package": {
+      "type": "medium-box",
+      "weight": 5.5,
+      "dimensions": {
+        "length": 30,
+        "width": 20,
+        "height": 15
+      },
+      "description": "Livres et documents",
+      "value": 150,
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "7ca14403-34ce-4427-a144-6549750e3658",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-03T23:24:57.051Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "f0af6cb0-a143-4612-a875-c8cee4a2473d",
+        "status": "out_for_delivery",
+        "title": "Out for Delivery",
+        "description": "Status changed to out_for_delivery - Location: Paris",
+        "location": "Paris",
+        "timestamp": "2025-11-03T23:35:02.123Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 25,
+      "shipping": 15,
+      "insurance": 5,
+      "total": 45
+    },
+    "estimatedDelivery": "2025-11-04T11:24:57.052Z",
+    "currentLocation": {
+      "lat": 45.764,
+      "lng": 4.8357,
+      "city": "Lyon"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": "2025-11-03T23:35:02.123Z",
+      "lastUpdate": "2025-11-04T13:38:08.931Z"
+    },
+    "receipt": "/receipts/receipt-CW20251104EDRT9UC4-1762212476479.pdf",
+    "receiptUploadedAt": "2025-11-03T23:27:56.628Z"
+  },
+  {
+    "id": "4be0f69f-b643-423c-8bde-f127888a86b7",
+    "trackingId": "CW20251104T0NRRR3R",
+    "status": "delivered",
+    "createdAt": "2025-11-03T23:35:32.610Z",
+    "updatedAt": "2025-11-03T23:36:15.008Z",
+    "sender": {
+      "name": "Jean Dupont",
+      "email": "jean.dupont@example.com",
+      "phone": "+33123456789",
+      "address": {
+        "street": "123 Rue de la Paix",
+        "city": "Paris",
+        "state": "Île-de-France",
+        "zipCode": "75001",
+        "country": "FR",
+        "lat": 48.8566,
+        "lng": 2.3522
+      }
+    },
+    "recipient": {
+      "name": "Marie Martin",
+      "email": "marie.martin@example.com",
+      "phone": "+33987654321",
+      "address": {
+        "street": "456 Avenue des Champs-Élysées",
+        "city": "Lyon",
+        "state": "Auvergne-Rhône-Alpes",
+        "zipCode": "69001",
+        "country": "FR",
+        "lat": 45.764,
+        "lng": 4.8357
+      }
+    },
+    "package": {
+      "type": "medium-box",
+      "weight": 5.5,
+      "dimensions": {
+        "length": 30,
+        "width": 20,
+        "height": 15
+      },
+      "description": "Livres et documents",
+      "value": 150,
+      "currency": "EUR",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "47b7fbc2-ec61-4cf3-a3ec-b3aa0075e729",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Paris",
+        "timestamp": "2025-11-03T23:35:32.610Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "87114051-047b-4246-9bea-12a876f21bb1",
+        "status": "delivered",
+        "title": "Delivered",
+        "description": "Status changed to delivered - Location: Paris",
+        "location": "Paris",
+        "timestamp": "2025-11-03T23:36:01.950Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 25,
+      "shipping": 15,
+      "insurance": 5,
+      "total": 45,
+      "currency": "EUR"
+    },
+    "estimatedDelivery": "2025-11-04T11:35:32.612Z",
+    "currentLocation": {
+      "lat": 45.764,
+      "lng": 4.8357,
+      "city": "Lyon"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "deliveredAt": "2025-11-03T23:36:01.950Z",
+    "receipt": "/receipts/receipt-CW20251104T0NRRR3R-1762212974623.pdf",
+    "receiptUploadedAt": "2025-11-03T23:36:15.008Z"
+  },
+  {
+    "id": "69aebdc4-bc7d-4e1b-b6ce-f68f5a45f70e",
+    "trackingId": "CW20251104DMR2NF0B",
+    "status": "pending",
+    "createdAt": "2025-11-03T23:42:52.343Z",
+    "updatedAt": "2025-11-04T00:05:14.749Z",
+    "sender": {
+      "name": "Ahmed Al Mansouri",
+      "email": "ahmed.almansouri@example.com",
+      "phone": "+971501234567",
+      "address": {
+        "street": "Sheikh Zayed Road",
+        "city": "Dubai",
+        "state": "Dubai",
+        "zipCode": "00000",
+        "country": "AE",
+        "lat": 25.2048,
+        "lng": 55.2708
+      }
+    },
+    "recipient": {
+      "name": "Fatima Al Zahra",
+      "email": "fatima.alzahra@example.com",
+      "phone": "+971509876543",
+      "address": {
+        "street": "Corniche Road",
+        "city": "Abu Dhabi",
+        "state": "Abu Dhabi",
+        "zipCode": "00000",
+        "country": "AE",
+        "lat": null,
+        "lng": null
+      }
+    },
+    "package": {
+      "type": "large-box",
+      "weight": 8.5,
+      "dimensions": {
+        "length": 40,
+        "width": 30,
+        "height": 25
+      },
+      "description": "Électronique et accessoires",
+      "value": 2500,
+      "currency": "AED",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "eac88fa9-9230-469e-a8d5-def87e06d49a",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Dubai",
+        "timestamp": "2025-11-03T23:42:52.343Z",
+        "completed": true,
+        "current": false
+      },
+      {
+        "id": "829cb3eb-1ffd-4df5-a26c-d8329443722a",
+        "status": "pending",
+        "title": "Pending Pickup",
+        "description": "Status changed to pending - Location: Dubai",
+        "location": "Dubai",
+        "timestamp": "2025-11-04T00:05:05.941Z",
+        "completed": false,
+        "current": true
+      }
+    ],
+    "cost": {
+      "base": 150,
+      "shipping": 75,
+      "insurance": 25,
+      "total": 250,
+      "currency": "AED"
+    },
+    "estimatedDelivery": null,
+    "currentLocation": {
+      "lat": 25.2048,
+      "lng": 55.2708,
+      "city": "Dubai"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "receipt": "/receipts/receipt-CW20251104DMR2NF0B-1762214714522.pdf",
+    "receiptUploadedAt": "2025-11-04T00:05:14.749Z"
+  },
+  {
+    "id": "330fd510-dd5d-49dc-ab41-f27202ff6966",
+    "trackingId": "CW20251104ITRKQRR9",
+    "status": "pending",
+    "createdAt": "2025-11-04T00:06:36.124Z",
+    "updatedAt": "2025-11-04T00:07:31.508Z",
+    "sender": {
+      "name": "Yuki Tanaka",
+      "email": "yuki.tanaka@example.com",
+      "phone": "+81312345678",
+      "address": {
+        "street": "1-1-1 Shibuya",
+        "city": "Tokyo",
+        "state": "Tokyo",
+        "zipCode": "150-0002",
+        "country": "JP",
+        "lat": 35.6762,
+        "lng": 139.6503
+      }
+    },
+    "recipient": {
+      "name": "Hiroshi Yamamoto",
+      "email": "hiroshi.yamamoto@example.com",
+      "phone": "+81698765432",
+      "address": {
+        "street": "2-2-2 Chuo-ku",
+        "city": "Osaka",
+        "state": "Osaka",
+        "zipCode": "540-0001",
+        "country": "JP",
+        "lat": null,
+        "lng": null
+      }
+    },
+    "package": {
+      "type": "small-box",
+      "weight": 3.2,
+      "dimensions": {
+        "length": 25,
+        "width": 20,
+        "height": 15
+      },
+      "description": "Livres et documents",
+      "value": 15000,
+      "currency": "JPY",
+      "vehicle": {}
+    },
+    "service": {
+      "type": "standard",
+      "priority": "normal",
+      "insurance": true
+    },
+    "events": [
+      {
+        "id": "afabab65-1cfe-4f86-b24d-83fb0c8f379e",
+        "status": "pending",
+        "title": "Shipment Created",
+        "description": "Your shipment has been created and is awaiting pickup",
+        "location": "Tokyo",
+        "timestamp": "2025-11-04T00:06:36.124Z",
+        "completed": true,
+        "current": false
+      }
+    ],
+    "cost": {
+      "base": 2500,
+      "shipping": 1500,
+      "insurance": 500,
+      "total": 4500,
+      "currency": "JPY"
+    },
+    "estimatedDelivery": null,
+    "currentLocation": {
+      "lat": 35.6762,
+      "lng": 139.6503,
+      "city": "Tokyo"
+    },
+    "autoProgress": {
+      "enabled": true,
+      "paused": false,
+      "pausedAt": null,
+      "pauseReason": null,
+      "pausedDuration": 0,
+      "startedAt": null,
+      "lastUpdate": null
+    },
+    "receipt": "/receipts/receipt-CW20251104ITRKQRR9-1762214851277.pdf",
+    "receiptUploadedAt": "2025-11-04T00:07:31.508Z"
+  }
+]

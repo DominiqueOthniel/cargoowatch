@@ -1,0 +1,67 @@
+[
+  {
+    "id": "5a6b6a83-dfd3-4b2b-a8ce-042214dc347c",
+    "clientName": "doro",
+    "clientEmail": "john@gmail.com",
+    "subject": "NO",
+    "trackingId": null,
+    "status": "active",
+    "createdAt": "2025-11-02T17:18:55.787Z",
+    "updatedAt": "2025-11-02T19:26:39.724Z",
+    "messages": [
+      {
+        "id": "b0ab2d34-3beb-41be-aae5-faf6c6aaa4da",
+        "text": "yeah",
+        "image": null,
+        "senderType": "client",
+        "senderName": "doro",
+        "timestamp": "2025-11-02T17:18:59.599Z",
+        "read": true
+      },
+      {
+        "id": "679d40e4-693a-4ce8-bb1c-11ca80391a24",
+        "text": "yes",
+        "image": null,
+        "senderType": "admin",
+        "senderName": "admin",
+        "timestamp": "2025-11-02T19:16:01.909Z",
+        "read": false
+      }
+    ],
+    "assignedTo": "46432134-7ab8-45ce-a2cf-dc0dc2df43cc"
+  },
+  {
+    "id": "dfd0fcd2-b0d1-4d99-a584-29058e2e1e3b",
+    "clientName": "doro",
+    "clientEmail": "merciel2006@icloud.com",
+    "subject": "General Inquiry",
+    "trackingId": null,
+    "status": "open",
+    "createdAt": "2025-11-03T15:07:31.694Z",
+    "updatedAt": "2025-11-03T15:07:31.694Z",
+    "messages": [],
+    "assignedTo": null
+  },
+  {
+    "id": "e0d93425-e9e7-46d5-860f-9826ae23b737",
+    "clientName": "GOJO",
+    "clientEmail": "TODOROKI",
+    "subject": "Pls why is my product stuck on the way?",
+    "trackingId": null,
+    "status": "active",
+    "createdAt": "2025-11-03T20:38:29.743Z",
+    "updatedAt": "2025-11-03T20:38:39.421Z",
+    "messages": [
+      {
+        "id": "df16ce39-8c34-402c-92a1-e28bbbde52e4",
+        "text": "I am confused",
+        "image": null,
+        "senderType": "client",
+        "senderName": "GOJO",
+        "timestamp": "2025-11-03T20:38:39.421Z",
+        "read": false
+      }
+    ],
+    "assignedTo": null
+  }
+]

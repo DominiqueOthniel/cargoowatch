@@ -3,9 +3,13 @@ node_modules/
 package-lock.json
 
 # Data files
-data/
-*.json
+# Note: data/*.json are now tracked for persistence on Render
+# If you want to ignore them, uncomment the lines below:
+# data/
+# *.json
 !package.json
+# Allow data files to be tracked
+!data/*.json
 
 # Uploaded files
 public/receipts/
