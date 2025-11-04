@@ -1318,7 +1318,553 @@
             console.log('🔧 [forceUpdateStats] Force updating stats...');
             return await loadStats();
         }
-        
+
+        // ==================== TAB SWITCHING FUNCTIONS ====================
+        // Define these BEFORE DOMContentLoaded so they're available when event listeners are attached
+        // Function to switch to shipments tab
+        function switchToShipmentsTab() {
+            console.log('Switching to shipments tab');
+            const tabShipments = document.getElementById('tab-shipments');
+            const tabChat = document.getElementById('tab-chat');
+            const tabReviews = document.getElementById('tab-reviews');
+            const contentShipments = document.getElementById('content-shipments');
+            const contentChat = document.getElementById('content-chat');
+            const contentReviews = document.getElementById('content-reviews');
+            
+            if (tabShipments) {
+                tabShipments.classList.add('active', 'border-primary', 'text-primary');
+                tabShipments.classList.remove('border-transparent', 'text-text-secondary');
+            }
+            if (tabChat) {
+                tabChat.classList.remove('active', 'border-primary', 'text-primary');
+                tabChat.classList.add('border-transparent', 'text-text-secondary');
+            }
+            if (tabReviews) {
+                tabReviews.classList.remove('active', 'border-primary', 'text-primary');
+                tabReviews.classList.add('border-transparent', 'text-text-secondary');
+            }
+            if (contentShipments) {
+                contentShipments.classList.remove('hidden');
+                console.log('✅ Shipments content shown');
+            }
+            if (contentChat) {
+                contentChat.classList.add('hidden');
+                console.log('✅ Chat content hidden');
+            }
+            if (contentReviews) {
+                contentReviews.classList.add('hidden');
+            }
+        }
+
+        // Function to switch to chat tab
+        function switchToChatTab() {
+            console.log('🔵 switchToChatTab() called');
+            const tabShipments = document.getElementById('tab-shipments');
+            const tabChat = document.getElementById('tab-chat');
+            const tabReviews = document.getElementById('tab-reviews');
+            const contentShipments = document.getElementById('content-shipments');
+            const contentChat = document.getElementById('content-chat');
+            const contentReviews = document.getElementById('content-reviews');
+            
+            console.log('🔍 Elements found:', {
+                tabChat: !!tabChat,
+                contentChat: !!contentChat,
+                tabShipments: !!tabShipments,
+                contentShipments: !!contentShipments
+            });
+            
+            if (tabChat) {
+                tabChat.classList.add('active', 'border-primary', 'text-primary');
+                tabChat.classList.remove('border-transparent', 'text-text-secondary');
+                console.log('✅ Chat tab activated');
+            } else {
+                console.error('❌ tab-chat element not found!');
+            }
+            
+            if (tabShipments) {
+                tabShipments.classList.remove('active', 'border-primary', 'text-primary');
+                tabShipments.classList.add('border-transparent', 'text-text-secondary');
+            }
+            
+            if (tabReviews) {
+                tabReviews.classList.remove('active', 'border-primary', 'text-primary');
+                tabReviews.classList.add('border-transparent', 'text-text-secondary');
+            }
+            
+            if (contentShipments) {
+                contentShipments.classList.add('hidden');
+                console.log('✅ Shipments content hidden');
+            }
+            
+            if (contentChat) {
+                contentChat.classList.remove('hidden');
+                console.log('✅ Chat content shown - hidden class removed');
+                console.log('🔍 contentChat classes:', contentChat.className);
+            } else {
+                console.error('❌ content-chat element not found!');
+                alert('Error: Chat content element not found. Please refresh the page.');
+                return;
+            }
+            
+            if (contentReviews) {
+                contentReviews.classList.add('hidden');
+            }
+            
+            // Initialize chat functionality - check if functions exist, if not wait a bit
+            const initChatFunctions = () => {
+                console.log('🔧 Initializing chat functions...');
+                console.log('🔍 Function checks:', {
+                    initAdminSocket: typeof initAdminSocket,
+                    loadChats: typeof loadChats,
+                    initializeChatButtons: typeof initializeChatButtons
+                });
+                
+                if (typeof initAdminSocket === 'function') {
+                    console.log('✅ Calling initAdminSocket()');
+                    initAdminSocket();
+                } else {
+                    console.error('❌ initAdminSocket is not a function');
+                    console.error('❌ Available functions:', Object.keys(window).filter(k => typeof window[k] === 'function' && k.includes('chat')));
+                }
+                
+                if (typeof loadChats === 'function') {
+                    console.log('✅ Calling loadChats()');
+                    loadChats();
+                } else {
+                    console.error('❌ loadChats is not a function');
+                }
+                
+                if (typeof initializeChatButtons === 'function') {
+                    console.log('✅ Calling initializeChatButtons()');
+                    initializeChatButtons();
+                } else {
+                    console.warn('⚠️ initializeChatButtons is not a function');
+                }
+            };
+            
+            // Try immediately first
+            if (typeof initAdminSocket === 'function' && typeof loadChats === 'function') {
+                initChatFunctions();
+            } else {
+                // If not ready, wait a bit and retry
+                console.log('⏳ Chat functions not ready, waiting 200ms...');
+                setTimeout(() => {
+                    if (typeof initAdminSocket === 'function' && typeof loadChats === 'function') {
+                        initChatFunctions();
+                    } else {
+                        console.error('❌ Chat functions still not available after delay');
+                        console.error('❌ initAdminSocket type:', typeof initAdminSocket);
+                        console.error('❌ loadChats type:', typeof loadChats);
+                    }
+                }, 200);
+            }
+        }
+
+        // Function to switch to reviews tab
+        function switchToReviewsTab() {
+            const tabShipments = document.getElementById('tab-shipments');
+            const tabChat = document.getElementById('tab-chat');
+            const tabReviews = document.getElementById('tab-reviews');
+            const contentShipments = document.getElementById('content-shipments');
+            const contentChat = document.getElementById('content-chat');
+            const contentReviews = document.getElementById('content-reviews');
+            
+            if (tabReviews) {
+                tabReviews.classList.add('active', 'border-primary', 'text-primary');
+                tabReviews.classList.remove('border-transparent', 'text-text-secondary');
+            }
+            if (tabShipments) {
+                tabShipments.classList.remove('active', 'border-primary', 'text-primary');
+                tabShipments.classList.add('border-transparent', 'text-text-secondary');
+            }
+            if (tabChat) {
+                tabChat.classList.remove('active', 'border-primary', 'text-primary');
+                tabChat.classList.add('border-transparent', 'text-text-secondary');
+            }
+            if (contentShipments) contentShipments.classList.add('hidden');
+            if (contentChat) contentChat.classList.add('hidden');
+            if (contentReviews) contentReviews.classList.remove('hidden');
+        }
+
+        // ==================== CHAT FUNCTIONALITY ====================
+        // Define these BEFORE DOMContentLoaded so they're available when tab switching occurs
+        let chatSocket = null;
+        let currentAdminChatId = null;
+
+        // Initialize Socket.io for admin
+        function initAdminSocket() {
+            if (chatSocket && chatSocket.connected) {
+                console.log('Socket already connected');
+                return;
+            }
+            
+            try {
+                console.log('Initializing socket connection to:', window.location.origin);
+                chatSocket = io(window.location.origin, {
+                    transports: ['websocket', 'polling'],
+                    reconnection: true,
+                    reconnectionDelay: 1000,
+                    reconnectionAttempts: 5
+                });
+                
+                chatSocket.on('connect', () => {
+                    console.log('✅ Admin connected to chat server, socket ID:', chatSocket.id);
+                    // Reload chats when connected
+                    if (typeof loadChats === 'function') {
+                        loadChats();
+                    }
+                });
+                
+                chatSocket.on('connect_error', (error) => {
+                    console.error('❌ Socket connection error:', error);
+                });
+                
+                chatSocket.on('disconnect', (reason) => {
+                    console.log('⚠️ Admin disconnected from chat server:', reason);
+                });
+                
+                chatSocket.on('new-chat', (chat) => {
+                    console.log('📨 New chat received:', chat);
+                    if (typeof loadChats === 'function') {
+                        loadChats();
+                    }
+                    if (typeof updateChatBadge === 'function') {
+                        updateChatBadge();
+                    }
+                });
+                
+                chatSocket.on('new-message', (data) => {
+                    console.log('💬 New message received:', data);
+                    if (data.chatId === currentAdminChatId) {
+                        if (typeof addAdminMessageToChat === 'function') {
+                            addAdminMessageToChat(data.message);
+                        }
+                        if (typeof scrollAdminChatToBottom === 'function') {
+                            scrollAdminChatToBottom();
+                        }
+                        // If admin is viewing the chat, mark new client messages as read automatically
+                        if (data.message.senderType === 'client' && !data.message.read) {
+                            fetch(`/api/chat/${data.chatId}/read`, {
+                                method: 'PUT',
+                                credentials: 'include'
+                            }).then(() => {
+                                if (typeof loadChats === 'function') {
+                                    loadChats();
+                                }
+                                if (typeof loadClientMessagesCount === 'function') {
+                                    loadClientMessagesCount(); // Update Client Messages card
+                                }
+                            });
+                        }
+                    }
+                    if (typeof loadChats === 'function') {
+                        loadChats(); // Refresh chat list to update unread counts
+                    }
+                    if (typeof loadClientMessagesCount === 'function') {
+                        loadClientMessagesCount(); // Update Client Messages card
+                    }
+                });
+                
+                chatSocket.on('chat-assigned', (data) => {
+                    console.log('👤 Chat assigned:', data);
+                    if (typeof loadChats === 'function') {
+                        loadChats();
+                    }
+                });
+                
+                chatSocket.on('chat-closed', (data) => {
+                    console.log('🔒 Chat closed:', data);
+                    if (data.chatId === currentAdminChatId) {
+                        currentAdminChatId = null;
+                        const noChatSelected = document.getElementById('no-chat-selected');
+                        const chatMessagesPanel = document.getElementById('chat-messages-panel');
+                        if (noChatSelected) noChatSelected.classList.remove('hidden');
+                        if (chatMessagesPanel) chatMessagesPanel.classList.add('hidden');
+                    }
+                    if (typeof loadChats === 'function') {
+                        loadChats();
+                    }
+                });
+            } catch (error) {
+                console.error('❌ Error initializing admin socket:', error);
+                alert('Erreur de connexion au chat. Vérifiez que le serveur est démarré.');
+            }
+        }
+
+        // Load chats list
+        async function loadChats() {
+            try {
+                const status = document.getElementById('chat-status-filter')?.value || '';
+                const url = status ? `/api/chat?status=${status}` : '/api/chat';
+                const response = await fetch(url, { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to load chats');
+                
+                const chats = await response.json();
+                const chatList = document.getElementById('chat-list');
+                if (!chatList) {
+                    console.error('❌ chat-list element not found');
+                    return;
+                }
+                chatList.innerHTML = '';
+                
+                if (chats.length === 0) {
+                    chatList.innerHTML = '<p class="text-sm text-text-muted p-4">No chats available</p>';
+                    return;
+                }
+                
+                chats.forEach(chat => {
+                    const chatItem = document.createElement('div');
+                    chatItem.className = `chat-item p-4 border border-border rounded-lg mb-2 cursor-pointer hover:bg-surface ${chat.id === currentAdminChatId ? 'bg-surface' : ''}`;
+                    chatItem.dataset.chatId = chat.id;
+                    
+                    const unreadCount = chat.messages?.filter(m => !m.read && m.senderType === 'client').length || 0;
+                    const lastMessage = chat.messages && chat.messages.length > 0 ? chat.messages[chat.messages.length - 1] : null;
+                    
+                    chatItem.innerHTML = `
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="font-medium text-text-primary">${chat.clientName || 'Client'}</div>
+                            ${unreadCount > 0 ? `<span class="bg-accent text-white text-xs rounded-full px-2 py-1">${unreadCount}</span>` : ''}
+                        </div>
+                        <div class="text-xs text-text-muted">${lastMessage ? lastMessage.text.substring(0, 50) : 'No messages'}...</div>
+                        <div class="text-xs text-text-muted mt-1">${chat.status || 'open'}</div>
+                    `;
+                    
+                    chatItem.addEventListener('click', () => {
+                        if (typeof openChat === 'function') {
+                            openChat(chat.id);
+                        }
+                    });
+                    
+                    chatList.appendChild(chatItem);
+                });
+                
+                if (typeof updateChatBadge === 'function') {
+                    updateChatBadge(chats);
+                }
+            } catch (error) {
+                console.error('Error loading chats:', error);
+                const chatList = document.getElementById('chat-list');
+                if (chatList) {
+                    chatList.innerHTML = '<p class="text-sm text-error p-4">Error loading chats</p>';
+                }
+            }
+        }
+
+        function updateChatBadge(chats) {
+            if (!chats) return;
+            const badge = document.getElementById('chat-badge');
+            if (!badge) return;
+            
+            const unreadCount = chats.reduce((total, chat) => {
+                return total + (chat.messages?.filter(m => !m.read && m.senderType === 'client').length || 0);
+            }, 0);
+            
+            if (unreadCount > 0) {
+                badge.textContent = unreadCount;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        async function openChat(chatId) {
+            try {
+                currentAdminChatId = chatId;
+                const response = await fetch(`/api/chat/${chatId}`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to load chat');
+                
+                const chat = await response.json();
+                const messagesContainer = document.getElementById('admin-chat-messages');
+                const noChatSelected = document.getElementById('no-chat-selected');
+                const chatMessagesPanel = document.getElementById('chat-messages-panel');
+                
+                if (!messagesContainer || !noChatSelected || !chatMessagesPanel) {
+                    console.error('❌ Chat elements not found');
+                    return;
+                }
+                
+                messagesContainer.innerHTML = '';
+                chat.messages.forEach(msg => {
+                    if (typeof addAdminMessageToChat === 'function') {
+                        addAdminMessageToChat(msg);
+                    }
+                });
+                
+                noChatSelected.classList.add('hidden');
+                chatMessagesPanel.classList.remove('hidden');
+                if (typeof scrollAdminChatToBottom === 'function') {
+                    scrollAdminChatToBottom();
+                }
+                
+                if (typeof initializeChatButtons === 'function') {
+                    initializeChatButtons();
+                }
+            } catch (error) {
+                console.error('Error opening chat:', error);
+            }
+        }
+
+         function addAdminMessageToChat(message) {
+             const messagesContainer = document.getElementById('admin-chat-messages');
+             if (!messagesContainer) return;
+             const isAdmin = message.senderType === 'admin';
+             
+             const messageDiv = document.createElement('div');
+             messageDiv.className = `flex ${isAdmin ? 'justify-end' : 'justify-start'}`;
+             
+             messageDiv.innerHTML = `
+                 <div class="max-w-xs lg:max-w-sm ${isAdmin ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3 overflow-hidden">
+                     <div class="text-xs font-semibold mb-1">${message.senderName}</div>
+                     ${message.text ? `<div class="mb-2 break-words">${message.text}</div>` : ''}
+                     <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
+                 </div>
+             `;
+             
+             messagesContainer.appendChild(messageDiv);
+             if (typeof scrollAdminChatToBottom === 'function') {
+                 scrollAdminChatToBottom();
+             }
+         }
+
+        // Helper function to get admin display name
+        function getAdminDisplayName() {
+            if (!currentUser) return 'Admin';
+            
+            const name = currentUser.name || currentUser.email || 'Admin';
+            return name;
+        }
+
+        // Initialize chat buttons - call this when chat tab is opened
+        function initializeChatButtons() {
+            const sendBtn = document.getElementById('admin-chat-send-btn');
+            const inputField = document.getElementById('admin-chat-message-input');
+            const assignBtn = document.getElementById('assign-chat-btn');
+            const closeBtn = document.getElementById('close-chat-btn');
+            const filterSelect = document.getElementById('chat-status-filter');
+
+            if (sendBtn && !sendBtn.hasAttribute('data-listener-attached')) {
+                sendBtn.addEventListener('click', () => {
+                    if (typeof sendAdminMessage === 'function') {
+                        sendAdminMessage();
+                    }
+                });
+                sendBtn.setAttribute('data-listener-attached', 'true');
+            }
+
+            if (inputField && !inputField.hasAttribute('data-listener-attached')) {
+                inputField.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter' && typeof sendAdminMessage === 'function') {
+                        sendAdminMessage();
+                    }
+                });
+                inputField.setAttribute('data-listener-attached', 'true');
+            }
+
+            if (filterSelect && !filterSelect.hasAttribute('data-listener-attached')) {
+                filterSelect.addEventListener('change', () => {
+                    if (typeof loadChats === 'function') {
+                        loadChats();
+                    }
+                });
+                filterSelect.setAttribute('data-listener-attached', 'true');
+            }
+
+            if (assignBtn && !assignBtn.hasAttribute('data-listener-attached')) {
+                assignBtn.addEventListener('click', async () => {
+                    if (!currentAdminChatId) return;
+                    try {
+                        const response = await fetch(`/api/chat/${currentAdminChatId}/assign`, {
+                            method: 'PUT',
+                            headers: { 'Content-Type': 'application/json' },
+                            credentials: 'include'
+                        });
+                        if (!response.ok) throw new Error('Failed to assign chat');
+                        if (typeof loadChats === 'function') {
+                            await loadChats();
+                        }
+                        alert('Chat assigned to you');
+                    } catch (error) {
+                        console.error('Error assigning chat:', error);
+                    }
+                });
+                assignBtn.setAttribute('data-listener-attached', 'true');
+            }
+
+            if (closeBtn && !closeBtn.hasAttribute('data-listener-attached')) {
+                closeBtn.addEventListener('click', async () => {
+                    if (!currentAdminChatId) return;
+                    if (!confirm('Are you sure you want to close this chat?')) return;
+                    try {
+                        const response = await fetch(`/api/chat/${currentAdminChatId}/close`, {
+                            method: 'PUT',
+                            credentials: 'include'
+                        });
+                        if (!response.ok) throw new Error('Failed to close chat');
+                        currentAdminChatId = null;
+                        const noChatSelected = document.getElementById('no-chat-selected');
+                        const chatMessagesPanel = document.getElementById('chat-messages-panel');
+                        if (noChatSelected) noChatSelected.classList.remove('hidden');
+                        if (chatMessagesPanel) chatMessagesPanel.classList.add('hidden');
+                        if (typeof loadChats === 'function') {
+                            await loadChats();
+                        }
+                    } catch (error) {
+                        console.error('Error closing chat:', error);
+                    }
+                });
+                closeBtn.setAttribute('data-listener-attached', 'true');
+            }
+        }
+
+        async function sendAdminMessage() {
+            if (!currentAdminChatId) {
+                alert('No chat selected');
+                return;
+            }
+            
+            const inputField = document.getElementById('admin-chat-message-input');
+            if (!inputField) return;
+            
+            const message = inputField.value.trim();
+            if (!message) return;
+            
+            try {
+                const response = await fetch(`/api/chat/${currentAdminChatId}/message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        text: message,
+                        senderType: 'admin',
+                        senderName: getAdminDisplayName()
+                    })
+                });
+                
+                if (!response.ok) throw new Error('Failed to send message');
+                
+                const data = await response.json();
+                inputField.value = '';
+                
+                if (data.message && typeof addAdminMessageToChat === 'function') {
+                    addAdminMessageToChat(data.message);
+                }
+                
+                if (typeof loadChats === 'function') {
+                    loadChats();
+                }
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Error sending message: ' + error.message);
+            }
+        }
+
+        function scrollAdminChatToBottom() {
+            const messagesContainer = document.getElementById('admin-chat-messages');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+
         // ==================== RECEIPT CREATE FUNCTIONALITY ====================
         // Define these functions before DOMContentLoaded so they're available when shipments are loaded
         let currentReceiptTrackingId = null;
@@ -1668,504 +2214,7 @@
                     loadShipments();
                 }, 30000);
             }
-
-        // ==================== TAB SWITCHING FUNCTIONS ====================
-        // Function to switch to shipments tab
-        function switchToShipmentsTab() {
-            console.log('Switching to shipments tab');
-            const tabShipments = document.getElementById('tab-shipments');
-            const tabChat = document.getElementById('tab-chat');
-            const tabReviews = document.getElementById('tab-reviews');
-            const contentShipments = document.getElementById('content-shipments');
-            const contentChat = document.getElementById('content-chat');
-            const contentReviews = document.getElementById('content-reviews');
-            
-            if (tabShipments) {
-                tabShipments.classList.add('active', 'border-primary', 'text-primary');
-                tabShipments.classList.remove('border-transparent', 'text-text-secondary');
-            }
-            if (tabChat) {
-                tabChat.classList.remove('active', 'border-primary', 'text-primary');
-                tabChat.classList.add('border-transparent', 'text-text-secondary');
-            }
-            if (tabReviews) {
-                tabReviews.classList.remove('active', 'border-primary', 'text-primary');
-                tabReviews.classList.add('border-transparent', 'text-text-secondary');
-            }
-            if (contentShipments) {
-                contentShipments.classList.remove('hidden');
-                console.log('✅ Shipments content shown');
-            }
-            if (contentChat) {
-                contentChat.classList.add('hidden');
-                console.log('✅ Chat content hidden');
-            }
-            if (contentReviews) {
-                contentReviews.classList.add('hidden');
-            }
-        }
-
-        // Function to switch to chat tab
-        function switchToChatTab() {
-            console.log('Switching to chat tab');
-            const tabShipments = document.getElementById('tab-shipments');
-            const tabChat = document.getElementById('tab-chat');
-            const tabReviews = document.getElementById('tab-reviews');
-            const contentShipments = document.getElementById('content-shipments');
-            const contentChat = document.getElementById('content-chat');
-            const contentReviews = document.getElementById('content-reviews');
-            
-            if (tabChat) {
-                tabChat.classList.add('active', 'border-primary', 'text-primary');
-                tabChat.classList.remove('border-transparent', 'text-text-secondary');
-                console.log('✅ Chat tab activated');
-            }
-            if (tabShipments) {
-                tabShipments.classList.remove('active', 'border-primary', 'text-primary');
-                tabShipments.classList.add('border-transparent', 'text-text-secondary');
-            }
-            if (tabReviews) {
-                tabReviews.classList.remove('active', 'border-primary', 'text-primary');
-                tabReviews.classList.add('border-transparent', 'text-text-secondary');
-            }
-            if (contentShipments) {
-                contentShipments.classList.add('hidden');
-            }
-            if (contentChat) {
-                contentChat.classList.remove('hidden');
-                console.log('✅ Chat content shown');
-            }
-            if (contentReviews) {
-                contentReviews.classList.add('hidden');
-            }
-            
-            // Initialize chat functionality
-            if (typeof initAdminSocket === 'function') {
-                initAdminSocket();
-            }
-            if (typeof loadChats === 'function') {
-                loadChats();
-            }
-            if (typeof initializeChatButtons === 'function') {
-                initializeChatButtons();
-            }
-        }
-
-        // Function to switch to reviews tab
-        function switchToReviewsTab() {
-            const tabShipments = document.getElementById('tab-shipments');
-            const tabChat = document.getElementById('tab-chat');
-            const tabReviews = document.getElementById('tab-reviews');
-            const contentShipments = document.getElementById('content-shipments');
-            const contentChat = document.getElementById('content-chat');
-            const contentReviews = document.getElementById('content-reviews');
-            
-            if (tabReviews) {
-                tabReviews.classList.add('active', 'border-primary', 'text-primary');
-                tabReviews.classList.remove('border-transparent', 'text-text-secondary');
-            }
-            if (tabShipments) {
-                tabShipments.classList.remove('active', 'border-primary', 'text-primary');
-                tabShipments.classList.add('border-transparent', 'text-text-secondary');
-            }
-            if (tabChat) {
-                tabChat.classList.remove('active', 'border-primary', 'text-primary');
-                tabChat.classList.add('border-transparent', 'text-text-secondary');
-            }
-            if (contentShipments) contentShipments.classList.add('hidden');
-            if (contentChat) contentChat.classList.add('hidden');
-            if (contentReviews) contentReviews.classList.remove('hidden');
-        }
-
-        // ==================== CHAT FUNCTIONALITY ====================
-        let chatSocket = null;
-        let currentAdminChatId = null;
-
-        // Initialize Socket.io for admin
-        function initAdminSocket() {
-            if (chatSocket && chatSocket.connected) {
-                console.log('Socket already connected');
-                return;
-            }
-            
-            try {
-                console.log('Initializing socket connection to:', window.location.origin);
-                chatSocket = io(window.location.origin, {
-                    transports: ['websocket', 'polling'],
-                    reconnection: true,
-                    reconnectionDelay: 1000,
-                    reconnectionAttempts: 5
-                });
-                
-                chatSocket.on('connect', () => {
-                    console.log('✅ Admin connected to chat server, socket ID:', chatSocket.id);
-                    // Reload chats when connected
-                    loadChats();
-                });
-                
-                chatSocket.on('connect_error', (error) => {
-                    console.error('❌ Socket connection error:', error);
-                });
-                
-                chatSocket.on('disconnect', (reason) => {
-                    console.log('⚠️ Admin disconnected from chat server:', reason);
-                });
-                
-                chatSocket.on('new-chat', (chat) => {
-                    console.log('📨 New chat received:', chat);
-                    loadChats();
-                    updateChatBadge();
-                });
-                
-                chatSocket.on('new-message', (data) => {
-                    console.log('💬 New message received:', data);
-                    if (data.chatId === currentAdminChatId) {
-                        addAdminMessageToChat(data.message);
-                        scrollAdminChatToBottom();
-                        // If admin is viewing the chat, mark new client messages as read automatically
-                        if (data.message.senderType === 'client' && !data.message.read) {
-                            fetch(`/api/chat/${data.chatId}/read`, {
-                                method: 'PUT',
-                                credentials: 'include'
-                            }).then(() => {
-                                loadChats();
-                                loadClientMessagesCount(); // Update Client Messages card
-                            });
-                        }
-                    }
-                    loadChats(); // Refresh chat list to update unread counts
-                    loadClientMessagesCount(); // Update Client Messages card
-                });
-                
-                chatSocket.on('chat-assigned', (data) => {
-                    console.log('👤 Chat assigned:', data);
-                    loadChats();
-                });
-                
-                chatSocket.on('chat-closed', (data) => {
-                    console.log('🔒 Chat closed:', data);
-                    if (data.chatId === currentAdminChatId) {
-                        currentAdminChatId = null;
-                        document.getElementById('no-chat-selected').classList.remove('hidden');
-                        document.getElementById('chat-messages-panel').classList.add('hidden');
-                    }
-                    loadChats();
-                });
-            } catch (error) {
-                console.error('❌ Error initializing admin socket:', error);
-                alert('Erreur de connexion au chat. Vérifiez que le serveur est démarré.');
-            }
-        }
-
-        // Load chats list
-        async function loadChats() {
-            try {
-                const status = document.getElementById('chat-status-filter')?.value || '';
-                const url = status ? `/api/chat?status=${status}` : '/api/chat';
-                const response = await fetch(url, { credentials: 'include' });
-                if (!response.ok) throw new Error('Failed to load chats');
-                
-                const chats = await response.json();
-                const chatList = document.getElementById('chat-list');
-                chatList.innerHTML = '';
-                
-                if (chats.length === 0) {
-                    chatList.innerHTML = '<p class="text-text-secondary text-sm p-4">No chats found</p>';
-                    return;
-                }
-
-                chats.forEach(chat => {
-                    // Count unread messages from clients only
-                    const unreadCount = chat.messages ? chat.messages.filter(m => !m.read && m.senderType === 'client').length : 0;
-                    const chatItem = document.createElement('div');
-                    // Add visual indicator for unread chats
-                    const hasUnread = unreadCount > 0;
-                    chatItem.className = `p-3 rounded-lg cursor-pointer hover:bg-surface transition-colors ${chat.id === currentAdminChatId ? 'bg-primary-50 border border-primary' : ''} ${hasUnread ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`;
-                    chatItem.innerHTML = `
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <div class="font-semibold text-text-primary ${hasUnread ? 'font-bold' : ''}">${chat.clientName || 'Sans nom'}</div>
-                                <div class="text-xs text-text-secondary">${chat.subject || 'Sans sujet'}</div>
-                                <div class="text-xs text-text-muted mt-1">${new Date(chat.updatedAt).toLocaleString()}</div>
-                                ${chat.messages && chat.messages.length > 0 ? `
-                                    <div class="text-xs text-text-muted mt-1">
-                                        ${chat.messages[chat.messages.length - 1].text.substring(0, 50)}${chat.messages[chat.messages.length - 1].text.length > 50 ? '...' : ''}
-                            </div>
-                                ` : ''}
-                        </div>
-                            ${unreadCount > 0 ? `<span class="bg-error text-white text-xs rounded-full px-2 py-1 font-bold min-w-[24px] text-center">${unreadCount}</span>` : ''}
-                        </div>
-                        <div class="mt-2 flex items-center justify-between">
-                            <span class="text-xs px-2 py-1 rounded ${chat.status === 'open' ? 'bg-warning-100 text-warning' : chat.status === 'active' ? 'bg-success-100 text-success' : 'bg-gray-100 text-gray-600'}">${chat.status}</span>
-                            ${hasUnread ? '<span class="text-xs text-error font-semibold">Non lu</span>' : '<span class="text-xs text-text-muted">Lu</span>'}
-                        </div>
-                    `;
-                    chatItem.addEventListener('click', () => openChat(chat.id));
-                    chatList.appendChild(chatItem);
-                });
-
-                updateChatBadge(chats);
-                // Also update Client Messages card
-                loadClientMessagesCount();
-            } catch (error) {
-                console.error('Error loading chats:', error);
-            }
-        }
-
-        function updateChatBadge(chats) {
-            if (!chats) {
-                fetch('/api/chat', { credentials: 'include' })
-                    .then(r => r.json())
-                    .then(c => {
-                        // Count unread messages, not just open chats
-                        let totalUnread = 0;
-                        c.forEach(chat => {
-                            if (chat.messages) {
-                                totalUnread += chat.messages.filter(m => !m.read && m.senderType === 'client').length;
-                            }
-                        });
-                        const badge = document.getElementById('chat-badge');
-                        if (totalUnread > 0) {
-                            badge.textContent = totalUnread;
-                            badge.classList.remove('hidden');
-                        } else {
-                            badge.classList.add('hidden');
-                        }
-                    });
-                return;
-            }
-            // Count total unread messages across all chats
-            let totalUnread = 0;
-            chats.forEach(chat => {
-                if (chat.messages) {
-                    totalUnread += chat.messages.filter(m => !m.read && m.senderType === 'client').length;
-                }
-            });
-            const badge = document.getElementById('chat-badge');
-            if (totalUnread > 0) {
-                badge.textContent = totalUnread;
-                badge.classList.remove('hidden');
-            } else {
-                badge.classList.add('hidden');
-            }
-        }
-
-        // Open a chat
-        async function openChat(chatId) {
-            try {
-                const response = await fetch(`/api/chat/${chatId}`, { credentials: 'include' });
-                if (!response.ok) throw new Error('Failed to load chat');
-                
-                const chat = await response.json();
-                currentAdminChatId = chatId;
-                
-                if (chatSocket) {
-                    chatSocket.emit('join-chat', chatId);
-                }
-
-                // Mark messages as read when admin opens the chat
-                try {
-                    const readResponse = await fetch(`/api/chat/${chatId}/read`, {
-                        method: 'PUT',
-                        credentials: 'include'
-                    });
-                    if (readResponse.ok) {
-                        // Reload chats to update unread counts immediately
-                        await loadChats();
-                        // Also update the Client Messages card
-                        loadClientMessagesCount();
-                    }
-                } catch (readError) {
-                    console.error('Error marking messages as read:', readError);
-                }
-
-                document.getElementById('chat-client-name').textContent = chat.clientName;
-                document.getElementById('chat-client-email').textContent = chat.clientEmail;
-                document.getElementById('chat-subject-admin').textContent = `Subject: ${chat.subject}${chat.trackingId ? ` | Tracking: ${chat.trackingId}` : ''}`;
-
-                const messagesContainer = document.getElementById('admin-chat-messages');
-                messagesContainer.innerHTML = '';
-
-                // Display messages and mark visual styling for read/unread
-                chat.messages.forEach(msg => {
-                    addAdminMessageToChat(msg);
-                });
-
-                document.getElementById('no-chat-selected').classList.add('hidden');
-                document.getElementById('chat-messages-panel').classList.remove('hidden');
-                scrollAdminChatToBottom();
-            } catch (error) {
-                console.error('Error opening chat:', error);
-            }
-        }
-
-         function addAdminMessageToChat(message) {
-             const messagesContainer = document.getElementById('admin-chat-messages');
-             const isAdmin = message.senderType === 'admin';
-             
-             const messageDiv = document.createElement('div');
-             messageDiv.className = `flex ${isAdmin ? 'justify-end' : 'justify-start'}`;
-             
-             messageDiv.innerHTML = `
-                 <div class="max-w-xs lg:max-w-sm ${isAdmin ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3 overflow-hidden">
-                     <div class="text-xs font-semibold mb-1">${message.senderName}</div>
-                     ${message.text ? `<div class="mb-2 break-words">${message.text}</div>` : ''}
-                     <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
-                 </div>
-             `;
-             
-             messagesContainer.appendChild(messageDiv);
-             scrollAdminChatToBottom();
-         }
-
-        // Helper function to get admin display name
-        function getAdminDisplayName() {
-            if (!currentUser) return 'Admin';
-            
-            if (currentUser.firstName && currentUser.lastName) {
-                return `${currentUser.firstName} ${currentUser.lastName}`;
-            } else if (currentUser.firstName) {
-                return currentUser.firstName;
-            } else if (currentUser.lastName) {
-                return currentUser.lastName;
-            } else {
-                return currentUser.username || 'Admin';
-            }
-        }
-
-        // Initialize chat buttons - call this when chat tab is opened
-        function initializeChatButtons() {
-            const sendBtn = document.getElementById('admin-chat-send-btn');
-            const inputField = document.getElementById('admin-chat-message-input');
-            const assignBtn = document.getElementById('assign-chat-btn');
-            const closeBtn = document.getElementById('close-chat-btn');
-            const filterSelect = document.getElementById('chat-status-filter');
-
-            if (sendBtn && !sendBtn.hasAttribute('data-listener-attached')) {
-                sendBtn.addEventListener('click', sendAdminMessage);
-                sendBtn.setAttribute('data-listener-attached', 'true');
-            }
-            
-            if (inputField && !inputField.hasAttribute('data-listener-attached')) {
-                inputField.addEventListener('keypress', (e) => {
-                    if (e.key === 'Enter') sendAdminMessage();
-                });
-                inputField.setAttribute('data-listener-attached', 'true');
-            }
-
-            if (assignBtn && !assignBtn.hasAttribute('data-listener-attached')) {
-                assignBtn.addEventListener('click', async () => {
-            if (!currentAdminChatId) return;
-            try {
-                const response = await fetch(`/api/chat/${currentAdminChatId}/assign`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include'
-                });
-                if (!response.ok) throw new Error('Failed to assign chat');
-                await loadChats();
-                alert('Chat assigned to you');
-            } catch (error) {
-                console.error('Error assigning chat:', error);
-            }
         });
-                assignBtn.setAttribute('data-listener-attached', 'true');
-            }
-
-            if (closeBtn && !closeBtn.hasAttribute('data-listener-attached')) {
-                closeBtn.addEventListener('click', async () => {
-            if (!currentAdminChatId) return;
-            if (!confirm('Are you sure you want to close this chat?')) return;
-            try {
-                const response = await fetch(`/api/chat/${currentAdminChatId}/close`, {
-                    method: 'PUT',
-                    credentials: 'include'
-                });
-                if (!response.ok) throw new Error('Failed to close chat');
-                currentAdminChatId = null;
-                document.getElementById('no-chat-selected').classList.remove('hidden');
-                document.getElementById('chat-messages-panel').classList.add('hidden');
-                await loadChats();
-            } catch (error) {
-                console.error('Error closing chat:', error);
-            }
-        });
-                closeBtn.setAttribute('data-listener-attached', 'true');
-            }
-
-            if (filterSelect && !filterSelect.hasAttribute('data-listener-attached')) {
-                filterSelect.addEventListener('change', () => {
-            loadChats();
-        });
-                filterSelect.setAttribute('data-listener-attached', 'true');
-            }
-        }
-
-        // Chat buttons will be initialized when chat tab is opened (in tab-chat click handler)
-
-        async function sendAdminMessage() {
-            const input = document.getElementById('admin-chat-message-input');
-            const text = input.value.trim();
-
-            if (!text) return;
-            if (!currentAdminChatId) return;
-
-            try {
-                const response = await fetch(`/api/chat/${currentAdminChatId}/message`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    credentials: 'include',
-                    body: JSON.stringify({
-                        text,
-                        senderType: 'admin',
-                        senderName: getAdminDisplayName()
-                    })
-                });
-
-                if (!response.ok) throw new Error('Failed to send message');
-
-                // Add message immediately to chat UI
-                try {
-                    const messageData = await response.json();
-                    if (messageData.message) {
-                        addAdminMessageToChat(messageData.message);
-                    } else if (messageData) {
-                        // Server might return the message directly
-                        addAdminMessageToChat(messageData);
-                    } else {
-                        // Fallback: create message object from form data
-                        addAdminMessageToChat({
-                            text,
-                            senderType: 'admin',
-                            senderName: getAdminDisplayName(),
-                            timestamp: new Date().toISOString()
-                        });
-                    }
-                } catch (jsonError) {
-                    // If response is not JSON, use fallback
-                    console.warn('Could not parse response as JSON, using fallback');
-                    addAdminMessageToChat({
-                        text,
-                        senderType: 'admin',
-                        senderName: getAdminDisplayName(),
-                        timestamp: new Date().toISOString()
-                    });
-                }
-
-                input.value = '';
-                scrollAdminChatToBottom();
-            } catch (error) {
-                console.error('Error sending message:', error);
-                alert('Failed to send message. Please try again.');
-        }
-        }
-
-
-
-        function scrollAdminChatToBottom() {
-            const messagesContainer = document.getElementById('admin-chat-messages');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-        }
 
     </script>
 <script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script>
