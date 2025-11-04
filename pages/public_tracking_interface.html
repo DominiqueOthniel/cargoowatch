@@ -2145,8 +2145,8 @@
                                     map.panTo(newCoords, { animate: true, duration: 1.5 });
                                 }
                                 
-                                // Mettre à jour la barre de progression
-                                const progress = calculateProgress(updatedShipment.events || [], updatedShipment.status);
+                                // Mettre à jour la barre de progression (utiliser la progression continue)
+                                const progress = calculateContinuousProgress(updatedShipment) * 100;
                                 const progressBar = document.getElementById('progress-bar');
                                 if (progressBar) {
                                     progressBar.style.width = progress + '%';
