@@ -1943,7 +1943,8 @@
                             const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
                             
                             // Mettre à jour si la position change (seuil réduit pour plus de sensibilité)
-                            const coordinateChanged = latDiff > 0.0001 || lngDiff > 0.0001;
+                            // Pour la progression automatique, utiliser un seuil encore plus petit
+                            const coordinateChanged = latDiff > 0.00001 || lngDiff > 0.00001;
                             
                             // Extraire la ville actuelle
                             let currentCityInPopup = '';
@@ -1964,14 +1965,21 @@
                             // Toujours mettre à jour si coordonnées ou ville changent, ou si le statut change
                             const statusChanged = updatedShipment.status !== shipment.status;
                             
-                            if (coordinateChanged || cityChanged || statusChanged) {
+                            // Pour la progression automatique : toujours mettre à jour si les coordonnées calculées diffèrent
+                            // même légèrement, ou si on vient de calculer (pas de serveur)
+                            const shouldUpdate = coordinateChanged || cityChanged || statusChanged || !useServerCoords;
+                            
+                            if (shouldUpdate) {
                                 console.log(`📍 Map updating:`, {
                                     city: newCity,
                                     coords: newCoords,
                                     status: updatedShipment.status,
                                     coordinateChanged,
                                     cityChanged,
-                                    statusChanged
+                                    statusChanged,
+                                    useServerCoords,
+                                    progress: calculateProgress(updatedShipment.events || [], updatedShipment.status),
+                                    oldCoords: [oldCoords.lat, oldCoords.lng]
                                 });
                                 
                                 // Animer le mouvement du marqueur
