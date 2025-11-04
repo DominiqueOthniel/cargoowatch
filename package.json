@@ -1,0 +1,40 @@
+{
+    "name": "cargowatch",
+    "version": "1.0.0",
+    "description": "CargoWatch - Professional shipment tracking system",
+    "main": "server.js",
+    "dependencies": {
+        "@dhiwise/component-tagger": "^1.0.10",
+        "@supabase/supabase-js": "^2.78.0",
+        "@tailwindcss/forms": "^0.5.7",
+        "bcryptjs": "^2.4.3",
+        "cors": "^2.8.5",
+        "dotenv": "^17.2.3",
+        "express": "^4.18.2",
+        "express-session": "^1.18.2",
+        "multer": "^2.0.2",
+        "pdfkit": "^0.17.2",
+        "puppeteer": "^24.27.0",
+        "socket.io": "^4.8.1",
+        "tailwindcss-animate": "^1.0.7",
+        "tailwindcss-elevation": "^2.0.0",
+        "tailwindcss-fluid-type": "^2.0.7",
+        "uuid": "^9.0.1"
+    },
+    "scripts": {
+        "build:css": "npx @dhiwise/component-tagger && npx tailwindcss -i ./css/tailwind.css -o ./css/main.css",
+        "watch:css": "npx @dhiwise/component-tagger && npx tailwindcss -i ./css/tailwind.css -o ./css/main.css --watch",
+        "dev": "npm run watch:css",
+        "start": "node server.js",
+        "server": "node server.js"
+    },
+    "author": "",
+    "license": "MIT",
+    "devDependencies": {
+        "@tailwindcss/aspect-ratio": "^0.4.2",
+        "@tailwindcss/container-queries": "^0.1.1",
+        "@tailwindcss/line-clamp": "^0.1.0",
+        "@tailwindcss/typography": "^0.5.16",
+        "tailwindcss": "^3.4.17"
+    }
+}

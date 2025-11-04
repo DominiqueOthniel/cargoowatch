@@ -5,6 +5,7 @@ package-lock.json
 # Data files
 data/
 *.json
+!package.json
 
 # Uploaded files
 public/receipts/
