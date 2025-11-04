@@ -205,12 +205,12 @@
                         <h3 class="text-lg font-semibold text-text-primary">Quick Actions</h3>
                     </div>
                     <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
-                        <button class="flex flex-col items-center p-4 bg-surface rounded-lg hover:bg-surface-hover transition-colors">
+                        <a href="shipment_creation_portal.html" class="flex flex-col items-center p-4 bg-surface rounded-lg hover:bg-surface-hover transition-colors">
                             <svg class="w-8 h-8 text-primary mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                             </svg>
-                            <span class="text-sm font-medium text-text-primary">Bulk Update</span>
-                        </button>
+                            <span class="text-sm font-medium text-text-primary">Create Shipment</span>
+                        </a>
                         <button id="download-receipts-btn" class="flex flex-col items-center p-4 bg-surface rounded-lg hover:bg-surface-hover transition-colors">
                             <svg class="w-8 h-8 text-secondary mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
@@ -302,13 +302,13 @@
                 <div class="card">
                     <h3 class="text-lg font-semibold text-text-primary mb-4">Quick Links</h3>
                     <div class="space-y-2">
-                        <a href="/pages/shipment_creation_portal.html" class="block text-sm text-primary hover:text-primary-700 py-2 px-3 rounded-lg hover:bg-surface transition-colors">
+                        <a href="shipment_creation_portal.html" class="block text-sm text-primary hover:text-primary-700 py-2 px-3 rounded-lg hover:bg-surface transition-colors">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
                             </svg>
                             Create New Shipment
                         </a>
-                        <button onclick="document.getElementById('tab-chat').click()" class="block w-full text-left text-sm text-primary hover:text-primary-700 py-2 px-3 rounded-lg hover:bg-surface transition-colors">
+                        <button id="view-live-chats-btn" class="block w-full text-left text-sm text-primary hover:text-primary-700 py-2 px-3 rounded-lg hover:bg-surface transition-colors">
                             <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                             </svg>
@@ -1633,32 +1633,70 @@
 
         // ==================== CHAT FUNCTIONALITY ====================
         // Tab switching
-        document.getElementById('tab-shipments')?.addEventListener('click', () => {
-            document.getElementById('tab-shipments').classList.add('active', 'border-primary', 'text-primary');
-            document.getElementById('tab-shipments').classList.remove('border-transparent', 'text-text-secondary');
-            document.getElementById('tab-chat').classList.remove('active', 'border-primary', 'text-primary');
-            document.getElementById('tab-chat').classList.add('border-transparent', 'text-text-secondary');
-            document.getElementById('tab-reviews').classList.remove('active', 'border-primary', 'text-primary');
-            document.getElementById('tab-reviews').classList.add('border-transparent', 'text-text-secondary');
-            document.getElementById('content-shipments').classList.remove('hidden');
-            document.getElementById('content-chat').classList.add('hidden');
-            document.getElementById('content-reviews').classList.add('hidden');
-        });
+        // Function to switch to shipments tab
+        function switchToShipmentsTab() {
+            const tabShipments = document.getElementById('tab-shipments');
+            const tabChat = document.getElementById('tab-chat');
+            const tabReviews = document.getElementById('tab-reviews');
+            const contentShipments = document.getElementById('content-shipments');
+            const contentChat = document.getElementById('content-chat');
+            const contentReviews = document.getElementById('content-reviews');
+            
+            if (tabShipments) {
+                tabShipments.classList.add('active', 'border-primary', 'text-primary');
+                tabShipments.classList.remove('border-transparent', 'text-text-secondary');
+            }
+            if (tabChat) {
+                tabChat.classList.remove('active', 'border-primary', 'text-primary');
+                tabChat.classList.add('border-transparent', 'text-text-secondary');
+            }
+            if (tabReviews) {
+                tabReviews.classList.remove('active', 'border-primary', 'text-primary');
+                tabReviews.classList.add('border-transparent', 'text-text-secondary');
+            }
+            if (contentShipments) contentShipments.classList.remove('hidden');
+            if (contentChat) contentChat.classList.add('hidden');
+            if (contentReviews) contentReviews.classList.add('hidden');
+        }
 
-        document.getElementById('tab-chat')?.addEventListener('click', () => {
-            document.getElementById('tab-chat').classList.add('active', 'border-primary', 'text-primary');
-            document.getElementById('tab-chat').classList.remove('border-transparent', 'text-text-secondary');
-            document.getElementById('tab-shipments').classList.remove('active', 'border-primary', 'text-primary');
-            document.getElementById('tab-shipments').classList.add('border-transparent', 'text-text-secondary');
-            document.getElementById('tab-reviews').classList.remove('active', 'border-primary', 'text-primary');
-            document.getElementById('tab-reviews').classList.add('border-transparent', 'text-text-secondary');
-            document.getElementById('content-shipments').classList.add('hidden');
-            document.getElementById('content-chat').classList.remove('hidden');
-            document.getElementById('content-reviews').classList.add('hidden');
+        // Function to switch to chat tab
+        function switchToChatTab() {
+            const tabShipments = document.getElementById('tab-shipments');
+            const tabChat = document.getElementById('tab-chat');
+            const tabReviews = document.getElementById('tab-reviews');
+            const contentShipments = document.getElementById('content-shipments');
+            const contentChat = document.getElementById('content-chat');
+            const contentReviews = document.getElementById('content-reviews');
+            
+            if (tabChat) {
+                tabChat.classList.add('active', 'border-primary', 'text-primary');
+                tabChat.classList.remove('border-transparent', 'text-text-secondary');
+            }
+            if (tabShipments) {
+                tabShipments.classList.remove('active', 'border-primary', 'text-primary');
+                tabShipments.classList.add('border-transparent', 'text-text-secondary');
+            }
+            if (tabReviews) {
+                tabReviews.classList.remove('active', 'border-primary', 'text-primary');
+                tabReviews.classList.add('border-transparent', 'text-text-secondary');
+            }
+            if (contentShipments) contentShipments.classList.add('hidden');
+            if (contentChat) contentChat.classList.remove('hidden');
+            if (contentReviews) contentReviews.classList.add('hidden');
+            
             initAdminSocket();
             loadChats();
-                initializeChatButtons(); // Ensure buttons are initialized when chat tab is opened
-            });
+            initializeChatButtons(); // Ensure buttons are initialized when chat tab is opened
+        }
+
+        document.getElementById('tab-shipments')?.addEventListener('click', switchToShipmentsTab);
+        document.getElementById('tab-chat')?.addEventListener('click', switchToChatTab);
+
+        // Add event listener for "View Live Chats" button
+        document.getElementById('view-live-chats-btn')?.addEventListener('click', () => {
+            console.log('View Live Chats button clicked');
+            switchToChatTab();
+        });
 
         document.getElementById('tab-reviews')?.addEventListener('click', () => {
             document.getElementById('tab-reviews').classList.add('active', 'border-primary', 'text-primary');
