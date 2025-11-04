@@ -1952,13 +1952,68 @@
             }
         }
         
-        // Real-time tracking updates - Poll API for updates set by admin
+        // Real-time tracking updates - Poll API for updates set by admin + continuous progression
+        let continuousProgressionInterval = null;
+        
         function startRealtimeTracking(shipment) {
             if (trackingInterval) {
                 clearInterval(trackingInterval);
             }
+            if (continuousProgressionInterval) {
+                clearInterval(continuousProgressionInterval);
+            }
             
             const trackingId = shipment.trackingId;
+            
+            // Démarrer la progression continue (toutes les secondes pour animation fluide)
+            if (shipment.status !== 'pending' && shipment.status !== 'delivered') {
+                continuousProgressionInterval = setInterval(() => {
+                    if (!map || !currentMarker || !shipment) return;
+                    
+                    const originCoords = shipment.sender?.address?.lat && shipment.sender?.address?.lng
+                        ? [shipment.sender.address.lat, shipment.sender.address.lng]
+                        : getCityCoordinates(shipment.sender?.address?.city || 'New York');
+                    
+                    const destCoords = shipment.recipient?.address?.lat && shipment.recipient?.address?.lng
+                        ? [shipment.recipient.address.lat, shipment.recipient.address.lng]
+                        : getCityCoordinates(shipment.recipient?.address?.city || 'Washington');
+                    
+                    // Calculer la nouvelle position basée sur la progression continue
+                    const newCoords = calculateCurrentPosition(originCoords, destCoords, shipment.status, shipment.events, shipment);
+                    const oldCoords = currentMarker.getLatLng();
+                    
+                    // Mettre à jour si la position change
+                    const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
+                    const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
+                    
+                    if (latDiff > 0.00001 || lngDiff > 0.00001) {
+                        // Animer le mouvement du marqueur
+                        currentMarker.setLatLng(newCoords);
+                        
+                        // Mettre à jour la route
+                        if (routePolyline && map) {
+                            map.removeLayer(routePolyline);
+                        }
+                        routePolyline = L.polyline([originCoords, newCoords, destCoords], {
+                            color: '#3b82f6',
+                            weight: 5,
+                            opacity: 0.8,
+                            dashArray: '10, 10'
+                        }).addTo(map);
+                        
+                        // Mettre à jour les infos
+                        const routeDistance = calculateRouteDistance(originCoords, newCoords, destCoords);
+                        updateMapInfo(shipment, originCoords, destCoords, newCoords, routeDistance);
+                        
+                        // Mettre à jour la barre de progression
+                        const progress = calculateContinuousProgress(shipment) * 100;
+                        const progressBar = document.getElementById('progress-bar');
+                        if (progressBar) {
+                            progressBar.style.width = progress + '%';
+                        }
+                    }
+                }, 1000); // Mise à jour toutes les secondes pour progression fluide
+            }
             
             // Poll API every 10 seconds to get updates from admin (more frequent for better UX)
             trackingInterval = setInterval(async () => {
