@@ -145,7 +145,7 @@ Remplissez les informations suivantes :
 - **Name** : `cargowatch` (ou votre nom préféré)
 - **Region** : Choisissez la région la plus proche de vos utilisateurs
 - **Branch** : `main` (ou `master` selon votre repository)
-- **Root Directory** : (laissez vide si le projet est à la racine)
+- **Root Directory** : ⚠️ **LAISSEZ VIDE** (ou `.` si vous devez spécifier quelque chose) - Le projet doit être à la racine du repository
 - **Runtime** : `Node`
 - **Build Command** : `npm install && npm run build:css`
 - **Start Command** : `npm start`
@@ -273,6 +273,16 @@ Vous pouvez ajouter ces variables si nécessaire :
 - Vérifiez les politiques RLS dans Supabase
 - Pour le développement, les politiques dans le schéma permettent tout
 - Pour la production, créez des politiques RLS appropriées si nécessaire
+
+### Problème : "Could not read package.json: ENOENT" / "package.json not found"
+
+**Solution** :
+- ⚠️ **C'est le problème le plus courant** : Le Root Directory est mal configuré
+- Dans Render, allez dans **Settings** → **Build & Deploy**
+- Vérifiez que **"Root Directory"** est **VIDE** (ou `.` si vous devez spécifier quelque chose)
+- Si vous voyez `src` ou autre chose, **effacez-le complètement**
+- Sauvegardez et redéployez
+- Le `package.json` doit être à la racine de votre repository GitHub
 
 ### Problème : L'application ne démarre pas
 
