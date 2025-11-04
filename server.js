@@ -1169,13 +1169,9 @@ app.post('/api/shipments/:trackingId/receipt/generate', requireAuth, requireAdmi
         shipment.receiptUploadedAt = new Date().toISOString();
         shipment.updatedAt = new Date().toISOString();
 
-        // Update in database
-        const shipments = await readShipments();
-        const index = shipments.findIndex(s => s.trackingId === trackingId.toUpperCase());
-        if (index !== -1) {
-            shipments[index] = shipment;
-            await writeShipments(shipments);
-        }
+        // Update in database (reuse shipments array from above)
+        shipments[shipmentIndex] = shipment;
+        await writeShipments(shipments);
         console.log(`✅ Receipt PDF generated for shipment ${trackingId}`);
         res.json({ success: true, receipt: receiptUrl, shipment });
     } catch (error) {
