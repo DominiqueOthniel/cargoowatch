@@ -1639,9 +1639,13 @@
                 
                 if (chats.length === 0) {
                     console.log('⚠️ No chats available, showing empty message');
-                    chatList.innerHTML = '<p class="text-sm text-text-muted p-4">No chats available</p>';
+                    chatList.innerHTML = '<p class="text-sm text-text-muted p-4">Aucune conversation disponible</p>';
                     return;
                 }
+                
+                // Nettoyer le message de chargement
+                chatList.innerHTML = '';
+                console.log('🧹 Cleared chat-list, ready to add chats');
                 
                 console.log('🔄 Processing', chats.length, 'chats');
                 chats.forEach((chat, index) => {
@@ -1663,38 +1667,61 @@
                         ? new Date(lastMessage.timestamp).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
                         : '';
                     
+                    // Construire le HTML de manière plus sûre
+                    const clientInitial = (chat.clientName || 'C')[0].toUpperCase();
+                    const clientName = chat.clientName || 'Client';
+                    const clientEmail = chat.clientEmail || '';
+                    const statusBadgeClass = chat.status === 'open' ? 'bg-warning-100 text-warning' : 
+                                           chat.status === 'active' ? 'bg-success-100 text-success' : 
+                                           'bg-gray-100 text-gray-600';
+                    const statusText = chat.status || 'open';
+                    
+                    let lastMessageHtml = '';
+                    if (lastMessage) {
+                        const messagePreview = lastMessage.text ? lastMessage.text.substring(0, 60) + (lastMessage.text.length > 60 ? '...' : '') : 'Aucun texte';
+                        lastMessageHtml = `
+                            <div class="text-sm text-text-primary mb-2">${messagePreview}</div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs px-2 py-1 rounded ${statusBadgeClass}">${statusText}</span>
+                                <span class="text-xs text-text-muted">${lastMessageTime}</span>
+                            </div>
+                        `;
+                    } else {
+                        lastMessageHtml = `
+                            <div class="text-sm text-text-muted italic mb-2">Aucun message</div>
+                            <div class="text-xs text-text-muted">${statusText}</div>
+                        `;
+                    }
+                    
+                    const unreadBadge = unreadCount > 0 ? `<span class="bg-error text-white text-xs font-bold rounded-full px-2 py-1 min-w-[24px] text-center flex-shrink-0">${unreadCount}</span>` : '';
+                    
                     chatItem.innerHTML = `
                         <div class="flex items-start justify-between mb-2">
                             <div class="flex-1">
                                 <div class="flex items-center space-x-3 mb-2">
                                     <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <span class="text-primary font-bold text-base">${(chat.clientName || 'C')[0].toUpperCase()}</span>
+                                        <span class="text-primary font-bold text-base">${clientInitial}</span>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <div class="font-bold text-text-primary truncate">${chat.clientName || 'Client'}</div>
-                                        <div class="text-xs text-text-muted truncate">${chat.clientEmail || ''}</div>
+                                        <div class="font-bold text-text-primary truncate">${clientName}</div>
+                                        <div class="text-xs text-text-muted truncate">${clientEmail}</div>
                                     </div>
                                 </div>
                             </div>
-                            ${unreadCount > 0 ? `<span class="bg-error text-white text-xs font-bold rounded-full px-2.5 py-1 min-w-[24px] text-center flex-shrink-0">${unreadCount}</span>` : ''}
+                            ${unreadBadge}
                         </div>
                         <div class="mt-2">
-                            ${lastMessage ? `
-                                <div class="text-sm text-text-primary mb-2 line-clamp-2">${lastMessage.text.substring(0, 60)}${lastMessage.text.length > 60 ? '...' : ''}</div>
-                                <div class="flex items-center justify-between">
-                                    <span class="text-xs px-2 py-1 rounded ${
-                                        chat.status === 'open' ? 'bg-warning-100 text-warning' : 
-                                        chat.status === 'active' ? 'bg-success-100 text-success' : 
-                                        'bg-gray-100 text-gray-600'
-                                    }">${chat.status || 'open'}</span>
-                                    <span class="text-xs text-text-muted">${lastMessageTime}</span>
-                                </div>
-                            ` : `
-                                <div class="text-sm text-text-muted italic mb-2">Aucun message</div>
-                                <div class="text-xs text-text-muted">${chat.status || 'open'}</div>
-                            `}
+                            ${lastMessageHtml}
                         </div>
                     `;
+                    
+                    console.log('📋 Chat item HTML created:', {
+                        clientName,
+                        clientEmail,
+                        unreadCount,
+                        hasLastMessage: !!lastMessage,
+                        status: statusText
+                    });
                     
                     chatItem.addEventListener('click', () => {
                         console.log('🖱️ Chat item clicked:', chat.id);
@@ -1713,9 +1740,105 @@
                     
                     chatList.appendChild(chatItem);
                     console.log(`✅ Chat item ${index + 1} appended to chat-list`);
+                    
+                    // Vérifier que l'élément est bien dans le DOM et visible
+                    setTimeout(() => {
+                        const addedItem = chatList.querySelector(`[data-chat-id="${chat.id}"]`);
+                        if (addedItem) {
+                            const styles = window.getComputedStyle(addedItem);
+                            console.log(`✅ Chat item verified in DOM for chat ${chat.id}:`, {
+                                offsetWidth: addedItem.offsetWidth,
+                                offsetHeight: addedItem.offsetHeight,
+                                display: styles.display,
+                                visibility: styles.visibility,
+                                opacity: styles.opacity,
+                                position: styles.position,
+                                zIndex: styles.zIndex
+                            });
+                            
+                            // Forcer l'affichage si nécessaire
+                            if (addedItem.offsetHeight === 0 || styles.display === 'none') {
+                                console.warn('⚠️ Chat item has 0 height or display:none, forcing display');
+                                addedItem.style.display = 'block';
+                                addedItem.style.visibility = 'visible';
+                            }
+                        } else {
+                            console.error(`❌ Chat item NOT found in DOM for chat ${chat.id}`);
+                        }
+                    }, 50);
                 });
                 
                 console.log('✅ All chats processed. chat-list now has', chatList.children.length, 'children');
+                
+                // Inspection complète du DOM après insertion
+                setTimeout(() => {
+                    const styles = window.getComputedStyle(chatList);
+                    console.log('📐 Chat list container styles:', {
+                        offsetWidth: chatList.offsetWidth,
+                        offsetHeight: chatList.offsetHeight,
+                        scrollHeight: chatList.scrollHeight,
+                        display: styles.display,
+                        visibility: styles.visibility,
+                        overflow: styles.overflow,
+                        maxHeight: styles.maxHeight,
+                        padding: styles.padding,
+                        margin: styles.margin,
+                        position: styles.position
+                    });
+                    
+                    // Vérifier le parent
+                    const parent = chatList.parentElement;
+                    if (parent) {
+                        const parentStyles = window.getComputedStyle(parent);
+                        console.log('📐 Parent container styles:', {
+                            tagName: parent.tagName,
+                            className: parent.className,
+                            offsetWidth: parent.offsetWidth,
+                            offsetHeight: parent.offsetHeight,
+                            display: parentStyles.display,
+                            visibility: parentStyles.visibility,
+                            overflow: parentStyles.overflow
+                        });
+                    }
+                    
+                    // Lister tous les enfants avec leurs dimensions
+                    console.log('📋 All children in chat-list:', Array.from(chatList.children).map((child, idx) => {
+                        const childStyles = window.getComputedStyle(child);
+                        return {
+                            index: idx,
+                            tagName: child.tagName,
+                            className: child.className,
+                            dataChatId: child.dataset.chatId,
+                            offsetWidth: child.offsetWidth,
+                            offsetHeight: child.offsetHeight,
+                            display: childStyles.display,
+                            visibility: childStyles.visibility,
+                            opacity: childStyles.opacity,
+                            innerHTML: child.innerHTML.substring(0, 100) + '...'
+                        };
+                    }));
+                    
+                    // Forcer l'affichage si le conteneur a 0 hauteur
+                    if (chatList.offsetHeight === 0) {
+                        console.warn('⚠️ chat-list has 0 height, checking parent visibility');
+                        let currentParent = chatList.parentElement;
+                        while (currentParent) {
+                            const parentStyles = window.getComputedStyle(currentParent);
+                            console.log(`Parent ${currentParent.tagName}.${currentParent.className}:`, {
+                                display: parentStyles.display,
+                                visibility: parentStyles.visibility,
+                                height: parentStyles.height,
+                                maxHeight: parentStyles.maxHeight
+                            });
+                            if (parentStyles.display === 'none' || parentStyles.visibility === 'hidden') {
+                                console.warn('⚠️ Found hidden parent, forcing visibility');
+                                currentParent.style.display = 'block';
+                                currentParent.style.visibility = 'visible';
+                            }
+                            currentParent = currentParent.parentElement;
+                        }
+                    }
+                }, 100);
                 
                 if (typeof updateChatBadge === 'function') {
                     updateChatBadge(chats);
