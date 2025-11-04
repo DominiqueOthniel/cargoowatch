@@ -245,17 +245,7 @@ async function readUsers() {
             return [];
         }
 
-        // Transform DB format to application format
-        return data.map(user => ({
-            id: user.id,
-            username: user.username,
-            email: user.email,
-            password: user.password,
-            role: user.role,
-            firstName: user.first_name || '',
-            lastName: user.last_name || '',
-            createdAt: user.created_at
-        }));
+        return data.map(transformUserFromDB);
     } catch (error) {
         console.error('❌ Error reading users:', error);
         return [];
@@ -264,18 +254,8 @@ async function readUsers() {
 
 async function createUser(user) {
     try {
-        // Transform user object to match DB schema
-        const dbUser = {
-            id: user.id,
-            username: user.username,
-            email: user.email.toLowerCase(),
-            password: user.password,
-            role: user.role || 'user',
-            first_name: user.firstName || user.first_name || null,
-            last_name: user.lastName || user.last_name || null,
-            created_at: user.createdAt || new Date().toISOString()
-        };
-
+        const dbUser = transformUserToDB(user);
+        
         const { data, error } = await supabase
             .from('users')
             .insert([dbUser])
@@ -287,17 +267,7 @@ async function createUser(user) {
             return null;
         }
 
-        // Transform back to application format
-        return {
-            id: data.id,
-            username: data.username,
-            email: data.email,
-            password: data.password,
-            role: data.role,
-            firstName: data.first_name || '',
-            lastName: data.last_name || '',
-            createdAt: data.created_at
-        };
+        return transformUserFromDB(data);
     } catch (error) {
         console.error('❌ Error creating user:', error);
         return null;
@@ -320,66 +290,99 @@ async function getUserByEmail(email) {
             return null;
         }
 
-        // Transform DB format to application format
-        return {
-            id: data.id,
-            username: data.username,
-            email: data.email,
-            password: data.password,
-            role: data.role,
-            firstName: data.first_name || '',
-            lastName: data.last_name || '',
-            createdAt: data.created_at
-        };
+        return transformUserFromDB(data);
     } catch (error) {
         console.error('❌ Error fetching user:', error);
         return null;
     }
 }
 
-// Chats operations
+function transformUserToDB(user) {
+    return {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        password: user.password,
+        first_name: user.firstName || user.first_name,
+        last_name: user.lastName || user.last_name,
+        role: user.role || 'user',
+        created_at: user.createdAt || user.created_at,
+        updated_at: user.updatedAt || user.updated_at
+    };
+}
+
+function transformUserFromDB(dbUser) {
+    return {
+        id: dbUser.id,
+        username: dbUser.username,
+        email: dbUser.email,
+        password: dbUser.password,
+        firstName: dbUser.first_name,
+        lastName: dbUser.last_name,
+        role: dbUser.role,
+        createdAt: dbUser.created_at,
+        updatedAt: dbUser.updated_at
+    };
+}
+
+// Chats operations (simplified - using chat_conversations and chat_messages)
 async function readChats() {
     try {
-        const { data, error } = await supabase
-            .from('chats')
-            .select('*')
-            .order('created_at', { ascending: true });
+        // Get conversations with their messages
+        const { data: conversations, error } = await supabase
+            .from('chat_conversations')
+            .select(`
+                *,
+                chat_messages (
+                    id,
+                    text,
+                    image,
+                    sender_type,
+                    sender_name,
+                    sender_id,
+                    read,
+                    created_at
+                )
+            `)
+            .order('created_at', { ascending: false });
 
         if (error) {
             console.error('❌ Error reading chats from Supabase:', error);
             return [];
         }
 
-        return data;
+        // Transform to match JSON structure
+        return conversations.map(conv => ({
+            id: conv.id,
+            clientName: conv.client_name,
+            clientEmail: conv.client_email,
+            subject: conv.subject,
+            trackingId: conv.tracking_id,
+            status: conv.status,
+            createdAt: conv.created_at,
+            updatedAt: conv.updated_at,
+            messages: (conv.chat_messages || []).map(msg => ({
+                id: msg.id,
+                text: msg.text,
+                image: msg.image,
+                senderType: msg.sender_type,
+                senderName: msg.sender_name,
+                timestamp: msg.created_at,
+                read: msg.read
+            })),
+            assignedTo: conv.assigned_to
+        }));
     } catch (error) {
         console.error('❌ Error reading chats:', error);
         return [];
     }
 }
 
-async function createChat(chat) {
-    try {
-        const { data, error } = await supabase
-            .from('chats')
-            .insert([{
-                tracking_id: chat.trackingId,
-                user_email: chat.userEmail,
-                message: chat.message,
-                created_at: chat.createdAt || new Date().toISOString()
-            }])
-            .select()
-            .single();
-
-        if (error) {
-            console.error('❌ Error creating chat in Supabase:', error);
-            return null;
-        }
-
-        return data;
-    } catch (error) {
-        console.error('❌ Error creating chat:', error);
-        return null;
-    }
+async function writeChats(chats) {
+    // This function is kept for backward compatibility
+    // In Supabase, we update individual conversations and messages
+    console.log('⚠️ writeChats() called - use updateChatConversation() instead');
+    return true;
 }
 
 module.exports = {
@@ -397,7 +400,6 @@ module.exports = {
     
     // Chats
     readChats,
-    createChat
+    writeChats
 };
-
 

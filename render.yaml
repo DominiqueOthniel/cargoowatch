@@ -6,11 +6,16 @@ services:
     rootDir: .
     buildCommand: npm install && npm run build:css
     startCommand: npm start
-    healthCheckPath: /api
+    healthCheckPath: /
     envVars:
       - key: NODE_ENV
         value: production
-      # Note: Les autres variables d'environnement (SUPABASE_URL, SUPABASE_ANON_KEY, etc.)
-      # doivent être configurées dans l'interface Render après le déploiement
-      # ou via l'interface Settings > Environment
+      # Note: Les autres variables d'environnement doivent être configurées
+      # dans l'interface Render Dashboard > Settings > Environment Variables
+      # Variables requises:
+      # - SUPABASE_URL
+      # - SUPABASE_SERVICE_ROLE_KEY (ou SUPABASE_ANON_KEY)
+      # - USE_SUPABASE=true
+      # - SESSION_SECRET
+      # - PORT (optionnel, Render définit automatiquement)
 

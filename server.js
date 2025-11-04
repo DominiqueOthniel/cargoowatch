@@ -15,7 +15,7 @@ const multer = require('multer');
 const PDFDocument = require('pdfkit');
 
 // Database: Use Supabase if configured, otherwise use JSON files
-const USE_SUPABASE = process.env.USE_SUPABASE === 'true' || (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY);
+const USE_SUPABASE = process.env.USE_SUPABASE === 'true' || (process.env.SUPABASE_URL && (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY));
 let db;
 
 if (USE_SUPABASE) {
@@ -134,12 +134,9 @@ async function ensureDataDir() {
 
 // Fonctions utilitaires
 async function readUsers() {
-    // Use Supabase if available
-    if (USE_SUPABASE && db) {
+    if (db && db.readUsers) {
         return await db.readUsers();
     }
-    
-    // Fallback to JSON files
     try {
         const data = await fs.readFile(USERS_FILE, 'utf8');
         return JSON.parse(data);
@@ -150,14 +147,7 @@ async function readUsers() {
 }
 
 async function writeUsers(users) {
-    // Note: In Supabase, we don't write all users at once
-    // This function is kept for backward compatibility
-    if (USE_SUPABASE && db) {
-        console.log('⚠️ writeUsers() called - individual updates should use createUser() or updateUser()');
-        return true;
-    }
-    
-    // Fallback to JSON files
+    // Note: Supabase doesn't have a writeUsers function, so we keep JSON fallback
     try {
         await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
         return true;
@@ -168,41 +158,22 @@ async function writeUsers(users) {
 }
 
 async function findUserByUsername(username) {
-    // Use Supabase if available
-    if (USE_SUPABASE && db) {
-        // Try to find by username first
-        const users = await db.readUsers();
-        let user = users.find(u => u.username === username);
-        if (!user) {
-            // Try by email
-            user = users.find(u => u.email === username);
-        }
-        return user || null;
-    }
-    
-    // Fallback to JSON files
     const users = await readUsers();
     return users.find(u => u.username === username || u.email === username) || null;
 }
 
 async function findUserByEmail(email) {
-    // Use Supabase if available
-    if (USE_SUPABASE && db) {
+    if (db && db.getUserByEmail) {
         return await db.getUserByEmail(email);
     }
-    
-    // Fallback to JSON files
     const users = await readUsers();
     return users.find(u => u.email === email) || null;
 }
 
 async function readShipments() {
-    // Use Supabase if available
-    if (USE_SUPABASE && db) {
+    if (db && db.readShipments) {
         return await db.readShipments();
     }
-    
-    // Fallback to JSON files
     try {
         const data = await fs.readFile(SHIPMENTS_FILE, 'utf8');
         const shipments = JSON.parse(data);
@@ -223,14 +194,10 @@ async function readShipments() {
 }
 
 async function writeShipments(shipments) {
-    // Note: In Supabase, we don't write all shipments at once
-    // This function is kept for backward compatibility
-    if (USE_SUPABASE && db) {
-        console.log('⚠️ writeShipments() called - individual updates should use updateShipment()');
-        return true;
+    // Note: Supabase writeShipments is kept for compatibility but doesn't do bulk writes
+    if (db && db.writeShipments) {
+        return await db.writeShipments(shipments);
     }
-    
-    // Fallback to JSON files
     try {
         await fs.writeFile(SHIPMENTS_FILE, JSON.stringify(shipments, null, 2));
         console.log(`💾 Written ${shipments.length} shipment(s) to ${SHIPMENTS_FILE}`);
@@ -243,12 +210,9 @@ async function writeShipments(shipments) {
 }
 
 async function readChats() {
-    // Use Supabase if available
-    if (USE_SUPABASE && db) {
+    if (db && db.readChats) {
         return await db.readChats();
     }
-    
-    // Fallback to JSON files
     try {
         const data = await fs.readFile(CHATS_FILE, 'utf8');
         return JSON.parse(data);
@@ -259,14 +223,10 @@ async function readChats() {
 }
 
 async function writeChats(chats) {
-    // Note: In Supabase, we don't write all chats at once
-    // This function is kept for backward compatibility
-    if (USE_SUPABASE && db) {
-        console.log('⚠️ writeChats() called - individual updates should use createChat()');
-        return true;
+    // Note: Supabase writeChats is kept for compatibility but doesn't do bulk writes
+    if (db && db.writeChats) {
+        return await db.writeChats(chats);
     }
-    
-    // Fallback to JSON files
     try {
         await fs.writeFile(CHATS_FILE, JSON.stringify(chats, null, 2));
         return true;
@@ -632,20 +592,10 @@ app.post('/api/auth/register', async (req, res) => {
             createdAt: new Date().toISOString()
         };
 
-        // Save to database (Supabase or JSON)
-        if (USE_SUPABASE && db) {
-            const created = await db.createUser(newUser);
-            if (!created) {
-                return res.status(500).json({ error: 'Failed to create user in database' });
-            }
-            console.log(`✅ User created in Supabase: ${created.username}`);
-            newUser.id = created.id;
-            newUser.createdAt = created.created_at || newUser.createdAt;
-        } else {
-            const users = await readUsers();
-            users.push(newUser);
-            await writeUsers(users);
-        }
+        // Save to database
+        const users = await readUsers();
+        users.push(newUser);
+        await writeUsers(users);
 
         // Auto-login after registration
         req.session.userId = newUser.id;
@@ -958,33 +908,24 @@ app.post('/api/shipments', async (req, res) => {
             newShipment.estimatedDelivery = deliveryDate.toISOString();
         }
 
-        // Save to database (Supabase or JSON)
-        if (USE_SUPABASE && db) {
-            const created = await db.createShipment(newShipment);
-            if (!created) {
-                throw new Error('Failed to create shipment in database');
-            }
-            console.log(`✅ Shipment created in Supabase: ${created.trackingId}`);
-            res.status(201).json(created);
-        } else {
-            const shipments = await readShipments();
-            shipments.push(newShipment);
-            const writeSuccess = await writeShipments(shipments);
-            if (!writeSuccess) {
-                throw new Error('Failed to save shipment to database');
-            }
-            
-            // Verify the shipment was written
-            const verifyShipments = await readShipments();
-            const verifyShipment = verifyShipments.find(s => s.trackingId === newShipment.trackingId);
-            if (!verifyShipment) {
-                console.error('⚠️ Warning: Shipment was not found after write!');
-            } else {
-                console.log(`✅ Shipment created and verified: ${newShipment.trackingId} (Total shipments: ${verifyShipments.length})`);
-            }
-            
-            res.status(201).json(newShipment);
+        // Save to database
+        const shipments = await readShipments();
+        shipments.push(newShipment);
+        const writeSuccess = await writeShipments(shipments);
+        if (!writeSuccess) {
+            throw new Error('Failed to save shipment to database');
         }
+        
+        // Verify the shipment was written
+        const verifyShipments = await readShipments();
+        const verifyShipment = verifyShipments.find(s => s.trackingId === newShipment.trackingId);
+        if (!verifyShipment) {
+            console.error('⚠️ Warning: Shipment was not found after write!');
+        } else {
+            console.log(`✅ Shipment created and verified: ${newShipment.trackingId} (Total shipments: ${verifyShipments.length})`);
+        }
+        
+        res.status(201).json(newShipment);
     } catch (error) {
         console.error('❌ Error creating shipment:', error);
         console.error('Error stack:', error.stack);
@@ -998,20 +939,12 @@ app.put('/api/shipments/:trackingId/status', requireAuth, requireAdmin, async (r
         const { status, location, description } = req.body;
         
         // Get shipment from database
-        let shipment;
-        if (USE_SUPABASE && db) {
-            shipment = await db.getShipmentByTrackingId(trackingId);
-            if (!shipment) {
-                return res.status(404).json({ error: 'Shipment not found' });
-            }
-        } else {
-            const shipments = await readShipments();
-            const shipmentIndex = shipments.findIndex(s => s.trackingId === trackingId.toUpperCase());
-            if (shipmentIndex === -1) {
-                return res.status(404).json({ error: 'Shipment not found' });
-            }
-            shipment = shipments[shipmentIndex];
+        const shipments = await readShipments();
+        const shipmentIndex = shipments.findIndex(s => s.trackingId === trackingId.toUpperCase());
+        if (shipmentIndex === -1) {
+            return res.status(404).json({ error: 'Shipment not found' });
         }
+        const shipment = shipments[shipmentIndex];
         shipment.events.forEach(event => {
             event.completed = true;
             event.current = false;
@@ -1105,11 +1038,7 @@ app.put('/api/shipments/:trackingId/status', requireAuth, requireAdmin, async (r
         }
         
         // Update in database
-        if (USE_SUPABASE && db) {
-            await db.updateShipment(trackingId, shipment);
-        } else {
-            await writeShipments(shipments);
-        }
+        await writeShipments(shipments);
         res.json(shipment);
     } catch (error) {
         console.error('Error updating shipment status:', error);
@@ -1123,20 +1052,12 @@ app.put('/api/shipments/:trackingId/pause', requireAuth, requireAdmin, async (re
         const { pause, reason } = req.body;
         
         // Get shipment from database
-        let shipment;
-        if (USE_SUPABASE && db) {
-            shipment = await db.getShipmentByTrackingId(trackingId);
-            if (!shipment) {
-                return res.status(404).json({ error: 'Shipment not found' });
-            }
-        } else {
-            const shipments = await readShipments();
-            const shipmentIndex = shipments.findIndex(s => s.trackingId === trackingId.toUpperCase());
-            if (shipmentIndex === -1) {
-                return res.status(404).json({ error: 'Shipment not found' });
-            }
-            shipment = shipments[shipmentIndex];
+        const shipments = await readShipments();
+        const shipmentIndex = shipments.findIndex(s => s.trackingId === trackingId.toUpperCase());
+        if (shipmentIndex === -1) {
+            return res.status(404).json({ error: 'Shipment not found' });
         }
+        const shipment = shipments[shipmentIndex];
         if (!shipment.autoProgress) {
             shipment.autoProgress = {
                 enabled: true,
@@ -1208,16 +1129,12 @@ app.post('/api/shipments/:trackingId/receipt/generate', requireAuth, requireAdmi
 
         // Get shipment from database
         let shipment;
-        if (USE_SUPABASE && db) {
-            shipment = await db.getShipmentByTrackingId(trackingId);
-        } else {
-            const shipments = await readShipments();
-            const shipmentIndex = shipments.findIndex(s => s.trackingId === trackingId.toUpperCase());
-            if (shipmentIndex === -1) {
-                return res.status(404).json({ error: 'Shipment not found' });
-            }
-            shipment = shipments[shipmentIndex];
+        const shipments = await readShipments();
+        const shipmentIndex = shipments.findIndex(s => s.trackingId === trackingId.toUpperCase());
+        if (shipmentIndex === -1) {
+            return res.status(404).json({ error: 'Shipment not found' });
         }
+        const shipment = shipments[shipmentIndex];
         
         if (!shipment) {
             return res.status(404).json({ error: 'Shipment not found' });
@@ -1244,15 +1161,11 @@ app.post('/api/shipments/:trackingId/receipt/generate', requireAuth, requireAdmi
         shipment.updatedAt = new Date().toISOString();
 
         // Update in database
-        if (USE_SUPABASE && db) {
-            await db.updateShipment(trackingId, shipment);
-        } else {
-            const shipments = await readShipments();
-            const index = shipments.findIndex(s => s.trackingId === trackingId.toUpperCase());
-            if (index !== -1) {
-                shipments[index] = shipment;
-                await writeShipments(shipments);
-            }
+        const shipments = await readShipments();
+        const index = shipments.findIndex(s => s.trackingId === trackingId.toUpperCase());
+        if (index !== -1) {
+            shipments[index] = shipment;
+            await writeShipments(shipments);
         }
         console.log(`✅ Receipt PDF generated for shipment ${trackingId}`);
         res.json({ success: true, receipt: receiptUrl, shipment });

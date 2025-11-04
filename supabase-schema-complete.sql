@@ -2,7 +2,7 @@
 -- CargoWatch - Schéma SQL Complet pour Supabase
 -- =====================================================
 -- Exécutez ce script dans votre Supabase SQL Editor
--- https://app.supabase.com/project/_/sql/new
+-- https://app.supabase.com/project/msdgzzjvkcsvdmqkgrxa/sql/new
 -- =====================================================
 
 -- Activer l'extension UUID
@@ -272,6 +272,7 @@ ON CONFLICT (email) DO NOTHING;
 -- =====================================================
 -- POLITIQUES RLS (Row Level Security)
 -- =====================================================
+-- ⚠️ Avec la service_role key, RLS est bypassé côté serveur
 -- ⚠️ Pour le développement, vous pouvez désactiver RLS temporairement
 -- ⚠️ Pour la production, créez des politiques appropriées
 
