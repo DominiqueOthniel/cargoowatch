@@ -4,8 +4,10 @@
 ```
 npm error path /opt/render/project/src/package.json
 npm error errno -2
-npm error enoent Could not read package.json
+npm error enoent Could not read package.json: Error: ENOENT: no such file or directory
 ```
+
+⚠️ **CAUSE** : Render cherche `package.json` dans `/opt/render/project/src/` au lieu de `/opt/render/project/`. Cela signifie que le "Root Directory" est configuré sur `src` au lieu d'être vide.
 
 ## ✅ Solution en 3 étapes (OBLIGATOIRE - À faire dans l'interface Render)
 
@@ -60,6 +62,32 @@ Après le redéploiement, vérifiez les logs :
    ==> Installing dependencies
    ```
 3. Si vous voyez toujours l'erreur `package.json not found`, c'est que le Root Directory n'est pas encore correct
+
+## 🚨 Solution Alternative : Vérifier render.yaml
+
+Si vous utilisez `render.yaml` pour le déploiement automatique :
+
+1. Vérifiez que votre fichier `render.yaml` contient :
+```yaml
+services:
+  - type: web
+    name: cargowatch
+    runtime: node
+    rootDir: .  # ← Doit être "." et non "src"
+    buildCommand: npm install && npm run build:css
+    startCommand: npm start
+```
+
+2. Si `rootDir` est `src` ou autre chose, changez-le en `.` (un point)
+
+3. Committez et poussez les changements :
+```bash
+git add render.yaml
+git commit -m "Fix rootDir in render.yaml"
+git push origin main
+```
+
+4. Render redéploiera automatiquement
 
 ## 🚨 Si ça ne fonctionne toujours pas
 
