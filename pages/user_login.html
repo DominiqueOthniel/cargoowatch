@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In - CargoWatch</title>
+    <!-- Langue par défaut : anglais -->
+    <script>
+        (function() {
+            const supportedLanguages = ['en', 'fr', 'es', 'de', 'pt', 'it', 'zh', 'ja', 'ru', 'ar'];
+            let detectedLang = 'en'; // Par défaut : anglais
+            
+            // Vérifier si une préférence est sauvegardée
+            try {
+                const savedLang = localStorage.getItem('cargowatch_lang');
+                if (savedLang && supportedLanguages.includes(savedLang)) {
+                    detectedLang = savedLang;
+                }
+            } catch(e) {}
+            
+            document.documentElement.setAttribute('lang', detectedLang);
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/main.css">
+    <script src="/public/i18n.js"></script>
+    <script src="/public/init-i18n.js"></script>
+    <style>
+        .login-container {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+            overflow: hidden;
+        }
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg width="60" height="60" viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg"><g fill="none" fill-rule="evenodd"><g fill="%23ffffff" fill-opacity="0.05"><circle cx="30" cy="30" r="2"/></g></svg>');
+            opacity: 0.5;
+        }
+        .login-card {
+            background: white;
+            border-radius: 1.5rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 3rem;
+            width: 100%;
+            max-width: 440px;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.5s ease-out;
+        }
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        .form-label {
+            display: block;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            letter-spacing: 0.025em;
+        }
+        .form-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            outline: none;
+        }
+        .form-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+        .form-input::placeholder {
+            color: #94a3b8;
+        }
+        .btn-login {
+            width: 100%;
+            padding: 1rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+        .btn-login:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        .btn-login:active:not(:disabled) {
+            transform: translateY(0);
+        }
+        .btn-login:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .checkbox-container {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .checkbox-container input[type="checkbox"] {
+            width: 1.125rem;
+            height: 1.125rem;
+            cursor: pointer;
+        }
+        .error-message {
+            padding: 1rem;
+            background: #fee2e2;
+            border: 1px solid #ef4444;
+            border-radius: 0.5rem;
+            color: #dc2626;
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+            display: none;
+        }
+        .error-message.show {
+            display: block;
+            animation: shake 0.5s;
+        }
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+        .logo-container {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .logo-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 1rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1.5rem 0;
+            color: #94a3b8;
+            font-size: 0.875rem;
+        }
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .divider span {
+            padding: 0 1rem;
+        }
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #667eea;
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover {
+            gap: 0.75rem;
+        }
+    </style>
+</head>
+<body class="bg-background">
+    <div class="login-container">
+        <div class="login-card">
+            <!-- Logo -->
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <img src="/delivery-truck-logo.png" alt="CargoWatch Logo" class="w-8 h-8 object-contain">
+                </div>
+                <h1 style="font-size: 1.875rem; font-weight: 700; color: #1e293b; margin-bottom: 0.5rem;">Welcome Back</h1>
+                <p style="color: #64748b; font-size: 0.875rem;">Sign in to access your CargoWatch dashboard</p>
+            </div>
+
+            <!-- Error Message -->
+            <div id="error-message" class="error-message"></div>
+
+            <!-- Login Form -->
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="username">Email or Username</label>
+                    <input 
+                        type="text" 
+                        id="username" 
+                        name="username" 
+                        class="form-input"
+                        placeholder="Enter your email or username"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input 
+                        type="password" 
+                        id="password" 
+                        name="password" 
+                        class="form-input"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; justify-content: space-between;">
+                    <div class="checkbox-container">
+                        <input type="checkbox" id="remember" name="remember">
+                        <label for="remember" style="font-size: 0.875rem; color: #64748b; cursor: pointer;">Remember me</label>
+                    </div>
+                    <a href="#" style="font-size: 0.875rem; color: #667eea; text-decoration: none; font-weight: 500;">Forgot password?</a>
+                </div>
+
+                <button type="submit" id="login-button" class="btn-login">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="divider">
+                <span>Don't have an account?</span>
+            </div>
+
+            <div style="text-align: center;">
+                <a href="/pages/user_register.html" style="color: #667eea; text-decoration: none; font-weight: 600; font-size: 0.875rem;">Create an account</a>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <a href="/pages/homepage.html" class="back-link">
+                    <svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+                    </svg>
+                    Back to Home
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Check if already logged in
+        async function checkExistingSession() {
+            try {
+                const response = await fetch('/api/auth/me', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    // User is already logged in, redirect to appropriate page
+                    if (data.user.role === 'admin') {
+                        window.location.href = '/pages/admin_dashboard.html';
+                    } else {
+                        window.location.href = '/pages/public_tracking_interface.html';
+                    }
+                }
+            } catch (error) {
+                // Not logged in, show login form
+                console.log('No active session');
+            }
+        }
+
+        // Check session on page load
+        checkExistingSession();
+
+        // Form submission
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const remember = document.getElementById('remember').checked;
+            const errorDiv = document.getElementById('error-message');
+            const loginButton = document.getElementById('login-button');
+            
+            // Hide error
+            errorDiv.classList.remove('show');
+            errorDiv.textContent = '';
+            
+            // Validate inputs
+            if (!username || !password) {
+                errorDiv.textContent = 'Please enter both username and password.';
+                errorDiv.classList.add('show');
+                return;
+            }
+            
+            // Disable button and show loading state
+            loginButton.disabled = true;
+            loginButton.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 0.5rem;"><svg style="width: 1rem; height: 1rem; animation: spin 1s linear infinite;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none" opacity="0.25"/><path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" opacity="0.75"/></svg>Signing in...</span>';
+            
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Login failed');
+                }
+                
+                // Success - show success message briefly before redirect
+                loginButton.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 0.5rem;"><svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>Success! Redirecting...</span>';
+                loginButton.style.background = 'linear-gradient(135deg, #10b981 0%, #059669 100%)';
+                
+                setTimeout(() => {
+                    // Redirect based on role
+                    if (data.user.role === 'admin') {
+                        window.location.href = '/pages/admin_dashboard.html';
+                    } else {
+                        window.location.href = '/pages/public_tracking_interface.html';
+                    }
+                }, 800);
+                
+            } catch (error) {
+                errorDiv.textContent = error.message || 'An error occurred. Please try again.';
+                errorDiv.classList.add('show');
+                loginButton.disabled = false;
+                loginButton.textContent = 'Sign In';
+                loginButton.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+            }
+        });
+
+        // Add CSS for spinning animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

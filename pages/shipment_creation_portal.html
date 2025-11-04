@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Shipment - CargoWatch</title>
+    <!-- Langue par défaut : anglais -->
+    <script>
+        (function() {
+            const supportedLanguages = ['en', 'fr', 'es', 'de', 'pt', 'it', 'zh', 'ja', 'ru', 'ar'];
+            let detectedLang = 'en'; // Par défaut : anglais
+            
+            // Vérifier si une préférence est sauvegardée
+            try {
+                const savedLang = localStorage.getItem('cargowatch_lang');
+                if (savedLang && supportedLanguages.includes(savedLang)) {
+                    detectedLang = savedLang;
+                }
+            } catch(e) {}
+            
+            document.documentElement.setAttribute('lang', detectedLang);
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="/public/i18n.js"></script>
+    <script src="/public/init-i18n.js"></script>
+  
+  <!-- Scripts Rocket désactivés temporairement pour éviter les boucles de redirection -->
+  <!-- <script type="module" src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fcargowatch6877back.builtwithrocket.new&_be=https%3A%2F%2Fapplication.rocket.new&_v=0.1.9"></script> -->
+  <!-- <script type="module" src="https://static.rocket.new/rocket-shot.js?v=0.0.1"></script> -->
+  </head>
+<body class="bg-background">
+    <!-- Smart Header with Navigation -->
+    <header class="bg-white border-b border-border sticky top-0 z-50 shadow-soft">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="homepage.html" class="flex items-center space-x-2">
+                        <img src="/delivery-truck-logo.png" alt="CargoWatch Logo" class="w-8 h-8 object-contain">
+                        <span class="text-xl font-bold text-primary">CargoWatch</span>
+                    </a>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="homepage.html" class="text-text-secondary hover:text-primary transition-colors">Home</a>
+                    <a href="public_tracking_interface.html" class="text-text-secondary hover:text-primary transition-colors">Track Shipment</a>
+                    <a href="shipment_creation_portal.html" class="text-primary font-semibold">Create Shipment</a>
+                    <a href="support_hub.html" class="text-text-secondary hover:text-primary transition-colors">Support</a>
+                </nav>
+
+                <!-- Tracking Search Bar -->
+                <div class="hidden lg:flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" placeholder="Enter tracking ID..." class="input-field w-64 pl-10 pr-4 py-2">
+                        <svg class="w-5 h-5 text-text-muted absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <a href="admin_dashboard.html" class="btn-primary hidden">Admin Login</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden p-2 rounded-md text-text-secondary hover:text-primary">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="bg-gradient-to-br from-primary-50 to-secondary-50 py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center">
+                <h1 class="text-4xl lg:text-5xl font-bold text-text-primary mb-4">
+                    Create Your <span class="text-gradient-primary">Shipment</span>
+                </h1>
+                <p class="text-xl text-text-secondary max-w-3xl mx-auto mb-8">
+                    Professional worldwide shipment creation made simple. Ship anywhere in the world with instant tracking IDs, real-time cost estimates, and complete visibility from pickup to delivery.
+                </p>
+                
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-4 gap-4 max-w-3xl mx-auto">
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary">< 2 min</div>
+                        <div class="text-sm text-text-muted">Average Creation Time</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-success">99.9%</div>
+                        <div class="text-sm text-text-muted">Delivery Success Rate</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-accent">24/7</div>
+                        <div class="text-sm text-text-muted">Live Tracking</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-2xl font-bold text-primary">🌍</div>
+                        <div class="text-sm text-text-muted">Worldwide Delivery</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Shipment Creation Form -->
+                <div class="lg:col-span-2">
+                    <div class="card">
+                        <!-- Progress Indicator -->
+                        <div class="mb-8">
+                            <div class="flex items-center justify-between mb-4">
+                                <h2 class="text-2xl font-bold text-text-primary">Shipment Details</h2>
+                                <span class="text-sm text-text-muted">Step 1 of 3</span>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center text-sm font-semibold">1</div>
+                                    <span class="ml-2 text-sm font-medium text-primary">Details</span>
+                                </div>
+                                <div class="flex-1 h-1 bg-border"></div>
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-border text-text-muted rounded-full flex items-center justify-center text-sm font-semibold">2</div>
+                                    <span class="ml-2 text-sm text-text-muted">Options</span>
+                                </div>
+                                <div class="flex-1 h-1 bg-border"></div>
+                                <div class="flex items-center">
+                                    <div class="w-8 h-8 bg-border text-text-muted rounded-full flex items-center justify-center text-sm font-semibold">3</div>
+                                    <span class="ml-2 text-sm text-text-muted">Confirm</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <form id="shipment-form" class="space-y-8">
+                            <!-- Sender Information -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-text-primary mb-4 flex items-center">
+                                    <svg class="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    Sender Information
+                                </h3>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Full Name *</label>
+                                        <input type="text" name="sender-name" class="input-field" placeholder="John Smith" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Company (Optional)</label>
+                                        <input type="text" name="sender-company" class="input-field" placeholder="ABC Corporation">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Email Address *</label>
+                                        <input type="email" name="sender-email" class="input-field" placeholder="john@example.com" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Phone Number *</label>
+                                        <input type="tel" name="sender-phone" class="input-field" placeholder="+1 (555) 123-4567" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Sender Address -->
+                            <div>
+                                <h4 class="text-md font-medium text-text-primary mb-3">Pickup Address</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Street Address *</label>
+                                        <input type="text" name="sender-street" class="input-field" placeholder="123 Main Street" required>
+                                        <div class="mt-1 text-xs text-text-muted">Address validation will occur automatically</div>
+                                    </div>
+                                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">City *</label>
+                                            <input type="text" name="sender-city" class="input-field" placeholder="New York" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">ZIP/Postal Code *</label>
+                                            <input type="text" name="sender-zip" class="input-field" placeholder="10001" required>
+                                        </div>
+                                    </div>
+                                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">State/Province</label>
+                                            <input type="text" name="sender-state" class="input-field" placeholder="NY (optional)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">Country *</label>
+                                            <select name="sender-country" class="input-field" required>
+                                                <option value="US">United States</option>
+                                                <option value="CA">Canada</option>
+                                                <option value="MX">Mexico</option>
+                                                <option value="GB">United Kingdom</option>
+                                                <option value="FR">France</option>
+                                                <option value="DE">Germany</option>
+                                                <option value="IT">Italy</option>
+                                                <option value="ES">Spain</option>
+                                                <option value="NL">Netherlands</option>
+                                                <option value="BE">Belgium</option>
+                                                <option value="AT">Austria</option>
+                                                <option value="CH">Switzerland</option>
+                                                <option value="SE">Sweden</option>
+                                                <option value="NO">Norway</option>
+                                                <option value="DK">Denmark</option>
+                                                <option value="FI">Finland</option>
+                                                <option value="IE">Ireland</option>
+                                                <option value="PT">Portugal</option>
+                                                <option value="GR">Greece</option>
+                                                <option value="PL">Poland</option>
+                                                <option value="CZ">Czech Republic</option>
+                                                <option value="HU">Hungary</option>
+                                                <option value="RO">Romania</option>
+                                                <option value="BG">Bulgaria</option>
+                                                <option value="HR">Croatia</option>
+                                                <option value="SK">Slovakia</option>
+                                                <option value="SI">Slovenia</option>
+                                                <option value="EE">Estonia</option>
+                                                <option value="LV">Latvia</option>
+                                                <option value="LT">Lithuania</option>
+                                                <option value="RU">Russia</option>
+                                                <option value="CN">China</option>
+                                                <option value="JP">Japan</option>
+                                                <option value="KR">South Korea</option>
+                                                <option value="IN">India</option>
+                                                <option value="AU">Australia</option>
+                                                <option value="NZ">New Zealand</option>
+                                                <option value="SG">Singapore</option>
+                                                <option value="MY">Malaysia</option>
+                                                <option value="TH">Thailand</option>
+                                                <option value="VN">Vietnam</option>
+                                                <option value="PH">Philippines</option>
+                                                <option value="ID">Indonesia</option>
+                                                <option value="BR">Brazil</option>
+                                                <option value="AR">Argentina</option>
+                                                <option value="CL">Chile</option>
+                                                <option value="CO">Colombia</option>
+                                                <option value="PE">Peru</option>
+                                                <option value="ZA">South Africa</option>
+                                                <option value="EG">Egypt</option>
+                                                <option value="NG">Nigeria</option>
+                                                <option value="KE">Kenya</option>
+                                                <option value="SA">Saudi Arabia</option>
+                                                <option value="AE">United Arab Emirates</option>
+                                                <option value="IL">Israel</option>
+                                                <option value="TR">Turkey</option>
+                                                <option value="PK">Pakistan</option>
+                                                <option value="BD">Bangladesh</option>
+                                                <option value="LK">Sri Lanka</option>
+                                                <option value="TW">Taiwan</option>
+                                                <option value="HK">Hong Kong</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Recipient Information -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-text-primary mb-4 flex items-center">
+                                    <svg class="w-5 h-5 text-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    Recipient Information
+                                </h3>
+                                <div class="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Full Name *</label>
+                                        <input type="text" name="recipient-name" class="input-field" placeholder="Jane Doe" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Company (Optional)</label>
+                                        <input type="text" name="recipient-company" class="input-field" placeholder="XYZ Industries">
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Email Address *</label>
+                                        <input type="email" name="recipient-email" class="input-field" placeholder="jane@example.com" required>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Phone Number *</label>
+                                        <input type="tel" name="recipient-phone" class="input-field" placeholder="+1 (555) 987-6543" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Delivery Address -->
+                            <div>
+                                <h4 class="text-md font-medium text-text-primary mb-3">Delivery Address</h4>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Street Address *</label>
+                                        <input type="text" name="recipient-street" class="input-field" placeholder="456 Oak Avenue" required>
+                                    </div>
+                                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">City *</label>
+                                            <input type="text" name="recipient-city" class="input-field" placeholder="Los Angeles" required>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">ZIP/Postal Code *</label>
+                                            <input type="text" name="recipient-zip" class="input-field" placeholder="90210" required>
+                                        </div>
+                                    </div>
+                                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">State/Province</label>
+                                            <input type="text" name="recipient-state" class="input-field" placeholder="CA (optional)">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">Country *</label>
+                                            <select name="recipient-country" class="input-field" required>
+                                                <option value="US">United States</option>
+                                                <option value="CA">Canada</option>
+                                                <option value="MX">Mexico</option>
+                                                <option value="GB">United Kingdom</option>
+                                                <option value="FR">France</option>
+                                                <option value="DE">Germany</option>
+                                                <option value="IT">Italy</option>
+                                                <option value="ES">Spain</option>
+                                                <option value="NL">Netherlands</option>
+                                                <option value="BE">Belgium</option>
+                                                <option value="AT">Austria</option>
+                                                <option value="CH">Switzerland</option>
+                                                <option value="SE">Sweden</option>
+                                                <option value="NO">Norway</option>
+                                                <option value="DK">Denmark</option>
+                                                <option value="FI">Finland</option>
+                                                <option value="IE">Ireland</option>
+                                                <option value="PT">Portugal</option>
+                                                <option value="GR">Greece</option>
+                                                <option value="PL">Poland</option>
+                                                <option value="CZ">Czech Republic</option>
+                                                <option value="HU">Hungary</option>
+                                                <option value="RO">Romania</option>
+                                                <option value="BG">Bulgaria</option>
+                                                <option value="HR">Croatia</option>
+                                                <option value="SK">Slovakia</option>
+                                                <option value="SI">Slovenia</option>
+                                                <option value="EE">Estonia</option>
+                                                <option value="LV">Latvia</option>
+                                                <option value="LT">Lithuania</option>
+                                                <option value="RU">Russia</option>
+                                                <option value="CN">China</option>
+                                                <option value="JP">Japan</option>
+                                                <option value="KR">South Korea</option>
+                                                <option value="IN">India</option>
+                                                <option value="AU">Australia</option>
+                                                <option value="NZ">New Zealand</option>
+                                                <option value="SG">Singapore</option>
+                                                <option value="MY">Malaysia</option>
+                                                <option value="TH">Thailand</option>
+                                                <option value="VN">Vietnam</option>
+                                                <option value="PH">Philippines</option>
+                                                <option value="ID">Indonesia</option>
+                                                <option value="BR">Brazil</option>
+                                                <option value="AR">Argentina</option>
+                                                <option value="CL">Chile</option>
+                                                <option value="CO">Colombia</option>
+                                                <option value="PE">Peru</option>
+                                                <option value="ZA">South Africa</option>
+                                                <option value="EG">Egypt</option>
+                                                <option value="NG">Nigeria</option>
+                                                <option value="KE">Kenya</option>
+                                                <option value="SA">Saudi Arabia</option>
+                                                <option value="AE">United Arab Emirates</option>
+                                                <option value="IL">Israel</option>
+                                                <option value="TR">Turkey</option>
+                                                <option value="PK">Pakistan</option>
+                                                <option value="BD">Bangladesh</option>
+                                                <option value="LK">Sri Lanka</option>
+                                                <option value="TW">Taiwan</option>
+                                                <option value="HK">Hong Kong</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Package Information -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-text-primary mb-4 flex items-center">
+                                    <svg class="w-5 h-5 text-success mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                                    </svg>
+                                    Package Details
+                                </h3>
+                                <div class="space-y-4">
+                                    <div class="grid md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">Item Type *</label>
+                                            <select id="package-type" name="package-type" class="input-field" required onchange="handlePackageTypeChange()">
+                                                <option value="">Select Item Type</option>
+                                                <optgroup label="Documents & Small Items">
+                                                <option value="envelope">Envelope/Document</option>
+                                                <option value="small-box">Small Box</option>
+                                                <option value="medium-box">Medium Box</option>
+                                                <option value="large-box">Large Box</option>
+                                                </optgroup>
+                                                <optgroup label="Vehicles">
+                                                    <option value="car">Car / Sedan</option>
+                                                    <option value="suv">SUV / Crossover</option>
+                                                    <option value="truck">Truck / Pickup</option>
+                                                    <option value="van">Van / Minivan</option>
+                                                    <option value="motorcycle">Motorcycle</option>
+                                                    <option value="rv">RV / Motorhome</option>
+                                                    <option value="boat">Boat / Watercraft</option>
+                                                    <option value="atv">ATV / Off-Road Vehicle</option>
+                                                </optgroup>
+                                                <optgroup label="Heavy Equipment">
+                                                    <option value="construction">Construction Equipment</option>
+                                                    <option value="agricultural">Agricultural Machinery</option>
+                                                    <option value="industrial">Industrial Machinery</option>
+                                                    <option value="tractor">Tractor</option>
+                                                    <option value="trailer">Trailer</option>
+                                                </optgroup>
+                                                <optgroup label="Large Items">
+                                                    <option value="furniture">Furniture</option>
+                                                    <option value="appliance">Large Appliance</option>
+                                                    <option value="piano">Piano / Musical Instrument</option>
+                                                    <option value="container">Shipping Container</option>
+                                                    <option value="custom">Custom / Other</option>
+                                                </optgroup>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">Weight (lbs) *</label>
+                                            <input type="number" name="weight" id="weight-input" class="input-field" placeholder="2.5" step="0.1" min="0.1" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Vehicle-Specific Fields (Hidden by default) -->
+                                    <div id="vehicle-fields" class="hidden space-y-4 mt-4 p-4 bg-surface rounded-lg">
+                                        <h4 class="text-sm font-semibold text-text-primary mb-3">Vehicle Information</h4>
+                                        <div class="grid md:grid-cols-3 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-text-primary mb-2">Make</label>
+                                                <input type="text" name="vehicle-make" id="vehicle-make" class="input-field" placeholder="Toyota">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-text-primary mb-2">Model</label>
+                                                <input type="text" name="vehicle-model" id="vehicle-model" class="input-field" placeholder="Camry">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-text-primary mb-2">Year</label>
+                                                <input type="number" name="vehicle-year" id="vehicle-year" class="input-field" placeholder="2020" min="1900" max="2030">
+                                            </div>
+                                        </div>
+                                        <div class="grid md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label class="block text-sm font-medium text-text-primary mb-2">VIN (Optional)</label>
+                                                <input type="text" name="vehicle-vin" id="vehicle-vin" class="input-field" placeholder="VIN Number" maxlength="17">
+                                            </div>
+                                            <div>
+                                                <label class="block text-sm font-medium text-text-primary mb-2">Running Condition</label>
+                                                <select name="vehicle-condition" id="vehicle-condition" class="input-field">
+                                                    <option value="running">Running</option>
+                                                    <option value="non-running">Non-Running</option>
+                                                    <option value="inoperable">Inoperable</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Dimensions Calculator -->
+                                    <div class="bg-surface p-4 rounded-lg">
+                                        <h4 class="text-sm font-medium text-text-primary mb-3">Dimensions</h4>
+                                        <div class="grid grid-cols-3 gap-4">
+                                            <div>
+                                                <label class="block text-xs font-medium text-text-secondary mb-1">Length (in)</label>
+                                                <input type="number" name="length" id="length-input" class="input-field text-sm" placeholder="12" step="0.1" min="0.1">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-text-secondary mb-1">Width (in)</label>
+                                                <input type="number" name="width" id="width-input" class="input-field text-sm" placeholder="8" step="0.1" min="0.1">
+                                            </div>
+                                            <div>
+                                                <label class="block text-xs font-medium text-text-secondary mb-1">Height (in)</label>
+                                                <input type="number" name="height" id="height-input" class="input-field text-sm" placeholder="6" step="0.1" min="0.1">
+                                            </div>
+                                        </div>
+                                        <div class="mt-2 text-xs text-text-muted">
+                                            <span id="dim-weight-label">Dimensional weight:</span> <span class="font-medium" id="dim-weight">Calculating...</span>
+                                        </div>
+                                        <div id="auto-dimensions-help" class="hidden mt-2 text-xs text-accent">
+                                            <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                            </svg>
+                                            Standard vehicle dimensions will be pre-filled. Modify if needed.
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <label class="block text-sm font-medium text-text-primary mb-2">Item Description *</label>
+                                        <textarea name="description" id="description-input" class="input-field" rows="3" placeholder="Electronics, fragile items, documents, vehicles, etc." required></textarea>
+                                        <div class="mt-1 text-xs text-text-muted">Describe contents for proper handling and customs (if international)</div>
+                                    </div>
+
+                                    <div class="grid md:grid-cols-2 gap-4">
+                                    <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">Currency *</label>
+                                            <select name="currency" id="currency-select" class="input-field" required>
+                                                <option value="USD">USD - US Dollar ($)</option>
+                                                <option value="EUR">EUR - Euro (€)</option>
+                                                <option value="GBP">GBP - British Pound (£)</option>
+                                                <option value="JPY">JPY - Japanese Yen (¥)</option>
+                                                <option value="CNY">CNY - Chinese Yuan (¥)</option>
+                                                <option value="XAF">XAF - Central African CFA Franc (Fr)</option>
+                                                <option value="XOF">XOF - West African CFA Franc (Fr)</option>
+                                                <option value="CAD">CAD - Canadian Dollar ($)</option>
+                                                <option value="AUD">AUD - Australian Dollar ($)</option>
+                                                <option value="CHF">CHF - Swiss Franc (Fr)</option>
+                                                <option value="INR">INR - Indian Rupee (₹)</option>
+                                                <option value="BRL">BRL - Brazilian Real (R$)</option>
+                                                <option value="MXN">MXN - Mexican Peso ($)</option>
+                                                <option value="RUB">RUB - Russian Ruble (₽)</option>
+                                                <option value="ZAR">ZAR - South African Rand (R)</option>
+                                                <option value="SGD">SGD - Singapore Dollar ($)</option>
+                                                <option value="HKD">HKD - Hong Kong Dollar ($)</option>
+                                                <option value="NZD">NZD - New Zealand Dollar ($)</option>
+                                                <option value="SEK">SEK - Swedish Krona (kr)</option>
+                                                <option value="NOK">NOK - Norwegian Krone (kr)</option>
+                                                <option value="DKK">DKK - Danish Krone (kr)</option>
+                                                <option value="PLN">PLN - Polish Złoty (zł)</option>
+                                                <option value="TRY">TRY - Turkish Lira (₺)</option>
+                                                <option value="THB">THB - Thai Baht (฿)</option>
+                                                <option value="MYR">MYR - Malaysian Ringgit (RM)</option>
+                                                <option value="IDR">IDR - Indonesian Rupiah (Rp)</option>
+                                                <option value="PHP">PHP - Philippine Peso (₱)</option>
+                                                <option value="VND">VND - Vietnamese Dong (₫)</option>
+                                                <option value="KRW">KRW - South Korean Won (₩)</option>
+                                                <option value="TWD">TWD - New Taiwan Dollar (NT$)</option>
+                                                <option value="AED">AED - UAE Dirham (د.إ)</option>
+                                                <option value="SAR">SAR - Saudi Riyal (﷼)</option>
+                                                <option value="ILS">ILS - Israeli Shekel (₪)</option>
+                                                <option value="EGP">EGP - Egyptian Pound (£)</option>
+                                                <option value="NGN">NGN - Nigerian Naira (₦)</option>
+                                                <option value="KES">KES - Kenyan Shilling (KSh)</option>
+                                                <option value="ARS">ARS - Argentine Peso ($)</option>
+                                                <option value="CLP">CLP - Chilean Peso ($)</option>
+                                                <option value="COP">COP - Colombian Peso ($)</option>
+                                                <option value="PEN">PEN - Peruvian Sol (S/.)</option>
+                                                <option value="PKR">PKR - Pakistani Rupee (₨)</option>
+                                                <option value="BDT">BDT - Bangladeshi Taka (৳)</option>
+                                                <option value="LKR">LKR - Sri Lankan Rupee (Rs)</option>
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-text-primary mb-2">Declared Value *</label>
+                                            <input type="number" name="value" id="value-input" class="input-field" placeholder="100.00" step="0.01" min="0" required>
+                                        <div class="mt-1 text-xs text-text-muted">For insurance purposes. Maximum coverage available. Required for vehicles and high-value items.</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- File Upload Section -->
+                            <div>
+                                <h3 class="text-lg font-semibold text-text-primary mb-4 flex items-center">
+                                    <svg class="w-5 h-5 text-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                    </svg>
+                                    Attachments (Optional)
+                                </h3>
+                                <div class="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                                    <svg class="w-12 h-12 text-text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+                                    </svg>
+                                    <p class="text-text-secondary mb-2">Drop files here or click to upload</p>
+                                    <p class="text-sm text-text-muted">Support for images, PDFs, and documents (Max 10MB each)</p>
+                                    <input type="file" class="hidden" id="file-upload" multiple accept=".jpg,.jpeg,.png,.pdf,.doc,.docx">
+                                    <button type="button" class="btn-secondary mt-4" onclick="document.getElementById('file-upload').click()">
+                                        Choose Files
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Form Actions -->
+                            <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-border">
+                                <button type="button" class="btn-primary flex-1" onclick="nextStep()">
+                                    Continue to Shipping Options
+                                    <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                    </svg>
+                                </button>
+                                <button type="button" class="btn-secondary" onclick="saveDraft()">
+                                    Save as Draft
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Sidebar -->
+                <div class="space-y-6">
+                    <!-- Shipping Cost Input -->
+                    <div class="card">
+                        <h3 class="text-lg font-semibold text-text-primary mb-4 flex items-center">
+                            <svg class="w-5 h-5 text-primary mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"/>
+                            </svg>
+                            Shipping Costs *
+                        </h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-text-primary mb-2">Base Cost</label>
+                                <div class="flex gap-2">
+                                    <select id="cost-currency" name="cost-currency" class="input-field w-24 flex-shrink-0" required>
+                                        <option value="USD">USD ($)</option>
+                                        <option value="EUR">EUR (€)</option>
+                                        <option value="GBP">GBP (£)</option>
+                                        <option value="JPY">JPY (¥)</option>
+                                        <option value="CNY">CNY (¥)</option>
+                                        <option value="XAF">XAF (Fr)</option>
+                                        <option value="XOF">XOF (Fr)</option>
+                                        <option value="CAD">CAD ($)</option>
+                                        <option value="AUD">AUD ($)</option>
+                                        <option value="CHF">CHF (Fr)</option>
+                                        <option value="INR">INR (₹)</option>
+                                        <option value="BRL">BRL (R$)</option>
+                                        <option value="MXN">MXN ($)</option>
+                                        <option value="RUB">RUB (₽)</option>
+                                        <option value="ZAR">ZAR (R)</option>
+                                        <option value="SGD">SGD ($)</option>
+                                        <option value="HKD">HKD ($)</option>
+                                        <option value="NZD">NZD ($)</option>
+                                        <option value="SEK">SEK (kr)</option>
+                                        <option value="NOK">NOK (kr)</option>
+                                        <option value="DKK">DKK (kr)</option>
+                                        <option value="PLN">PLN (zł)</option>
+                                        <option value="TRY">TRY (₺)</option>
+                                        <option value="THB">THB (฿)</option>
+                                        <option value="MYR">MYR (RM)</option>
+                                        <option value="IDR">IDR (Rp)</option>
+                                        <option value="PHP">PHP (₱)</option>
+                                        <option value="VND">VND (₫)</option>
+                                        <option value="KRW">KRW (₩)</option>
+                                        <option value="TWD">TWD (NT$)</option>
+                                        <option value="AED">AED (د.إ)</option>
+                                        <option value="SAR">SAR (﷼)</option>
+                                        <option value="ILS">ILS (₪)</option>
+                                        <option value="EGP">EGP (£)</option>
+                                        <option value="NGN">NGN (₦)</option>
+                                        <option value="KES">KES (KSh)</option>
+                                        <option value="ARS">ARS ($)</option>
+                                        <option value="CLP">CLP ($)</option>
+                                        <option value="COP">COP ($)</option>
+                                        <option value="PEN">PEN (S/.)</option>
+                                        <option value="PKR">PKR (₨)</option>
+                                        <option value="BDT">BDT (৳)</option>
+                                        <option value="LKR">LKR (Rs)</option>
+                                    </select>
+                                    <input type="number" id="cost-base" name="cost-base" class="input-field flex-1" placeholder="0.00" step="0.01" min="0" value="0" required>
+                            </div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-text-primary mb-2">Shipping Fee</label>
+                                <input type="number" id="cost-shipping" name="cost-shipping" class="input-field" placeholder="0.00" step="0.01" min="0" value="0" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-text-primary mb-2">Insurance Fee</label>
+                                <input type="number" id="cost-insurance" name="cost-insurance" class="input-field" placeholder="0.00" step="0.01" min="0" value="0">
+                            </div>
+                            <div class="border-t border-border pt-3">
+                                <div class="flex justify-between items-center">
+                                    <span class="text-lg font-semibold text-text-primary">Total</span>
+                                    <span id="cost-total-display" class="text-lg font-bold text-primary">0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-3 bg-info-50 rounded-lg">
+                            <p class="text-sm text-info-700">
+                                <svg class="w-4 h-4 inline mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                                Enter shipping costs manually
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Delivery Time Estimator -->
+                    <div class="card">
+                        <h3 class="text-lg font-semibold text-text-primary mb-4 flex items-center">
+                            <svg class="w-5 h-5 text-accent mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            Delivery Estimate
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="p-3 bg-primary-50 rounded-lg border border-primary-200">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-medium text-primary">Standard</div>
+                                        <div class="text-sm text-text-muted">3-5 business days</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-bold text-primary">$24.50</div>
+                                        <div class="text-xs text-success">Most Popular</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-surface rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-medium text-text-primary">Express</div>
+                                        <div class="text-sm text-text-muted">1-2 business days</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-bold text-text-primary">$39.75</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="p-3 bg-surface rounded-lg">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <div class="font-medium text-text-primary">Overnight</div>
+                                        <div class="text-sm text-text-muted">Next business day</div>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-bold text-text-primary">$67.25</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                            </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-text-primary text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <img src="/delivery-truck-logo.png" alt="CargoWatch Logo" class="w-8 h-8 object-contain">
+                        <span class="text-xl font-bold">CargoWatch</span>
+                    </div>
+                    <p class="text-text-muted mb-4">Your cargo. Our watch. Every mile.</p>
+                    <p class="text-sm text-text-muted">© 2025 CargoWatch. All Rights Reserved.</p>
+                </div>
+
+                <!-- Services -->
+                <div>
+                    <h4 class="font-semibold mb-4">Services</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li><a href="public_tracking_interface.html" class="hover:text-white transition-colors">Package Tracking</a></li>
+                        <li><a href="shipment_creation_portal.html" class="hover:text-white transition-colors">Create Shipment</a></li>
+                        <li><a href="admin_dashboard.html" class="hover:text-white transition-colors hidden">Admin Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li><a href="support_hub.html" class="hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="support_hub.html" class="hover:text-white transition-colors">Contact Us</a></li>
+                        <li><a href="support_hub.html" class="hover:text-white transition-colors">System Status</a></li>
+                        <li><a href="support_hub.html" class="hover:text-white transition-colors">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div>
+                    <h4 class="font-semibold mb-4">Contact</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li>uncledrewlegacy@gmail.com</li>
+                        <li>24/7 Customer Support</li>
+                        <li>Enterprise Solutions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Form validation and interaction - Création via API
+        async function nextStep() {
+            const form = document.getElementById('shipment-form');
+            const requiredFields = form.querySelectorAll('[required]');
+            let isValid = true;
+            
+            requiredFields.forEach(field => {
+                if (!field.value.trim()) {
+                    field.classList.add('border-error');
+                    isValid = false;
+                } else {
+                    field.classList.remove('border-error');
+                }
+            });
+            
+            if (!isValid) {
+                alert('Please fill in all required fields.');
+                return;
+            }
+
+            // Collecter les données du formulaire
+            const formData = collectFormData();
+            
+            // Afficher un loader
+            const submitButton = form.querySelector('button[type="button"]');
+            const originalText = submitButton.textContent;
+            submitButton.textContent = 'Creating Shipment...';
+            submitButton.disabled = true;
+
+            try {
+                console.log('🔄 Submitting shipment data:', formData);
+                console.log('📤 Request URL: /api/shipments');
+                console.log('📤 Request method: POST');
+                
+                const response = await fetch('/api/shipments', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify(formData)
+                });
+
+                console.log('📥 Response received. Status:', response.status, response.statusText);
+                console.log('📥 Response headers:', Object.fromEntries(response.headers.entries()));
+
+                const responseText = await response.text();
+                console.log('📥 Response body (raw):', responseText);
+
+                if (!response.ok) {
+                    let errorMessage = 'Failed to create shipment';
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        errorMessage = errorData.error || errorMessage;
+                        console.error('❌ Error from server:', errorData);
+                    } catch (e) {
+                        errorMessage = responseText || errorMessage;
+                        console.error('❌ Error parsing error response:', e);
+                    }
+                    throw new Error(`Server returned ${response.status}: ${errorMessage}`);
+                }
+
+                let shipment;
+                try {
+                    shipment = JSON.parse(responseText);
+                    console.log('✅ Shipment created successfully:', shipment);
+                    console.log('✅ Tracking ID:', shipment.trackingId);
+                } catch (parseError) {
+                    console.error('❌ Error parsing success response:', parseError);
+                    throw new Error('Invalid response from server');
+                }
+                
+                // Vérifier que le shipment a un trackingId
+                if (!shipment.trackingId) {
+                    throw new Error('Shipment created but no tracking ID received');
+                }
+                
+                // Rediriger vers la page de tracking avec le tracking ID
+                alert(`Shipment created successfully!\n\nTracking ID: ${shipment.trackingId}\n\nRedirecting to tracking page...`);
+                window.location.href = `/pages/public_tracking_interface.html?track=${shipment.trackingId}`;
+            } catch (error) {
+                console.error('❌ Error creating shipment:', error);
+                console.error('❌ Error details:', {
+                    message: error.message,
+                    stack: error.stack,
+                    name: error.name
+                });
+                alert(`Error creating shipment: ${error.message}\n\nPlease check the browser console (F12) for more details.`);
+            } finally {
+                submitButton.textContent = originalText;
+                submitButton.disabled = false;
+            }
+        }
+
+        // Collecter les données du formulaire
+        function collectFormData() {
+            return {
+                sender: {
+                    name: document.querySelector('input[name="sender-name"]')?.value || '',
+                    email: document.querySelector('input[name="sender-email"]')?.value || '',
+                    phone: document.querySelector('input[name="sender-phone"]')?.value || '',
+                    address: {
+                        street: document.querySelector('input[name="sender-street"]')?.value || '',
+                        city: document.querySelector('input[name="sender-city"]')?.value || '',
+                        state: (document.querySelector('select[name="sender-state"]')?.value || document.querySelector('input[name="sender-state"]')?.value) || '',
+                        zipCode: document.querySelector('input[name="sender-zip"]')?.value || '',
+                        country: document.querySelector('select[name="sender-country"]')?.value || 'US'
+                    }
+                },
+                recipient: {
+                    name: document.querySelector('input[name="recipient-name"]')?.value || '',
+                    email: document.querySelector('input[name="recipient-email"]')?.value || '',
+                    phone: document.querySelector('input[name="recipient-phone"]')?.value || '',
+                    address: {
+                        street: document.querySelector('input[name="recipient-street"]')?.value || '',
+                        city: document.querySelector('input[name="recipient-city"]')?.value || '',
+                        state: (document.querySelector('select[name="recipient-state"]')?.value || document.querySelector('input[name="recipient-state"]')?.value) || '',
+                        zipCode: document.querySelector('input[name="recipient-zip"]')?.value || '',
+                        country: document.querySelector('select[name="recipient-country"]')?.value || 'US'
+                    }
+                },
+                package: {
+                    type: document.querySelector('#package-type')?.value || '',
+                    weight: parseFloat(document.querySelector('#weight-input')?.value || '0'),
+                    dimensions: {
+                        length: parseFloat(document.querySelector('#length-input')?.value || '0'),
+                        width: parseFloat(document.querySelector('#width-input')?.value || '0'),
+                        height: parseFloat(document.querySelector('#height-input')?.value || '0')
+                    },
+                    description: document.querySelector('#description-input')?.value || '',
+                    value: parseFloat(document.querySelector('#value-input')?.value || '0'),
+                    currency: document.querySelector('#currency-select')?.value || 'USD',
+                    // Vehicle-specific fields
+                    vehicle: {
+                        make: document.querySelector('#vehicle-make')?.value || '',
+                        model: document.querySelector('#vehicle-model')?.value || '',
+                        year: document.querySelector('#vehicle-year')?.value || '',
+                        vin: document.querySelector('#vehicle-vin')?.value || '',
+                        condition: document.querySelector('#vehicle-condition')?.value || ''
+                    }
+                },
+                service: {
+                    type: document.querySelector('select[name="service-type"]')?.value || 'standard',
+                    priority: document.querySelector('select[name="priority"]')?.value || 'normal',
+                    insurance: document.querySelector('input[name="insurance"]')?.checked || false
+                },
+                cost: {
+                    base: parseFloat(document.getElementById('cost-base')?.value || '0'),
+                    shipping: parseFloat(document.getElementById('cost-shipping')?.value || '0'),
+                    insurance: parseFloat(document.getElementById('cost-insurance')?.value || '0'),
+                    currency: document.getElementById('cost-currency')?.value || 'USD'
+                }
+            };
+        }
+        
+        function saveDraft() {
+            alert('Draft saved successfully! You can continue later from your dashboard.');
+        }
+        
+        function generateTrackingId() {
+            const prefix = 'CW';
+            const timestamp = Date.now().toString().slice(-6);
+            const random = Math.random().toString(36).substr(2, 4).toUpperCase();
+            return `${prefix}${timestamp}${random}`;
+        }
+        
+        // Calculate total cost from manual inputs
+        // Synchroniser les devises
+        function syncCurrencies() {
+            const packageCurrency = document.getElementById('currency-select');
+            const costCurrency = document.getElementById('cost-currency');
+            
+            if (packageCurrency && costCurrency) {
+                packageCurrency.addEventListener('change', () => {
+                    costCurrency.value = packageCurrency.value;
+                    updateCostTotal();
+                });
+                
+                costCurrency.addEventListener('change', () => {
+                    packageCurrency.value = costCurrency.value;
+                    updateCostTotal();
+                });
+            }
+        }
+        
+        // Obtenir le symbole de la devise
+        function getCurrencySymbol(currencyCode) {
+            const symbols = {
+                'USD': '$', 'EUR': '€', 'GBP': '£', 'JPY': '¥', 'CNY': '¥',
+                'XAF': 'Fr', 'XOF': 'Fr', 'CAD': '$', 'AUD': '$', 'CHF': 'Fr',
+                'INR': '₹', 'BRL': 'R$', 'MXN': '$', 'RUB': '₽', 'ZAR': 'R',
+                'SGD': '$', 'HKD': '$', 'NZD': '$', 'SEK': 'kr', 'NOK': 'kr',
+                'DKK': 'kr', 'PLN': 'zł', 'TRY': '₺', 'THB': '฿', 'MYR': 'RM',
+                'IDR': 'Rp', 'PHP': '₱', 'VND': '₫', 'KRW': '₩', 'TWD': 'NT$',
+                'AED': 'د.إ', 'SAR': '﷼', 'ILS': '₪', 'EGP': '£', 'NGN': '₦',
+                'KES': 'KSh', 'ARS': '$', 'CLP': '$', 'COP': '$', 'PEN': 'S/.',
+                'PKR': '₨', 'BDT': '৳', 'LKR': 'Rs'
+            };
+            return symbols[currencyCode] || currencyCode;
+        }
+        
+        function updateCostTotal() {
+            const base = parseFloat(document.getElementById('cost-base')?.value || '0');
+            const shipping = parseFloat(document.getElementById('cost-shipping')?.value || '0');
+            const insurance = parseFloat(document.getElementById('cost-insurance')?.value || '0');
+            const total = base + shipping + insurance;
+            
+            const costDisplay = document.getElementById('cost-total-display');
+            const costCurrency = document.getElementById('cost-currency');
+            if (costDisplay && costCurrency) {
+                const currency = costCurrency.value || 'USD';
+                const symbol = getCurrencySymbol(currency);
+                costDisplay.textContent = `${symbol}${total.toFixed(2)}`;
+            }
+        }
+        
+        // Dimensional weight calculator
+        function calculateDimensionalWeight() {
+            const length = parseFloat(document.getElementById('length-input')?.value || '0');
+            const width = parseFloat(document.getElementById('width-input')?.value || '0');
+            const height = parseFloat(document.getElementById('height-input')?.value || '0');
+            
+            if (length > 0 && width > 0 && height > 0) {
+                const dimWeight = (length * width * height) / 166; // Standard divisor
+                document.getElementById('dim-weight').textContent = `${dimWeight.toFixed(1)} lbs`;
+            } else {
+                document.getElementById('dim-weight').textContent = 'Enter dimensions';
+            }
+        }
+        
+        // Handle package type change - Show/hide vehicle fields and auto-fill dimensions
+        function handlePackageTypeChange() {
+            const packageType = document.getElementById('package-type').value;
+            const vehicleFields = document.getElementById('vehicle-fields');
+            const autoDimensionsHelp = document.getElementById('auto-dimensions-help');
+            const lengthInput = document.getElementById('length-input');
+            const widthInput = document.getElementById('width-input');
+            const heightInput = document.getElementById('height-input');
+            const weightInput = document.getElementById('weight-input');
+            
+            // Vehicle types that need special handling
+            const vehicleTypes = ['car', 'suv', 'truck', 'van', 'motorcycle', 'rv', 'boat', 'atv'];
+            const heavyEquipmentTypes = ['construction', 'agricultural', 'industrial', 'tractor', 'trailer'];
+            
+            if (vehicleTypes.includes(packageType)) {
+                vehicleFields.classList.remove('hidden');
+                
+                // Auto-fill standard dimensions based on vehicle type
+                const vehicleDimensions = {
+                    'car': { length: 180, width: 70, height: 58, weight: 3500 },
+                    'suv': { length: 195, width: 78, height: 72, weight: 4500 },
+                    'truck': { length: 220, width: 80, height: 75, weight: 5500 },
+                    'van': { length: 210, width: 79, height: 82, weight: 5000 },
+                    'motorcycle': { length: 84, width: 32, height: 48, weight: 600 },
+                    'rv': { length: 300, width: 96, height: 120, weight: 12000 },
+                    'boat': { length: 240, width: 96, height: 60, weight: 8000 },
+                    'atv': { length: 96, width: 48, height: 48, weight: 800 }
+                };
+                
+                if (vehicleDimensions[packageType]) {
+                    const dims = vehicleDimensions[packageType];
+                    lengthInput.value = dims.length;
+                    widthInput.value = dims.width;
+                    heightInput.value = dims.height;
+                    weightInput.value = dims.weight;
+                    autoDimensionsHelp.classList.remove('hidden');
+                    calculateDimensionalWeight();
+                    updateCostTotal();
+                }
+            } else {
+                vehicleFields.classList.add('hidden');
+                autoDimensionsHelp.classList.add('hidden');
+            }
+            
+            // Heavy equipment might need larger dimensions
+            if (heavyEquipmentTypes.includes(packageType)) {
+                if (!lengthInput.value || lengthInput.value < 100) {
+                    lengthInput.placeholder = '120+';
+                    widthInput.placeholder = '96+';
+                    heightInput.placeholder = '96+';
+                    weightInput.placeholder = '5000+';
+                }
+            }
+            
+            updateCostTotal();
+        }
+        
+        // Legacy function - kept for compatibility but disabled (costs are now manual)
+        function updateCostEstimate() {
+            // Disabled - costs are now entered manually
+            // Just update the total display from manual inputs
+            updateCostTotal();
+        }
+        
+        // Handle country selection to show/hide state field appropriately
+        function handleCountryChange(selectElement, stateField) {
+            const selectedCountry = selectElement.value;
+            const requiresState = ['US', 'CA', 'MX', 'AU'].includes(selectedCountry);
+            
+            if (requiresState) {
+                // For countries that need state/province
+                if (!stateField.options) {
+                    // Convert to select if it's currently a text input
+                    const parent = stateField.parentElement;
+                    const label = stateField.previousElementSibling;
+                    const newSelect = document.createElement('select');
+                    newSelect.name = stateField.name;
+                    newSelect.className = stateField.className;
+                    newSelect.required = true;
+                    newSelect.innerHTML = label.cloneNode(true);
+                    
+                    if (selectedCountry === 'US') {
+                        newSelect.innerHTML = `
+                            <option value="">Select State</option>
+                            <option value="AL">Alabama</option>
+                            <option value="AK">Alaska</option>
+                            <option value="AZ">Arizona</option>
+                            <option value="AR">Arkansas</option>
+                            <option value="CA">California</option>
+                            <option value="CO">Colorado</option>
+                            <option value="CT">Connecticut</option>
+                            <option value="DE">Delaware</option>
+                            <option value="FL">Florida</option>
+                            <option value="GA">Georgia</option>
+                            <option value="HI">Hawaii</option>
+                            <option value="ID">Idaho</option>
+                            <option value="IL">Illinois</option>
+                            <option value="IN">Indiana</option>
+                            <option value="IA">Iowa</option>
+                            <option value="KS">Kansas</option>
+                            <option value="KY">Kentucky</option>
+                            <option value="LA">Louisiana</option>
+                            <option value="ME">Maine</option>
+                            <option value="MD">Maryland</option>
+                            <option value="MA">Massachusetts</option>
+                            <option value="MI">Michigan</option>
+                            <option value="MN">Minnesota</option>
+                            <option value="MS">Mississippi</option>
+                            <option value="MO">Missouri</option>
+                            <option value="MT">Montana</option>
+                            <option value="NE">Nebraska</option>
+                            <option value="NV">Nevada</option>
+                            <option value="NH">New Hampshire</option>
+                            <option value="NJ">New Jersey</option>
+                            <option value="NM">New Mexico</option>
+                            <option value="NY">New York</option>
+                            <option value="NC">North Carolina</option>
+                            <option value="ND">North Dakota</option>
+                            <option value="OH">Ohio</option>
+                            <option value="OK">Oklahoma</option>
+                            <option value="OR">Oregon</option>
+                            <option value="PA">Pennsylvania</option>
+                            <option value="RI">Rhode Island</option>
+                            <option value="SC">South Carolina</option>
+                            <option value="SD">South Dakota</option>
+                            <option value="TN">Tennessee</option>
+                            <option value="TX">Texas</option>
+                            <option value="UT">Utah</option>
+                            <option value="VT">Vermont</option>
+                            <option value="VA">Virginia</option>
+                            <option value="WA">Washington</option>
+                            <option value="WV">West Virginia</option>
+                            <option value="WI">Wisconsin</option>
+                            <option value="WY">Wyoming</option>
+                            <option value="DC">District of Columbia</option>
+                        `;
+                    } else if (selectedCountry === 'CA') {
+                        newSelect.innerHTML = `
+                            <option value="">Select Province</option>
+                            <option value="AB">Alberta</option>
+                            <option value="BC">British Columbia</option>
+                            <option value="MB">Manitoba</option>
+                            <option value="NB">New Brunswick</option>
+                            <option value="NL">Newfoundland and Labrador</option>
+                            <option value="NS">Nova Scotia</option>
+                            <option value="NT">Northwest Territories</option>
+                            <option value="NU">Nunavut</option>
+                            <option value="ON">Ontario</option>
+                            <option value="PE">Prince Edward Island</option>
+                            <option value="QC">Quebec</option>
+                            <option value="SK">Saskatchewan</option>
+                            <option value="YT">Yukon</option>
+                        `;
+                    } else if (selectedCountry === 'MX') {
+                        newSelect.innerHTML = `
+                            <option value="">Select State</option>
+                            <option value="AG">Aguascalientes</option>
+                            <option value="BC">Baja California</option>
+                            <option value="BS">Baja California Sur</option>
+                            <option value="CM">Campeche</option>
+                            <option value="CS">Chiapas</option>
+                            <option value="CH">Chihuahua</option>
+                            <option value="CO">Coahuila</option>
+                            <option value="CL">Colima</option>
+                            <option value="DF">Mexico City</option>
+                            <option value="DG">Durango</option>
+                            <option value="GT">Guanajuato</option>
+                            <option value="GR">Guerrero</option>
+                            <option value="HG">Hidalgo</option>
+                            <option value="JA">Jalisco</option>
+                            <option value="EM">Mexico State</option>
+                            <option value="MI">Michoacán</option>
+                            <option value="MO">Morelos</option>
+                            <option value="NA">Nayarit</option>
+                            <option value="NL">Nuevo León</option>
+                            <option value="OA">Oaxaca</option>
+                            <option value="PU">Puebla</option>
+                            <option value="QE">Querétaro</option>
+                            <option value="QR">Quintana Roo</option>
+                            <option value="SL">San Luis Potosí</option>
+                            <option value="SI">Sinaloa</option>
+                            <option value="SO">Sonora</option>
+                            <option value="TB">Tabasco</option>
+                            <option value="TM">Tamaulipas</option>
+                            <option value="TL">Tlaxcala</option>
+                            <option value="VE">Veracruz</option>
+                            <option value="YU">Yucatán</option>
+                            <option value="ZA">Zacatecas</option>
+                        `;
+                    } else if (selectedCountry === 'AU') {
+                        newSelect.innerHTML = `
+                            <option value="">Select State</option>
+                            <option value="ACT">Australian Capital Territory</option>
+                            <option value="NSW">New South Wales</option>
+                            <option value="NT">Northern Territory</option>
+                            <option value="QLD">Queensland</option>
+                            <option value="SA">South Australia</option>
+                            <option value="TAS">Tasmania</option>
+                            <option value="VIC">Victoria</option>
+                            <option value="WA">Western Australia</option>
+                        `;
+                    }
+                    
+                    parent.replaceChild(newSelect, stateField);
+                    stateField = newSelect;
+                }
+                stateField.required = true;
+                stateField.parentElement.querySelector('label').innerHTML = stateField.parentElement.querySelector('label').innerHTML.replace('(optional)', '');
+            } else {
+                // For countries that don't need state
+                if (stateField.options) {
+                    // Convert to text input if it's currently a select
+                    const parent = stateField.parentElement;
+                    const label = stateField.previousElementSibling;
+                    const newInput = document.createElement('input');
+                    newInput.type = 'text';
+                    newInput.name = stateField.name;
+                    newInput.className = stateField.className;
+                    newInput.placeholder = selectedCountry === 'GB' ? 'County (optional)' : 'State/Province (optional)';
+                    parent.replaceChild(newInput, stateField);
+                    stateField = newInput;
+                }
+                stateField.required = false;
+                const label = stateField.parentElement.querySelector('label');
+                if (!label.textContent.includes('optional')) {
+                    label.innerHTML = label.innerHTML + ' <span class="text-text-muted">(optional)</span>';
+                }
+            }
+        }
+        
+        // Add event listeners for real-time calculations
+        document.addEventListener('DOMContentLoaded', function() {
+            const dimensionInputs = document.querySelectorAll('#length-input, #width-input, #height-input, #weight-input');
+            dimensionInputs.forEach(input => {
+                input.addEventListener('input', () => {
+                    calculateDimensionalWeight();
+                    // Costs are now manual, no need to recalculate
+                });
+            });
+            
+            // Listen to cost input changes to update total
+            const costBaseInput = document.getElementById('cost-base');
+            const costShippingInput = document.getElementById('cost-shipping');
+            const costInsuranceInput = document.getElementById('cost-insurance');
+            
+            if (costBaseInput) costBaseInput.addEventListener('input', updateCostTotal);
+            if (costShippingInput) costShippingInput.addEventListener('input', updateCostTotal);
+            if (costInsuranceInput) costInsuranceInput.addEventListener('input', updateCostTotal);
+            
+            // Handle country selection changes for sender
+            const senderCountry = document.querySelector('select[name="sender-country"]');
+            const senderState = document.querySelector('input[name="sender-state"]') || document.querySelector('select[name="sender-state"]');
+            if (senderCountry && senderState) {
+                senderCountry.addEventListener('change', () => handleCountryChange(senderCountry, senderState));
+            }
+            
+            // Handle country selection changes for recipient
+            const recipientCountry = document.querySelector('select[name="recipient-country"]');
+            const recipientState = document.querySelector('input[name="recipient-state"]') || document.querySelector('select[name="recipient-state"]');
+            if (recipientCountry && recipientState) {
+                recipientCountry.addEventListener('change', () => handleCountryChange(recipientCountry, recipientState));
+            }
+            
+            // Initialize
+            calculateDimensionalWeight();
+            updateCostTotal();
+        });
+        
+        // File upload handling
+        document.getElementById('file-upload').addEventListener('change', function(e) {
+            const files = Array.from(e.target.files);
+            if (files.length > 0) {
+                const fileNames = files.map(f => f.name).join(', ');
+                alert(`Selected files: ${fileNames}`);
+            }
+        });
+        
+        // Address validation - Appel API réel (à implémenter avec un service de validation)
+        async function validateAddress(input) {
+            const address = input.value.trim();
+            if (!address || address.length < 5) {
+                input.classList.remove('border-success', 'border-error');
+                return;
+            }
+            
+            // Pour l'instant, validation basique côté client
+            // Plus tard, intégrer avec un service comme Google Maps API ou SmartyStreets
+            try {
+                // Simuler une validation
+            setTimeout(() => {
+                    if (address.length >= 10) {
+                input.classList.add('border-success');
+                        input.classList.remove('border-error');
+                console.log('Address validated');
+                    } else {
+                        input.classList.add('border-error');
+                        input.classList.remove('border-success');
+                    }
+            }, 1000);
+            } catch (error) {
+                console.error('Address validation error:', error);
+            }
+        }
+        
+        // Add address validation to street address fields
+        document.querySelectorAll('input[placeholder*="Street"]').forEach(input => {
+            input.addEventListener('blur', () => validateAddress(input));
+        });
+        
+        // Check authentication - only admins can create shipments
+        async function checkCreateShipmentAccess() {
+            try {
+                const response = await fetch('/api/auth/me', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    
+                    // If user is not logged in, redirect to admin login
+                    if (!data.user) {
+                        alert('You must be logged in as an administrator to create shipments.');
+                        window.location.href = '/pages/admin_login.html';
+                        return;
+                    }
+                    
+                    // If user is a client (not admin), redirect to tracking page
+                    if (data.user.role !== 'admin') {
+                        alert('Only administrators can create shipments. Clients can track their shipments.');
+                        window.location.href = '/pages/public_tracking_interface.html';
+                        return;
+                    }
+                    
+                    // User is admin, allow access
+                    console.log('✅ Admin access granted for shipment creation');
+                } else {
+                    // If auth check fails, redirect to admin login
+                    alert('You must be logged in as an administrator to create shipments.');
+                    window.location.href = '/pages/admin_login.html';
+                }
+            } catch (error) {
+                console.error('Auth check error:', error);
+                alert('Authentication error. Please login as administrator.');
+                window.location.href = '/pages/admin_login.html';
+            }
+        }
+        
+        // Run auth check on page load
+        checkCreateShipmentAccess();
+    </script>
+<script id="dhws-data-injector" src="../public/dhws-data-injector.js"></script>
+</body>
+</html>

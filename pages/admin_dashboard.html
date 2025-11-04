@@ -1,0 +1,2070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - CargoWatch</title>
+    <!-- Langue par défaut : anglais -->
+    <script>
+        (function() {
+            const supportedLanguages = ['en', 'fr', 'es', 'de', 'pt', 'it', 'zh', 'ja', 'ru', 'ar'];
+            let detectedLang = 'en'; // Par défaut : anglais
+            
+            // Vérifier si une préférence est sauvegardée
+            try {
+                const savedLang = localStorage.getItem('cargowatch_lang');
+                if (savedLang && supportedLanguages.includes(savedLang)) {
+                    detectedLang = savedLang;
+                }
+            } catch(e) {}
+            
+            document.documentElement.setAttribute('lang', detectedLang);
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/public/i18n.js"></script>
+    <script src="/public/init-i18n.js"></script>
+  
+  <!-- Scripts Rocket désactivés -->
+  </head>
+<body class="bg-background">
+    <!-- Smart Header with Navigation -->
+    <header class="bg-white border-b border-border sticky top-0 z-50 shadow-soft">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/pages/homepage.html" class="flex items-center space-x-2">
+                        <img src="/delivery-truck-logo.png" alt="CargoWatch Logo" class="w-8 h-8 object-contain">
+                        <span class="text-xl font-bold text-primary">CargoWatch</span>
+                    </a>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="/pages/admin_dashboard.html" class="text-primary font-semibold">Home</a>
+                    <a href="/pages/public_tracking_interface.html" class="text-text-secondary hover:text-primary transition-colors">Track Shipment</a>
+                    <a href="/pages/shipment_creation_portal.html" class="text-text-secondary hover:text-primary transition-colors">Create Shipment</a>
+                    <a href="/pages/support_hub.html" class="text-text-secondary hover:text-primary transition-colors">Support</a>
+                </nav>
+
+                <!-- Admin Profile & Actions -->
+                <div class="hidden lg:flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;" id="admin-avatar">
+                            A
+                        </div>
+                        <span class="text-sm font-medium text-text-primary" id="admin-header-name">Admin</span>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-text-secondary hover:text-primary" aria-label="Toggle menu">
+                    <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                    <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden border-t border-border bg-white">
+                <nav class="flex flex-col px-4 py-4 space-y-3">
+                    <a href="/pages/admin_dashboard.html" class="text-primary font-semibold py-2">Home</a>
+                    <a href="/pages/public_tracking_interface.html" class="text-text-secondary hover:text-primary transition-colors py-2">Track Shipment</a>
+                    <a href="/pages/shipment_creation_portal.html" class="text-text-secondary hover:text-primary transition-colors py-2">Create Shipment</a>
+                    <a href="/pages/support_hub.html" class="text-text-secondary hover:text-primary transition-colors py-2">Support</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Breadcrumb Navigation -->
+    <div class="bg-surface border-b border-border">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+            <nav class="flex items-center space-x-2 text-sm">
+                <a href="/pages/homepage.html" class="text-text-muted hover:text-primary transition-colors">Home</a>
+                <svg class="w-4 h-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                </svg>
+                <span class="text-primary font-medium">Admin Dashboard</span>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Dashboard Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Dashboard Header -->
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-text-primary mb-2">Admin Dashboard</h1>
+                <p class="text-text-secondary" id="welcome-message">Welcome back. Here's what's happening with your shipments today.</p>
+            </div>
+            <div class="flex items-center space-x-4 mt-4 lg:mt-0">
+                <button class="btn-primary">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                    </svg>
+                    Create Shipment
+                </button>
+            </div>
+        </div>
+
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-text-muted text-sm font-medium">Active Shipments</p>
+                        <p class="text-3xl font-bold text-text-primary" id="active-shipments">0</p>
+                        <p class="text-success text-sm" id="active-change"></p>
+                    </div>
+                    <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-text-muted text-sm font-medium">In Transit</p>
+                        <p class="text-3xl font-bold text-text-primary" id="in-transit">0</p>
+                        <p class="text-warning text-sm" id="in-transit-info"></p>
+                    </div>
+                    <div class="w-12 h-12 bg-warning-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-warning" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-text-muted text-sm font-medium">Delivered Today</p>
+                        <p class="text-3xl font-bold text-text-primary" id="delivered-today">0</p>
+                        <p class="text-success text-sm" id="delivered-info"></p>
+                    </div>
+                    <div class="w-12 h-12 bg-success-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-text-muted text-sm font-medium">Client Messages</p>
+                        <p class="text-3xl font-bold text-text-primary" id="client-messages">0</p>
+                        <p class="text-accent text-sm" id="unread-messages"></p>
+                    </div>
+                    <div class="w-12 h-12 bg-accent-100 rounded-full flex items-center justify-center">
+                        <svg class="w-6 h-6 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="mb-6 border-b border-border">
+            <nav class="flex space-x-8">
+                <button id="tab-shipments" class="tab-button active py-4 px-1 border-b-2 border-primary font-medium text-primary">
+                    Shipments
+                </button>
+                <button id="tab-chat" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-text-secondary hover:text-primary hover:border-gray-300">
+                    Live Chat <span id="chat-badge" class="ml-2 bg-accent text-white text-xs rounded-full px-2 py-1 hidden">0</span>
+                </button>
+                <button id="tab-reviews" class="tab-button py-4 px-1 border-b-2 border-transparent font-medium text-text-secondary hover:text-primary hover:border-gray-300">
+                    Client Reviews
+                </button>
+            </nav>
+        </div>
+
+        <!-- Shipments Tab Content -->
+        <div id="content-shipments">
+        <!-- Main Dashboard Grid -->
+        <div class="grid lg:grid-cols-3 gap-8">
+            <!-- Shipment Management Panel -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Quick Actions -->
+                <div class="card">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-text-primary">Quick Actions</h3>
+                    </div>
+                    <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+                        <button class="flex flex-col items-center p-4 bg-surface rounded-lg hover:bg-surface-hover transition-colors">
+                            <svg class="w-8 h-8 text-primary mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            <span class="text-sm font-medium text-text-primary">Bulk Update</span>
+                        </button>
+                        <button id="download-receipts-btn" class="flex flex-col items-center p-4 bg-surface rounded-lg hover:bg-surface-hover transition-colors">
+                            <svg class="w-8 h-8 text-secondary mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span class="text-sm font-medium text-text-primary">Download Receipts</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Shipment Management Table -->
+                <div class="card">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-text-primary">Recent Shipments</h3>
+                        <div class="flex items-center space-x-4">
+                            <div class="relative">
+                                <input type="text" placeholder="Search shipments..." class="input-field w-64 pl-10 pr-4 py-2">
+                                <svg class="w-5 h-5 text-text-muted absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                </svg>
+                            </div>
+                            <button class="flex items-center space-x-2 text-text-secondary hover:text-primary transition-colors">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/>
+                                </svg>
+                                <span class="text-sm">Filter</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto -mx-4 sm:mx-0">
+                        <div class="min-w-full inline-block align-middle">
+                            <table id="shipments-table" class="w-full min-w-[800px]">
+                            <thead>
+                                <tr class="border-b border-border">
+                                    <th class="text-left py-3 px-4 font-medium text-text-secondary">
+                                        <input type="checkbox" class="rounded border-border">
+                                    </th>
+                                    <th class="text-left py-3 px-4 font-medium text-text-secondary">Tracking ID</th>
+                                    <th class="text-left py-3 px-4 font-medium text-text-secondary">Sender</th>
+                                    <th class="text-left py-3 px-4 font-medium text-text-secondary">Recipient</th>
+                                    <th class="text-left py-3 px-4 font-medium text-text-secondary">Status</th>
+                                    <th class="text-left py-3 px-4 font-medium text-text-secondary">Last Update</th>
+                                    <th class="text-left py-3 px-4 font-medium text-text-secondary">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-border">
+                                <!-- Les shipments seront chargés dynamiquement -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="flex items-center justify-between mt-6 pt-4 border-t border-border">
+                        <div class="text-sm text-text-muted" id="pagination-info">
+                            No shipments yet
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-3 py-2 text-sm border border-border rounded-lg hover:bg-surface transition-colors">Previous</button>
+                            <button class="px-3 py-2 text-sm bg-primary text-white rounded-lg">1</button>
+                            <button class="px-3 py-2 text-sm border border-border rounded-lg hover:bg-surface transition-colors">2</button>
+                            <button class="px-3 py-2 text-sm border border-border rounded-lg hover:bg-surface transition-colors">3</button>
+                            <button class="px-3 py-2 text-sm border border-border rounded-lg hover:bg-surface transition-colors">Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Sidebar -->
+            <div class="space-y-6">
+                <!-- Quick Stats Summary -->
+                <div class="card">
+                    <h3 class="text-lg font-semibold text-text-primary mb-4">Quick Overview</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-text-muted">Total Shipments</span>
+                            <span class="text-lg font-semibold text-text-primary" id="total-shipments-sidebar">0</span>
+                    </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-text-muted">Pending</span>
+                            <span class="text-lg font-semibold text-warning" id="pending-sidebar">0</span>
+                                </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-sm text-text-muted">Delivered</span>
+                            <span class="text-lg font-semibold text-success" id="delivered-sidebar">0</span>
+                            </div>
+                        </div>
+                                </div>
+
+                <!-- Performance Analytics -->
+                <div class="card">
+                    <h3 class="text-lg font-semibold text-text-primary mb-4">Quick Links</h3>
+                    <div class="space-y-2">
+                        <a href="/pages/shipment_creation_portal.html" class="block text-sm text-primary hover:text-primary-700 py-2 px-3 rounded-lg hover:bg-surface transition-colors">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+                            </svg>
+                            Create New Shipment
+                        </a>
+                        <button onclick="document.getElementById('tab-chat').click()" class="block w-full text-left text-sm text-primary hover:text-primary-700 py-2 px-3 rounded-lg hover:bg-surface transition-colors">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                            View Live Chats
+                        </button>
+                        <a href="/pages/public_tracking_interface.html" class="block text-sm text-primary hover:text-primary-700 py-2 px-3 rounded-lg hover:bg-surface transition-colors">
+                            <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                            Track Shipment
+                        </a>
+                            </div>
+                        </div>
+                    </div>
+        </div>
+                </div>
+
+        <!-- Chat Tab Content -->
+        <div id="content-chat" class="hidden">
+            <div class="grid lg:grid-cols-3 gap-8">
+                <!-- Chat List -->
+                <div class="lg:col-span-1">
+                <div class="card">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-text-primary">Active Chats</h3>
+                            <select id="chat-status-filter" class="text-sm border border-border rounded px-2 py-1">
+                                <option value="">All</option>
+                                <option value="open">Open</option>
+                                <option value="active">Active</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                            </div>
+                        <div id="chat-list" class="space-y-2 max-h-[600px] overflow-y-auto">
+                            <!-- Chat items will be loaded here -->
+                        </div>
+                            </div>
+                        </div>
+
+                <!-- Chat Messages -->
+                <div class="lg:col-span-2">
+                    <div id="chat-container" class="card flex flex-col" style="height: 700px;">
+                        <div id="no-chat-selected" class="flex-1 flex items-center justify-center text-center p-8">
+                                            <div>
+                                <svg class="w-16 h-16 text-text-muted mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                                </svg>
+                                <p class="text-text-secondary">Select a chat to start messaging</p>
+                            </div>
+                        </div>
+
+                        <div id="chat-messages-panel" class="hidden flex-1 flex flex-col">
+                            <!-- Chat Header -->
+                            <div class="border-b border-border p-4 flex items-center justify-between">
+                                <div>
+                                    <h4 id="chat-client-name" class="font-semibold text-text-primary"></h4>
+                                    <p id="chat-client-email" class="text-sm text-text-secondary"></p>
+                                    <p id="chat-subject-admin" class="text-xs text-text-muted mt-1"></p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button id="assign-chat-btn" class="btn-secondary text-sm px-3 py-1">Assign to Me</button>
+                                    <button id="close-chat-btn" class="btn-secondary text-sm px-3 py-1 bg-error-100 text-error hover:bg-error-200">Close Chat</button>
+                    </div>
+                </div>
+
+                            <!-- Messages Area -->
+                            <div id="admin-chat-messages" class="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4">
+                                <!-- Messages will be inserted here -->
+                        </div>
+
+                            <!-- Message Input -->
+                            <div class="border-t border-border p-4">
+                                <div class="flex items-center space-x-2 mb-2">
+                                    <input type="text" id="admin-chat-message-input" class="input-field flex-1" placeholder="Type your message...">
+                                    <button id="admin-chat-send-btn" class="btn-primary px-4 py-2">Send</button>
+                        </div>
+                        </div>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        <!-- Reviews Tab Content -->
+        <div id="content-reviews" class="hidden">
+            <div class="mb-6">
+                <h2 class="text-2xl font-bold text-text-primary mb-2">Client Reviews</h2>
+                <p class="text-text-secondary">See what our international clients are saying about CargoWatch</p>
+            </div>
+
+            <!-- Reviews Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- French Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330" 
+                             alt="Photo de Sophie Martin" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">Sophie Martin</div>
+                            <div class="text-sm text-text-muted">Paris, France 🇫🇷</div>
+                        </div>
+                    </div>
+                    <div class="flex mb-2">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-text-secondary text-sm">"CargoWatch a révolutionné notre gestion logistique. Le suivi en temps réel et les livraisons mondiales nous ont permis d'étendre nos services à l'international avec une confiance totale. Excellent service!"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 3 jours</div>
+                </div>
+
+                <!-- German Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d" 
+                             alt="Photo de Klaus Weber" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">Klaus Weber</div>
+                            <div class="text-sm text-text-muted">Berlin, Deutschland 🇩🇪</div>
+                        </div>
+                    </div>
+                    <div class="flex mb-2">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-text-secondary text-sm">"Die Echtzeitverfolgung ist fantastisch! Wir nutzen CargoWatch seit 6 Monaten und unsere Kundenzufriedenheit ist um 75% gestiegen. Sehr zuverlässig und professionell."</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 5 jours</div>
+                </div>
+
+                <!-- Spanish Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e" 
+                             alt="Photo de María González" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">María González</div>
+                            <div class="text-sm text-text-muted">Madrid, España 🇪🇸</div>
+                        </div>
+                    </div>
+                    <div class="flex mb-2">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-text-secondary text-sm">"Increíble plataforma de seguimiento. Los envíos internacionales ahora son tan fáciles como los nacionales. Nuestros clientes están encantados con la transparencia total. ¡Muy recomendable!"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 1 semaine</div>
+                </div>
+
+                <!-- Japanese Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5" 
+                             alt="Photo de Hiroshi Tanaka" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">田中 浩 (Hiroshi Tanaka)</div>
+                            <div class="text-sm text-text-muted">Tokyo, Japan 🇯🇵</div>
+                        </div>
+                    </div>
+                    <div class="flex mb-2">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-text-secondary text-sm">"素晴らしいサービスです！リアルタイム追跡機能が非常に正確で、国際配送も簡単に管理できます。顧客満足度が大幅に向上しました。最高の物流プラットフォームです。"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 4 jours</div>
+                </div>
+
+                <!-- Chinese Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e" 
+                             alt="Photo de Li Wei" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">李伟 (Li Wei)</div>
+                            <div class="text-sm text-text-muted">Shanghai, China 🇨🇳</div>
+                        </div>
+                    </div>
+                    <div class="flex mb-2">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-text-secondary text-sm">"非常出色的物流追踪系统！实时定位功能非常准确，全球配送管理变得简单高效。客户满意度显著提升。强烈推荐给所有需要国际物流服务的公司！"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 2 jours</div>
+                </div>
+
+                <!-- Arabic Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e" 
+                             alt="Photo de Ahmed Al-Rashid" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">أحمد الراشد (Ahmed Al-Rashid)</div>
+                            <div class="text-sm text-text-muted">Dubai, UAE 🇦🇪</div>
+                        </div>
+                    </div>
+                    <div class="flex mb-2">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-text-secondary text-sm">"منصة ممتازة للتتبع اللوجستي! نظام التتبع في الوقت الفعلي دقيق جداً والخدمات الدولية سلسة للغاية. رضا العملاء زاد بنسبة 80%. خدمة احترافية ومستوى عالي من الجودة."</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 6 jours</div>
+                </div>
+
+                <!-- Brazilian Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7" 
+                             alt="Photo de Rafael Silva" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">Rafael Silva</div>
+                            <div class="text-sm text-text-muted">São Paulo, Brasil 🇧🇷</div>
+                        </div>
+                    </div>
+                    <div class="flex mb-2">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-text-secondary text-sm">"Plataforma incrível! O rastreamento em tempo real é muito preciso e as entregas internacionais ficaram muito mais fáceis. Nossos clientes adoram a transparência total. Altamente recomendado!"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 3 jours</div>
+                </div>
+
+                <!-- Indian Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d" 
+                             alt="Photo de Priya Sharma" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">Priya Sharma</div>
+                            <div class="text-sm text-text-muted">Mumbai, India 🇮🇳</div>
+                        </div>
+                    </div>
+                    <div class="flex mb-2">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-text-secondary text-sm">"Excellent tracking platform! Real-time location updates are very accurate and international shipping has become so much easier. Customer satisfaction increased by 70%. Highly professional service!"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 1 semaine</div>
+                </div>
+
+                <!-- British Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb" 
+                             alt="Photo de James Thompson" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">James Thompson</div>
+                            <div class="text-sm text-text-muted">London, United Kingdom 🇬🇧</div>
+                        </div>
+                    </div>
+                    <div class="flex mb-2">
+                        <span class="text-yellow-400">★★★★★</span>
+                    </div>
+                    <p class="text-text-secondary text-sm">"Outstanding logistics platform! The real-time tracking is incredibly accurate and worldwide delivery support makes international shipping seamless. Customer complaints dropped by 65%. Top-notch service!"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 2 jours</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-text-primary text-white py-16 mt-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <img src="/delivery-truck-logo.png" alt="CargoWatch Logo" class="w-8 h-8 object-contain">
+                        <span class="text-xl font-bold">CargoWatch</span>
+                    </div>
+                    <p class="text-text-muted mb-4">Your cargo. Our watch. Every mile.</p>
+                    <p class="text-sm text-text-muted">© 2025 CargoWatch. All Rights Reserved.</p>
+                </div>
+
+                <!-- Services -->
+                <div>
+                    <h4 class="font-semibold mb-4">Services</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li><a href="public_tracking_interface.html" class="hover:text-white transition-colors">Package Tracking</a></li>
+                        <li><a href="shipment_creation_portal.html" class="hover:text-white transition-colors">Create Shipment</a></li>
+                        <li><a href="admin_dashboard.html" class="hover:text-white transition-colors">Admin Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li><a href="support_hub.html" class="hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="support_hub.html" class="hover:text-white transition-colors">Contact Us</a></li>
+                        <li><a href="support_hub.html" class="hover:text-white transition-colors">System Status</a></li>
+                        <li><a href="support_hub.html" class="hover:text-white transition-colors">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div>
+                    <h4 class="font-semibold mb-4">Contact</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li>uncledrewlegacy@gmail.com</li>
+                        <li>24/7 Customer Support</li>
+                        <li>Enterprise Solutions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Receipt Create Modal -->
+    <div id="receipt-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-text-primary">Generate Shipment Receipt</h3>
+                <button id="close-receipt-modal" class="text-text-secondary hover:text-text-primary">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-4">
+                <p class="text-sm text-text-secondary mb-4">Tracking ID: <span id="receipt-tracking-id" class="font-semibold"></span></p>
+                
+                <!-- Language Selection -->
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-text-primary mb-2">Receipt Language</label>
+                    <select id="receipt-language-select" class="input-field w-full">
+                        <option value="en">English</option>
+                        <option value="fr">Français</option>
+                        <option value="es">Español</option>
+                        <option value="de">Deutsch</option>
+                        <option value="pt">Português</option>
+                        <option value="it">Italiano</option>
+                        <option value="zh">中文</option>
+                        <option value="ja">日本語</option>
+                        <option value="ru">Русский</option>
+                        <option value="ar">العربية</option>
+                    </select>
+                </div>
+                
+                <div class="bg-surface rounded-lg p-6 text-center">
+                    <svg class="w-16 h-16 mx-auto mb-3 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <p class="text-text-primary font-medium mb-2">Generate Receipt</p>
+                    <p class="text-sm text-text-secondary">A professional receipt will be automatically generated based on shipment details.</p>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-receipt-upload" class="px-5 py-2.5 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-gray-200 transition-all duration-200">
+                    Cancel
+                </button>
+                <button id="upload-receipt-btn" class="inline-flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 rounded-lg shadow-md hover:shadow-lg transform hover:scale-105 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                    </svg>
+                    <span>Generate Receipt</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Receipts Download Modal -->
+    <div id="receipts-download-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-3xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-text-primary">Download Shipment Receipts</h3>
+                <button id="close-receipts-modal" class="text-text-secondary hover:text-text-primary">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="mb-4">
+                <p class="text-sm text-text-secondary mb-4">All available shipment receipts:</p>
+                <div id="receipts-list" class="space-y-2">
+                    <p class="text-sm text-text-muted">Loading receipts...</p>
+                </div>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button id="cancel-receipts-download" class="btn-secondary px-4 py-2">Close</button>
+                <button id="download-all-receipts-btn" class="btn-primary px-4 py-2">Download All</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let currentUser = null;
+        let shipments = [];
+
+        // Vérifier l'authentification au chargement
+        async function checkAuth() {
+            try {
+                console.log('🔐 Checking authentication...');
+                const response = await fetch('/api/auth/me', {
+                    credentials: 'include'
+                });
+                
+                console.log('🔐 Auth response status:', response.status, response.statusText);
+                
+                // Vérifier si la réponse est du JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    console.error('❌ Auth: Non-JSON response, redirecting to login');
+                    window.location.href = '/pages/admin_login.html';
+                    return false;
+                }
+                
+                if (!response.ok) {
+                    console.error('❌ Auth: Response not OK, redirecting to login');
+                    window.location.href = '/pages/admin_login.html';
+                    return false;
+                }
+                
+                const data = await response.json();
+                currentUser = data.user;
+                
+                console.log('👤 Current user:', currentUser);
+                console.log('👤 User role:', currentUser.role);
+                
+                // Vérifier que l'utilisateur est admin
+                if (currentUser.role !== 'admin') {
+                    console.error('❌ Auth: User is not admin, redirecting to tracking page');
+                    console.error('❌ User role:', currentUser.role, '(expected: admin)');
+                    // Rediriger vers la page de tracking
+                    window.location.href = '/pages/public_tracking_interface.html';
+                    return false;
+                }
+                
+                console.log('✅ Auth: User is authenticated as admin');
+                
+                // Mettre à jour l'affichage de l'utilisateur
+                // Build display name with fallbacks
+                let displayName = '';
+                if (currentUser.firstName && currentUser.lastName) {
+                    displayName = `${currentUser.firstName} ${currentUser.lastName}`;
+                } else if (currentUser.firstName) {
+                    displayName = currentUser.firstName;
+                } else if (currentUser.lastName) {
+                    displayName = currentUser.lastName;
+                } else {
+                    displayName = currentUser.username || 'Admin';
+                }
+                
+                // Get initials
+                let initials = 'A';
+                if (currentUser.firstName || currentUser.lastName) {
+                    const first = currentUser.firstName ? currentUser.firstName.charAt(0).toUpperCase() : '';
+                    const last = currentUser.lastName ? currentUser.lastName.charAt(0).toUpperCase() : '';
+                    initials = first + last || displayName.charAt(0).toUpperCase();
+                } else {
+                    initials = displayName.substring(0, 2).toUpperCase();
+                }
+                
+                // Update header elements
+                const adminHeaderName = document.getElementById('admin-header-name');
+                const adminAvatar = document.getElementById('admin-avatar');
+                const welcomeMessage = document.getElementById('welcome-message');
+                
+                if (adminHeaderName) adminHeaderName.textContent = displayName;
+                if (adminAvatar) adminAvatar.textContent = initials;
+                if (welcomeMessage) {
+                    const firstName = currentUser.firstName || displayName.split(' ')[0];
+                    welcomeMessage.textContent = `Welcome back, ${firstName}. Here's what's happening with your shipments today.`;
+                }
+                
+                return true;
+            } catch (error) {
+                console.error('Auth check failed:', error);
+                window.location.href = '/pages/admin_login.html';
+                return false;
+            }
+        }
+
+        // Fonction helper pour mettre à jour l'affichage des stats
+        function updateStatsDisplay(statsData) {
+            if (!statsData) {
+                console.warn('⚠️ [updateStatsDisplay] No stats data provided');
+                    return;
+                }
+                
+            console.log('🎯 [updateStatsDisplay] Starting update with data:', statsData);
+                    
+            // Liste de tous les éléments à mettre à jour
+            const updates = [
+                { id: 'active-shipments', value: statsData.activeShipments ?? 0, name: 'Active Shipments' },
+                { id: 'delivered-today', value: statsData.deliveredToday ?? 0, name: 'Delivered Today' },
+                { id: 'total-shipments-sidebar', value: statsData.totalShipments ?? 0, name: 'Total Shipments' },
+                { id: 'in-transit', value: statsData.inTransit ?? 0, name: 'In Transit' },
+                { id: 'pending-sidebar', value: statsData.pending ?? 0, name: 'Pending' },
+                { id: 'delivered-sidebar', value: statsData.delivered ?? 0, name: 'Delivered' }
+            ];
+            
+            let successCount = 0;
+            let failCount = 0;
+            
+            updates.forEach(({ id, value, name }) => {
+                const el = document.getElementById(id);
+                if (el) {
+                    const oldValue = el.textContent;
+                    el.textContent = String(value);
+                    console.log(`✅ [updateStatsDisplay] Updated ${name} (${id}): "${oldValue}" → "${value}"`);
+                    successCount++;
+                } else {
+                    console.error(`❌ [updateStatsDisplay] Element "${id}" (${name}) NOT FOUND in DOM!`);
+                    failCount++;
+                }
+            });
+                    
+            // Mettre à jour la pagination info
+                    const paginationInfo = document.getElementById('pagination-info');
+                    if (paginationInfo) {
+                        if (statsData.totalShipments === 0) {
+                            paginationInfo.textContent = 'No shipments yet';
+                        } else {
+                    const total = statsData.totalShipments || 0;
+                    const showing = shipments?.length || 0;
+                            const start = showing > 0 ? 1 : 0;
+                    paginationInfo.textContent = `Showing ${start}-${showing} of ${total} shipments`;
+                }
+            }
+            
+            console.log(`📊 [updateStatsDisplay] Complete: ${successCount} updated, ${failCount} failed`);
+            
+            if (failCount > 0) {
+                console.error(`⚠️ [updateStatsDisplay] WARNING: ${failCount} elements could not be updated!`);
+            }
+        }
+
+        // Charger les stats depuis l'API (simplifié comme dans homepage.html)
+        async function loadStats() {
+            try {
+                console.log('🔄 Loading stats from /api/stats...');
+                const response = await fetch('/api/stats');
+                
+                if (response.ok) {
+                    const stats = await response.json();
+                    console.log('📊 Stats data received:', stats);
+                    updateStatsDisplay(stats);
+                console.log('✅ Stats updated successfully');
+                } else {
+                    console.error('❌ Failed to load stats:', response.status, response.statusText);
+                    // Utiliser des valeurs par défaut si l'API échoue
+                    updateStatsDisplay({
+                        activeShipments: 0,
+                        deliveredToday: 0,
+                        totalShipments: 0,
+                        inTransit: 0,
+                        pending: 0,
+                        delivered: 0
+                    });
+                }
+            } catch (error) {
+                console.error('❌ Error loading stats:', error);
+                // Utiliser des valeurs par défaut en cas d'erreur
+                updateStatsDisplay({
+                    activeShipments: 0,
+                    deliveredToday: 0,
+                    totalShipments: 0,
+                    inTransit: 0,
+                    pending: 0,
+                    delivered: 0
+                });
+            }
+        }
+
+        // Fonction globale pour tester manuellement le chargement des stats
+        window.forceReloadStats = loadStats;
+
+        // Charger les messages clients pour la carte "Client Messages"
+        async function loadClientMessagesCount() {
+            try {
+                console.log('📨 Loading client messages count...');
+                const response = await fetch('/api/chat', { credentials: 'include' });
+                if (response.ok) {
+                    const chats = await response.json();
+                    // Count total unread messages from clients
+                    let totalUnread = 0;
+                    chats.forEach(chat => {
+                        if (chat.messages) {
+                            totalUnread += chat.messages.filter(m => !m.read && m.senderType === 'client').length;
+                        }
+                    });
+                    
+                    const openChats = chats.filter(c => c.status === 'open' || c.status === 'active').length;
+                    
+                    const messagesEl = document.getElementById('client-messages');
+                    const unreadEl = document.getElementById('unread-messages');
+                    
+                    if (messagesEl) {
+                        messagesEl.textContent = openChats || 0;
+                        console.log('✅ Client messages updated:', openChats);
+                    } else {
+                        console.warn('⚠️ Client messages element not found');
+                    }
+                    
+                    if (unreadEl) {
+                        if (totalUnread > 0) {
+                            unreadEl.textContent = `${totalUnread} unread`;
+                            unreadEl.style.display = 'block';
+                        } else {
+                            unreadEl.textContent = '';
+                            unreadEl.style.display = 'none';
+                    }
+                    }
+                } else {
+                    console.error('❌ Failed to load client messages:', response.status, response.statusText);
+                }
+            } catch (err) {
+                console.error('❌ Error loading client messages:', err);
+            }
+        }
+
+        // Charger les shipments
+        async function loadShipments() {
+            try {
+                console.log('🔄 Loading shipments from /api/shipments...');
+                const response = await fetch('/api/shipments', {
+                    credentials: 'include'
+                });
+                
+                console.log('📡 Shipments response status:', response.status, response.statusText);
+                console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                // Vérifier si la réponse est du JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('❌ Non-JSON response:', text);
+                    console.error('❌ Content-Type:', contentType);
+                    
+                    // Si c'est une redirection vers login, informer l'utilisateur
+                    if (response.status === 401 || response.status === 403) {
+                        alert('Authentication required. Redirecting to login...');
+                        window.location.href = '/pages/admin_login.html';
+                        return;
+                    }
+                    
+                    throw new Error('Server returned non-JSON response');
+                }
+                
+                if (!response.ok) {
+                    let errorMessage = 'Failed to load shipments';
+                    try {
+                    const errorData = await response.json();
+                        errorMessage = errorData.error || errorMessage;
+                        console.error('❌ API Error:', errorData);
+                    } catch (e) {
+                        const text = await response.text();
+                        errorMessage = text || errorMessage;
+                        console.error('❌ Error response (not JSON):', text);
+                    }
+                    
+                    // Si c'est une erreur d'authentification, rediriger
+                    if (response.status === 401 || response.status === 403) {
+                        alert('Access denied. Please log in as admin.');
+                        window.location.href = '/pages/admin_login.html';
+                        return;
+                    }
+                    
+                    throw new Error(errorMessage);
+                }
+                
+                const data = await response.json();
+                shipments = data.shipments || [];
+                
+                console.log(`✅ Loaded ${shipments.length} shipments (Total: ${data.total || shipments.length})`);
+                console.log('📦 Shipments data:', shipments);
+                
+                // Toujours charger les stats depuis l'API séparément
+                await loadStats();
+                
+                // Charger le nombre de messages clients
+                await loadClientMessagesCount();
+                
+                // Afficher les shipments dans le tableau
+                displayShipments(shipments);
+                
+                // Afficher un message si aucun shipment
+                if (shipments.length === 0) {
+                    console.warn('⚠️ No shipments loaded. Check if you are logged in as admin.');
+                }
+            } catch (error) {
+                console.error('❌ Error loading shipments:', error);
+                console.error('❌ Error details:', error.message, error.stack);
+                
+                // Même en cas d'erreur, essayer de charger les stats
+                await loadStats();
+                
+                // Ne pas afficher d'alerte si c'est une redirection
+                if (error.message.includes('redirecting') || error.message.includes('Access denied')) {
+                    return;
+                }
+                
+                alert(`Error loading shipments: ${error.message}\n\nPlease make sure you are logged in as admin.`);
+            }
+        }
+
+        // Mettre à jour les statistiques locales (utilise les shipments fournis, pas tous)
+        // NOTE: Cette fonction est maintenant utilisée seulement en fallback
+        // Les stats principales sont chargées via /api/stats dans loadShipments()
+        function updateStats(shipments) {
+            const totalShipments = shipments.length;
+            const activeShipments = shipments.filter(s => s.status !== 'delivered' && s.status !== 'cancelled').length;
+            const inTransit = shipments.filter(s => s.status === 'in_transit' || s.status === 'out_for_delivery' || s.status === 'picked_up').length;
+            const pending = shipments.filter(s => s.status === 'pending').length;
+            const delivered = shipments.filter(s => s.status === 'delivered').length;
+            const deliveredToday = shipments.filter(s => {
+                if (!s.deliveredAt) return false;
+                const deliveredDate = new Date(s.deliveredAt);
+                const today = new Date();
+                return deliveredDate.toDateString() === today.toDateString();
+            }).length;
+            
+            // Top stats cards
+            const activeElement = document.getElementById('active-shipments');
+            const inTransitElement = document.getElementById('in-transit');
+            const deliveredTodayElement = document.getElementById('delivered-today');
+            
+            if (activeElement) activeElement.textContent = activeShipments;
+            if (inTransitElement) inTransitElement.textContent = inTransit;
+            if (deliveredTodayElement) deliveredTodayElement.textContent = deliveredToday;
+            
+            // Sidebar stats
+            const totalSidebarElement = document.getElementById('total-shipments-sidebar');
+            const pendingSidebarElement = document.getElementById('pending-sidebar');
+            const deliveredSidebarElement = document.getElementById('delivered-sidebar');
+            
+            if (totalSidebarElement) totalSidebarElement.textContent = totalShipments;
+            if (pendingSidebarElement) pendingSidebarElement.textContent = pending;
+            if (deliveredSidebarElement) deliveredSidebarElement.textContent = delivered;
+            
+            // Note: La pagination info est maintenant mise à jour dans loadStats() avec le total réel
+            // Cette fonction est conservée uniquement en fallback
+        }
+
+        // Afficher les shipments dans le tableau
+        function displayShipments(shipmentsList) {
+            const tbody = document.querySelector('#shipments-table tbody');
+            if (!tbody) {
+                console.error('❌ Table tbody not found!');
+                return;
+            }
+            
+            console.log(`🎨 Displaying ${shipmentsList?.length || 0} shipments in table...`);
+            tbody.innerHTML = '';
+            
+            if (!shipmentsList || shipmentsList.length === 0) {
+                console.warn('⚠️ No shipments to display');
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center py-8 text-text-muted">No shipments found</td></tr>';
+                return;
+            }
+            
+            shipmentsList.forEach((shipment, index) => {
+                console.log(`📝 Creating row ${index + 1} for shipment:`, shipment.trackingId);
+                try {
+                const row = createShipmentRow(shipment);
+                tbody.appendChild(row);
+                } catch (error) {
+                    console.error(`❌ Error creating row for shipment ${shipment.trackingId}:`, error);
+                }
+            });
+            
+            console.log(`✅ Successfully displayed ${shipmentsList.length} shipments`);
+        }
+
+        // Créer une ligne de tableau pour un shipment
+        function createShipmentRow(shipment) {
+            const tr = document.createElement('tr');
+            tr.className = 'hover:bg-surface transition-colors';
+            
+            const statusMap = {
+                'pending': { class: 'status-warning', text: 'Pending' },
+                'picked_up': { class: 'status-info', text: 'Picked Up' },
+                'in_transit': { class: 'status-info', text: 'In Transit' },
+                'out_for_delivery': { class: 'status-warning', text: 'Out for Delivery' },
+                'delivered': { class: 'status-success', text: 'Delivered' },
+                'exception': { class: 'status-error', text: 'Exception' }
+            };
+            
+            const status = statusMap[shipment.status] || { class: 'status-info', text: shipment.status };
+            const createdAt = new Date(shipment.createdAt).toLocaleDateString();
+            
+            tr.innerHTML = `
+                <td class="px-6 py-4">
+                    <input type="checkbox" class="rounded border-border text-primary focus:ring-primary">
+                                    </td>
+                <td class="px-3 sm:px-6 py-4">
+                    <div class="font-medium text-text-primary text-sm sm:text-base">${shipment.trackingId}</div>
+                    <div class="text-xs sm:text-sm text-text-muted">${shipment.package?.description || 'No description'}</div>
+                                    </td>
+                <td class="px-3 sm:px-6 py-4">
+                    <div class="text-xs sm:text-sm text-text-primary">${shipment.sender?.name || 'N/A'}</div>
+                    <div class="text-xs text-text-muted">${shipment.sender?.address?.city || ''}</div>
+                                    </td>
+                <td class="px-3 sm:px-6 py-4">
+                    <div class="text-xs sm:text-sm text-text-primary">${shipment.recipient?.name || 'N/A'}</div>
+                    <div class="text-xs text-text-muted">${shipment.recipient?.address?.city || ''}</div>
+                                    </td>
+                <td class="px-3 sm:px-6 py-4">
+                    <span class="px-2 py-1 rounded-full text-xs font-medium ${status.class} whitespace-nowrap">${status.text}</span>
+                </td>
+                <td class="px-6 py-4 text-sm text-text-secondary">${createdAt}</td>
+                <td class="px-6 py-4">
+                    <div class="flex flex-col space-y-2">
+                                        <div class="flex items-center space-x-2">
+                            <select class="status-select text-sm border border-border rounded px-2 py-1" data-tracking-id="${shipment.trackingId}">
+                                <option value="pending" ${shipment.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="picked_up" ${shipment.status === 'picked_up' ? 'selected' : ''}>Picked Up</option>
+                                <option value="in_transit" ${shipment.status === 'in_transit' ? 'selected' : ''}>In Transit</option>
+                                <option value="out_for_delivery" ${shipment.status === 'out_for_delivery' ? 'selected' : ''}>Out for Delivery</option>
+                                <option value="delivered" ${shipment.status === 'delivered' ? 'selected' : ''}>Delivered</option>
+                                <option value="exception" ${shipment.status === 'exception' ? 'selected' : ''}>Exception</option>
+                            </select>
+                            <input type="text" class="location-input text-sm border border-border rounded px-2 py-1 w-32" 
+                                   placeholder="City/State" 
+                                   data-tracking-id="${shipment.trackingId}"
+                                   value="${shipment.currentLocation?.city || ''}">
+                            <button class="update-status-btn text-primary hover:text-primary-dark text-sm px-3 py-1" data-tracking-id="${shipment.trackingId}">
+                                Update
+                                            </button>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            ${shipment.autoProgress?.paused ? 
+                                `<button class="pause-btn text-xs bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded" data-tracking-id="${shipment.trackingId}" data-action="resume">
+                                    ▶ Resume
+                                            </button>
+                                <span class="text-xs text-orange-600">⏸ Paused: ${shipment.autoProgress.pauseReason || 'Maintenance'}</span>` :
+                                `<button class="pause-btn text-xs bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded" data-tracking-id="${shipment.trackingId}" data-action="pause">
+                                    ⏸ Pause
+                                </button>
+                                <input type="text" class="pause-reason-input text-xs border border-border rounded px-2 py-1 w-32" 
+                                       placeholder="Reason (optional)" 
+                                       data-tracking-id="${shipment.trackingId}">`
+                            }
+                        </div>
+                        <div class="flex items-center space-x-2 mt-2">
+                            <button type="button" class="receipt-btn inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg shadow-md transition-all duration-200 transform hover:scale-105 hover:shadow-lg ${shipment.receipt ? 'bg-green-50 hover:bg-green-100 text-green-700 border-2 border-green-500 hover:border-green-600' : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white'}" data-tracking-id="${shipment.trackingId}" style="cursor: pointer; z-index: 10; position: relative;">
+                                ${shipment.receipt ? `
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                    </svg>
+                                    <span>Download Receipt</span>
+                                ` : `
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                    </svg>
+                                    <span>Create Receipt</span>
+                                `}
+                            </button>
+                        </div>
+                                        </div>
+                                    </td>
+            `;
+            
+            // Ajouter l'event listener pour le bouton update
+            const updateBtn = tr.querySelector('.update-status-btn');
+            const statusSelect = tr.querySelector('.status-select');
+            const locationInput = tr.querySelector('.location-input');
+            
+            updateBtn.addEventListener('click', () => updateShipmentStatus(shipment.trackingId, statusSelect.value, locationInput.value));
+            
+            // Ajouter l'event listener pour pause/resume
+            const pauseBtn = tr.querySelector('.pause-btn');
+            if (pauseBtn) {
+                pauseBtn.addEventListener('click', () => {
+                    const action = pauseBtn.getAttribute('data-action');
+                    const reasonInput = tr.querySelector('.pause-reason-input');
+                    const reason = reasonInput ? reasonInput.value : '';
+                    handlePauseResume(shipment.trackingId, action === 'pause', reason);
+                });
+            }
+            
+            // Ajouter l'event listener pour le bouton receipt
+            const receiptBtn = tr.querySelector('.receipt-btn');
+            if (receiptBtn) {
+                console.log('Attaching receipt button listener for:', shipment.trackingId);
+                receiptBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('✅ Receipt button clicked for:', shipment.trackingId, 'Has receipt:', !!shipment.receipt);
+                    if (shipment.receipt) {
+                        // Download receipt if it exists
+                        console.log('Downloading receipt:', shipment.receipt);
+                        const link = document.createElement('a');
+                        link.href = shipment.receipt;
+                        link.download = shipment.receipt.split('/').pop();
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    } else {
+                        // Open create modal if no receipt
+                        console.log('Opening receipt modal for:', shipment.trackingId);
+                        if (typeof openReceiptModal === 'function') {
+                            openReceiptModal(shipment.trackingId);
+                        } else {
+                            console.error('❌ openReceiptModal function not found!');
+                            alert('Error: Receipt create function not available. Please refresh the page.');
+                        }
+                    }
+                });
+                // Test: Add a test listener to verify button is clickable
+                receiptBtn.addEventListener('mouseenter', () => {
+                    console.log('Mouse over receipt button:', shipment.trackingId);
+                });
+            } else {
+                console.error('❌ Receipt button not found for shipment:', shipment.trackingId);
+            }
+            
+            return tr;
+        }
+        
+        // Gérer pause/resume
+        async function handlePauseResume(trackingId, pause, reason = '') {
+            try {
+                const response = await fetch(`/api/shipments/${trackingId}/pause`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        pause: pause,
+                        reason: reason || (pause ? 'Maintenance' : '')
+                    })
+                });
+                
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response');
+                }
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to pause/resume shipment');
+                }
+                
+                await loadShipments();
+                alert(pause ? `Shipment paused: ${reason || 'Maintenance'}` : 'Shipment resumed');
+            } catch (error) {
+                console.error('Error pausing/resuming shipment:', error);
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Mettre à jour le statut d'un shipment
+        async function updateShipmentStatus(trackingId, newStatus, location = '') {
+            try {
+                const response = await fetch(`/api/shipments/${trackingId}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        status: newStatus,
+                        location: location || `Updated by admin`,
+                        description: `Status changed to ${newStatus}${location ? ` - Location: ${location}` : ''}`
+                    })
+                });
+                
+                // Vérifier si la réponse est du JSON
+                const contentType = response.headers.get('content-type');
+                if (!contentType || !contentType.includes('application/json')) {
+                    const text = await response.text();
+                    console.error('Non-JSON response:', text);
+                    throw new Error('Server returned non-JSON response');
+                }
+                
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Failed to update status');
+                }
+                
+                // Recharger les shipments
+                await loadShipments();
+                alert('Status updated successfully!');
+            } catch (error) {
+                console.error('Error updating status:', error);
+                alert('Error updating status: ' + error.message);
+            }
+        }
+
+        // Déconnexion
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                window.location.href = '/pages/admin_login.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/pages/admin_login.html';
+            }
+        }
+
+        // Fonction pour forcer la mise à jour des stats (à appeler manuellement si nécessaire)
+        async function forceUpdateStats() {
+            console.log('🔧 [forceUpdateStats] Force updating stats...');
+            return await loadStats();
+        }
+        
+        // ==================== RECEIPT CREATE FUNCTIONALITY ====================
+        // Define these functions before DOMContentLoaded so they're available when shipments are loaded
+        let currentReceiptTrackingId = null;
+
+        function openReceiptModal(trackingId) {
+            console.log('✅ openReceiptModal called with:', trackingId);
+            currentReceiptTrackingId = trackingId;
+            const trackingIdEl = document.getElementById('receipt-tracking-id');
+            const modal = document.getElementById('receipt-modal');
+            if (!trackingIdEl || !modal) {
+                console.error('❌ Receipt modal elements not found!', { trackingIdEl: !!trackingIdEl, modal: !!modal });
+                alert('Error: Receipt create modal not found. Please refresh the page.');
+                        return;
+                    }
+            trackingIdEl.textContent = trackingId;
+            
+            // Set default language from browser or saved preference
+            const languageSelect = document.getElementById('receipt-language-select');
+            if (languageSelect) {
+                const savedLang = localStorage.getItem('cargowatch_lang') || 'en';
+                const browserLang = navigator.language || navigator.userLanguage || 'en';
+                const langCode = browserLang.split('-')[0].toLowerCase();
+                const supportedLanguages = ['en', 'fr', 'es', 'de', 'pt', 'it', 'zh', 'ja', 'ru', 'ar'];
+                const defaultLang = supportedLanguages.includes(savedLang) ? savedLang : 
+                                  (supportedLanguages.includes(langCode) ? langCode : 'en');
+                languageSelect.value = defaultLang;
+            }
+            
+            modal.classList.remove('hidden');
+            resetReceiptModal();
+            console.log('✅ Receipt modal opened for:', trackingId);
+        }
+
+        function closeReceiptModal() {
+            const modal = document.getElementById('receipt-modal');
+            if (modal) {
+                modal.classList.add('hidden');
+            }
+            currentReceiptTrackingId = null;
+            resetReceiptModal();
+        }
+
+        function resetReceiptModal() {
+            const generateBtn = document.getElementById('upload-receipt-btn');
+            if (generateBtn) {
+                generateBtn.disabled = false;
+                const btnSpan = generateBtn.querySelector('span');
+                if (btnSpan) {
+                    btnSpan.textContent = 'Generate Receipt';
+                    } else {
+                    generateBtn.innerHTML = `
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        </svg>
+                        <span>Generate Receipt</span>
+                    `;
+                }
+            }
+        }
+        
+        // Exposer les fonctions globalement pour le débogage
+        window.forceUpdateStats = forceUpdateStats;
+        window.forceUpdatesStats = forceUpdateStats; // Alias pour fautes de frappe
+        window.forceReloadStats = loadStats;
+        window.updateStatsDisplay = updateStatsDisplay;
+        window.forceReloadShipments = loadShipments;
+        window.loadStats = loadStats;
+        window.openReceiptModal = openReceiptModal;
+        window.closeReceiptModal = closeReceiptModal;
+        
+
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🚀 DOM Content Loaded - Initializing admin dashboard...');
+            
+            // Charger les stats immédiatement (route publique, ne nécessite pas d'auth)
+            console.log('📊 Loading stats immediately...');
+            loadStats().catch(err => console.error('❌ Failed to load stats:', err));
+            
+            // Tentative 2: Après 500ms
+            setTimeout(() => {
+                console.log('🔄 Reloading stats after delay...');
+                loadStats().catch(err => console.error('❌ Failed to load stats:', err));
+            }, 500);
+            
+            // Tentative 3: Après 1 seconde
+            setTimeout(() => {
+                console.log('🔄 Reloading stats after delay...');
+                loadStats().catch(err => console.error('❌ Failed to load stats:', err));
+            }, 1000);
+            
+            // Tentative 4: Après 2 secondes
+            setTimeout(() => {
+                console.log('🔄 Reloading stats after delay...');
+                loadStats().catch(err => console.error('❌ Failed to load stats:', err));
+            }, 2000);
+            
+            // Attach receipt modal event listeners first
+            // Receipt modal event listeners
+            document.getElementById('close-receipt-modal')?.addEventListener('click', () => {
+                console.log('Close receipt modal clicked');
+                closeReceiptModal();
+            });
+            document.getElementById('cancel-receipt-upload')?.addEventListener('click', () => {
+                console.log('Cancel receipt upload clicked');
+                closeReceiptModal();
+            });
+            
+            // Ensure functions are available globally
+            if (typeof openReceiptModal === 'undefined') {
+                console.error('❌ openReceiptModal is not defined!');
+            } else {
+                console.log('✅ openReceiptModal is available');
+            }
+
+            // Receipts download modal
+            let allReceipts = [];
+            
+            document.getElementById('download-receipts-btn')?.addEventListener('click', async () => {
+                const modal = document.getElementById('receipts-download-modal');
+                const receiptsList = document.getElementById('receipts-list');
+                
+                modal.classList.remove('hidden');
+                receiptsList.innerHTML = '<p class="text-sm text-text-muted">Loading receipts...</p>';
+                
+                try {
+                    const response = await fetch('/api/receipts', {
+                        credentials: 'include'
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch receipts');
+                    }
+                    
+                    const data = await response.json();
+                    allReceipts = data.receipts || [];
+                    
+                    if (allReceipts.length === 0) {
+                        receiptsList.innerHTML = '<p class="text-sm text-text-muted">No receipts available.</p>';
+                        document.getElementById('download-all-receipts-btn').disabled = true;
+                    } else {
+                        receiptsList.innerHTML = allReceipts.map(receipt => `
+                            <div class="flex items-center justify-between p-3 border border-border rounded-lg">
+                                <div class="flex-1">
+                                    <div class="font-medium text-text-primary">${receipt.trackingId}</div>
+                                    <div class="text-xs text-text-muted">${receipt.recipientName} • ${new Date(receipt.receiptUploadedAt || receipt.createdAt).toLocaleDateString()}</div>
+                                </div>
+                                <button class="download-receipt-btn text-xs bg-primary hover:bg-primary-dark text-white px-3 py-1 rounded" 
+                                        data-receipt-path="${receipt.receipt}">
+                                    📥 Download
+                                </button>
+                            </div>
+                        `).join('');
+                        
+                        document.getElementById('download-all-receipts-btn').disabled = false;
+                        
+                        // Attach individual download listeners
+                        document.querySelectorAll('.download-receipt-btn').forEach(btn => {
+                            btn.addEventListener('click', (e) => {
+                                const receiptPath = e.target.getAttribute('data-receipt-path');
+                                // Create a temporary link to trigger download
+                                const link = document.createElement('a');
+                                link.href = receiptPath;
+                                link.download = receiptPath.split('/').pop();
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                            });
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error loading receipts:', error);
+                    receiptsList.innerHTML = '<p class="text-sm text-error">Error loading receipts. Please try again.</p>';
+                    document.getElementById('download-all-receipts-btn').disabled = true;
+                }
+            });
+            
+            document.getElementById('close-receipts-modal')?.addEventListener('click', () => {
+                document.getElementById('receipts-download-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancel-receipts-download')?.addEventListener('click', () => {
+                document.getElementById('receipts-download-modal').classList.add('hidden');
+            });
+            
+            document.getElementById('download-all-receipts-btn')?.addEventListener('click', () => {
+                if (allReceipts.length === 0) return;
+                
+                // Download all receipts one by one
+                allReceipts.forEach((receipt, index) => {
+                    setTimeout(() => {
+                        const link = document.createElement('a');
+                        link.href = receipt.receipt;
+                        link.download = `${receipt.trackingId}-${receipt.receipt.split('/').pop()}`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }, index * 200); // Stagger downloads to avoid browser blocking
+                });
+                
+                alert(`Downloading ${allReceipts.length} receipt(s)...`);
+            });
+
+            document.getElementById('upload-receipt-btn')?.addEventListener('click', async () => {
+                if (!currentReceiptTrackingId) {
+                    alert('No tracking ID selected');
+                    return;
+                }
+
+                const generateBtn = document.getElementById('upload-receipt-btn');
+                generateBtn.disabled = true;
+                const btnSpan = generateBtn.querySelector('span');
+                if (btnSpan) {
+                    btnSpan.textContent = 'Generating...';
+                } else {
+                    generateBtn.textContent = 'Generating...';
+                }
+
+                try {
+                    console.log('Generating receipt for:', currentReceiptTrackingId);
+
+                    // Get selected language
+                    const languageSelect = document.getElementById('receipt-language-select');
+                    const selectedLanguage = languageSelect ? languageSelect.value : 'en';
+                    
+                    const response = await fetch(`/api/shipments/${currentReceiptTrackingId}/receipt/generate`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        credentials: 'include',
+                        body: JSON.stringify({ language: selectedLanguage })
+                    });
+
+                    const responseText = await response.text();
+                    console.log('Response status:', response.status);
+                    console.log('Response:', responseText);
+
+                    if (!response.ok) {
+                        let error;
+                        try {
+                            error = JSON.parse(responseText);
+                        } catch {
+                            error = { error: responseText || 'Failed to generate receipt' };
+                        }
+                        throw new Error(error.error || 'Failed to generate receipt');
+                    }
+
+                    const data = JSON.parse(responseText);
+                    
+                    // Download receipt instead of opening in new tab
+                    if (data.receipt) {
+                        const link = document.createElement('a');
+                        link.href = data.receipt;
+                        link.download = data.receipt.split('/').pop();
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                    
+                    alert('Receipt generated and downloaded successfully!');
+                    closeReceiptModal();
+                    await loadShipments(); // Reload to show updated receipt
+                } catch (error) {
+                    console.error('Error generating receipt:', error);
+                    alert('Error generating receipt: ' + error.message);
+                    generateBtn.disabled = false;
+                    const btnSpan = generateBtn.querySelector('span');
+                    if (btnSpan) {
+                        btnSpan.textContent = 'Generate Receipt';
+                    } else {
+                        generateBtn.innerHTML = `
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <span>Generate Receipt</span>
+                        `;
+                    }
+                }
+            });
+
+            const isAuthenticated = await checkAuth();
+            if (isAuthenticated) {
+                console.log('✅ Admin authenticated, loading dashboard data...');
+                
+                // Charger les stats immédiatement (ne nécessite pas d'auth)
+                loadStats(); // Ne pas await pour ne pas bloquer
+                loadClientMessagesCount(); // Ne pas await pour ne pas bloquer
+                
+                // Ensuite charger les shipments (nécessite auth admin)
+                console.log('🔄 Starting to load shipments...');
+                await loadShipments();
+                console.log('✅ Dashboard initialized - all data loaded');
+                
+                // Ajouter le bouton de déconnexion
+                const profileButton = document.querySelector('.flex.items-center.space-x-2');
+                if (profileButton) {
+                    const logoutBtn = document.createElement('button');
+                    logoutBtn.textContent = 'Logout';
+                    logoutBtn.className = 'ml-4 text-text-secondary hover:text-primary text-sm';
+                    logoutBtn.onclick = logout;
+                    profileButton.appendChild(logoutBtn);
+                }
+                
+                // Auto-refresh toutes les 30 secondes
+                setInterval(() => {
+                    loadStats();
+                    loadClientMessagesCount();
+                    loadShipments();
+                }, 30000);
+            }
+
+        // ==================== CHAT FUNCTIONALITY ====================
+        // Tab switching
+        document.getElementById('tab-shipments')?.addEventListener('click', () => {
+            document.getElementById('tab-shipments').classList.add('active', 'border-primary', 'text-primary');
+            document.getElementById('tab-shipments').classList.remove('border-transparent', 'text-text-secondary');
+            document.getElementById('tab-chat').classList.remove('active', 'border-primary', 'text-primary');
+            document.getElementById('tab-chat').classList.add('border-transparent', 'text-text-secondary');
+            document.getElementById('tab-reviews').classList.remove('active', 'border-primary', 'text-primary');
+            document.getElementById('tab-reviews').classList.add('border-transparent', 'text-text-secondary');
+            document.getElementById('content-shipments').classList.remove('hidden');
+            document.getElementById('content-chat').classList.add('hidden');
+            document.getElementById('content-reviews').classList.add('hidden');
+        });
+
+        document.getElementById('tab-chat')?.addEventListener('click', () => {
+            document.getElementById('tab-chat').classList.add('active', 'border-primary', 'text-primary');
+            document.getElementById('tab-chat').classList.remove('border-transparent', 'text-text-secondary');
+            document.getElementById('tab-shipments').classList.remove('active', 'border-primary', 'text-primary');
+            document.getElementById('tab-shipments').classList.add('border-transparent', 'text-text-secondary');
+            document.getElementById('tab-reviews').classList.remove('active', 'border-primary', 'text-primary');
+            document.getElementById('tab-reviews').classList.add('border-transparent', 'text-text-secondary');
+            document.getElementById('content-shipments').classList.add('hidden');
+            document.getElementById('content-chat').classList.remove('hidden');
+            document.getElementById('content-reviews').classList.add('hidden');
+            initAdminSocket();
+            loadChats();
+                initializeChatButtons(); // Ensure buttons are initialized when chat tab is opened
+            });
+
+        document.getElementById('tab-reviews')?.addEventListener('click', () => {
+            document.getElementById('tab-reviews').classList.add('active', 'border-primary', 'text-primary');
+            document.getElementById('tab-reviews').classList.remove('border-transparent', 'text-text-secondary');
+            document.getElementById('tab-shipments').classList.remove('active', 'border-primary', 'text-primary');
+            document.getElementById('tab-shipments').classList.add('border-transparent', 'text-text-secondary');
+            document.getElementById('tab-chat').classList.remove('active', 'border-primary', 'text-primary');
+            document.getElementById('tab-chat').classList.add('border-transparent', 'text-text-secondary');
+            document.getElementById('content-shipments').classList.add('hidden');
+            document.getElementById('content-chat').classList.add('hidden');
+            document.getElementById('content-reviews').classList.remove('hidden');
+        });
+
+        });
+
+        // ==================== CHAT FUNCTIONALITY ====================
+        let chatSocket = null;
+        let currentAdminChatId = null;
+
+        // Initialize Socket.io for admin
+        function initAdminSocket() {
+            if (chatSocket && chatSocket.connected) {
+                console.log('Socket already connected');
+                return;
+            }
+            
+            try {
+                console.log('Initializing socket connection to:', window.location.origin);
+                chatSocket = io(window.location.origin, {
+                    transports: ['websocket', 'polling'],
+                    reconnection: true,
+                    reconnectionDelay: 1000,
+                    reconnectionAttempts: 5
+                });
+                
+                chatSocket.on('connect', () => {
+                    console.log('✅ Admin connected to chat server, socket ID:', chatSocket.id);
+                    // Reload chats when connected
+                    loadChats();
+                });
+                
+                chatSocket.on('connect_error', (error) => {
+                    console.error('❌ Socket connection error:', error);
+                });
+                
+                chatSocket.on('disconnect', (reason) => {
+                    console.log('⚠️ Admin disconnected from chat server:', reason);
+                });
+                
+                chatSocket.on('new-chat', (chat) => {
+                    console.log('📨 New chat received:', chat);
+                    loadChats();
+                    updateChatBadge();
+                });
+                
+                chatSocket.on('new-message', (data) => {
+                    console.log('💬 New message received:', data);
+                    if (data.chatId === currentAdminChatId) {
+                        addAdminMessageToChat(data.message);
+                        scrollAdminChatToBottom();
+                        // If admin is viewing the chat, mark new client messages as read automatically
+                        if (data.message.senderType === 'client' && !data.message.read) {
+                            fetch(`/api/chat/${data.chatId}/read`, {
+                                method: 'PUT',
+                                credentials: 'include'
+                            }).then(() => {
+                                loadChats();
+                                loadClientMessagesCount(); // Update Client Messages card
+                            });
+                        }
+                    }
+                    loadChats(); // Refresh chat list to update unread counts
+                    loadClientMessagesCount(); // Update Client Messages card
+                });
+                
+                chatSocket.on('chat-assigned', (data) => {
+                    console.log('👤 Chat assigned:', data);
+                    loadChats();
+                });
+                
+                chatSocket.on('chat-closed', (data) => {
+                    console.log('🔒 Chat closed:', data);
+                    if (data.chatId === currentAdminChatId) {
+                        currentAdminChatId = null;
+                        document.getElementById('no-chat-selected').classList.remove('hidden');
+                        document.getElementById('chat-messages-panel').classList.add('hidden');
+                    }
+                    loadChats();
+                });
+            } catch (error) {
+                console.error('❌ Error initializing admin socket:', error);
+                alert('Erreur de connexion au chat. Vérifiez que le serveur est démarré.');
+            }
+        }
+
+        // Load chats list
+        async function loadChats() {
+            try {
+                const status = document.getElementById('chat-status-filter')?.value || '';
+                const url = status ? `/api/chat?status=${status}` : '/api/chat';
+                const response = await fetch(url, { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to load chats');
+                
+                const chats = await response.json();
+                const chatList = document.getElementById('chat-list');
+                chatList.innerHTML = '';
+                
+                if (chats.length === 0) {
+                    chatList.innerHTML = '<p class="text-text-secondary text-sm p-4">No chats found</p>';
+                    return;
+                }
+
+                chats.forEach(chat => {
+                    // Count unread messages from clients only
+                    const unreadCount = chat.messages ? chat.messages.filter(m => !m.read && m.senderType === 'client').length : 0;
+                    const chatItem = document.createElement('div');
+                    // Add visual indicator for unread chats
+                    const hasUnread = unreadCount > 0;
+                    chatItem.className = `p-3 rounded-lg cursor-pointer hover:bg-surface transition-colors ${chat.id === currentAdminChatId ? 'bg-primary-50 border border-primary' : ''} ${hasUnread ? 'bg-blue-50 border-l-4 border-l-blue-500' : ''}`;
+                    chatItem.innerHTML = `
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="font-semibold text-text-primary ${hasUnread ? 'font-bold' : ''}">${chat.clientName || 'Sans nom'}</div>
+                                <div class="text-xs text-text-secondary">${chat.subject || 'Sans sujet'}</div>
+                                <div class="text-xs text-text-muted mt-1">${new Date(chat.updatedAt).toLocaleString()}</div>
+                                ${chat.messages && chat.messages.length > 0 ? `
+                                    <div class="text-xs text-text-muted mt-1">
+                                        ${chat.messages[chat.messages.length - 1].text.substring(0, 50)}${chat.messages[chat.messages.length - 1].text.length > 50 ? '...' : ''}
+                            </div>
+                                ` : ''}
+                        </div>
+                            ${unreadCount > 0 ? `<span class="bg-error text-white text-xs rounded-full px-2 py-1 font-bold min-w-[24px] text-center">${unreadCount}</span>` : ''}
+                        </div>
+                        <div class="mt-2 flex items-center justify-between">
+                            <span class="text-xs px-2 py-1 rounded ${chat.status === 'open' ? 'bg-warning-100 text-warning' : chat.status === 'active' ? 'bg-success-100 text-success' : 'bg-gray-100 text-gray-600'}">${chat.status}</span>
+                            ${hasUnread ? '<span class="text-xs text-error font-semibold">Non lu</span>' : '<span class="text-xs text-text-muted">Lu</span>'}
+                        </div>
+                    `;
+                    chatItem.addEventListener('click', () => openChat(chat.id));
+                    chatList.appendChild(chatItem);
+                });
+
+                updateChatBadge(chats);
+                // Also update Client Messages card
+                loadClientMessagesCount();
+            } catch (error) {
+                console.error('Error loading chats:', error);
+            }
+        }
+
+        function updateChatBadge(chats) {
+            if (!chats) {
+                fetch('/api/chat', { credentials: 'include' })
+                    .then(r => r.json())
+                    .then(c => {
+                        // Count unread messages, not just open chats
+                        let totalUnread = 0;
+                        c.forEach(chat => {
+                            if (chat.messages) {
+                                totalUnread += chat.messages.filter(m => !m.read && m.senderType === 'client').length;
+                            }
+                        });
+                        const badge = document.getElementById('chat-badge');
+                        if (totalUnread > 0) {
+                            badge.textContent = totalUnread;
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    });
+                return;
+            }
+            // Count total unread messages across all chats
+            let totalUnread = 0;
+            chats.forEach(chat => {
+                if (chat.messages) {
+                    totalUnread += chat.messages.filter(m => !m.read && m.senderType === 'client').length;
+                }
+            });
+            const badge = document.getElementById('chat-badge');
+            if (totalUnread > 0) {
+                badge.textContent = totalUnread;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // Open a chat
+        async function openChat(chatId) {
+            try {
+                const response = await fetch(`/api/chat/${chatId}`, { credentials: 'include' });
+                if (!response.ok) throw new Error('Failed to load chat');
+                
+                const chat = await response.json();
+                currentAdminChatId = chatId;
+                
+                if (chatSocket) {
+                    chatSocket.emit('join-chat', chatId);
+                }
+
+                // Mark messages as read when admin opens the chat
+                try {
+                    const readResponse = await fetch(`/api/chat/${chatId}/read`, {
+                        method: 'PUT',
+                        credentials: 'include'
+                    });
+                    if (readResponse.ok) {
+                        // Reload chats to update unread counts immediately
+                        await loadChats();
+                        // Also update the Client Messages card
+                        loadClientMessagesCount();
+                    }
+                } catch (readError) {
+                    console.error('Error marking messages as read:', readError);
+                }
+
+                document.getElementById('chat-client-name').textContent = chat.clientName;
+                document.getElementById('chat-client-email').textContent = chat.clientEmail;
+                document.getElementById('chat-subject-admin').textContent = `Subject: ${chat.subject}${chat.trackingId ? ` | Tracking: ${chat.trackingId}` : ''}`;
+
+                const messagesContainer = document.getElementById('admin-chat-messages');
+                messagesContainer.innerHTML = '';
+
+                // Display messages and mark visual styling for read/unread
+                chat.messages.forEach(msg => {
+                    addAdminMessageToChat(msg);
+                });
+
+                document.getElementById('no-chat-selected').classList.add('hidden');
+                document.getElementById('chat-messages-panel').classList.remove('hidden');
+                scrollAdminChatToBottom();
+            } catch (error) {
+                console.error('Error opening chat:', error);
+            }
+        }
+
+         function addAdminMessageToChat(message) {
+             const messagesContainer = document.getElementById('admin-chat-messages');
+             const isAdmin = message.senderType === 'admin';
+             
+             const messageDiv = document.createElement('div');
+             messageDiv.className = `flex ${isAdmin ? 'justify-end' : 'justify-start'}`;
+             
+             messageDiv.innerHTML = `
+                 <div class="max-w-xs lg:max-w-sm ${isAdmin ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3 overflow-hidden">
+                     <div class="text-xs font-semibold mb-1">${message.senderName}</div>
+                     ${message.text ? `<div class="mb-2 break-words">${message.text}</div>` : ''}
+                     <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
+                 </div>
+             `;
+             
+             messagesContainer.appendChild(messageDiv);
+             scrollAdminChatToBottom();
+         }
+
+        // Helper function to get admin display name
+        function getAdminDisplayName() {
+            if (!currentUser) return 'Admin';
+            
+            if (currentUser.firstName && currentUser.lastName) {
+                return `${currentUser.firstName} ${currentUser.lastName}`;
+            } else if (currentUser.firstName) {
+                return currentUser.firstName;
+            } else if (currentUser.lastName) {
+                return currentUser.lastName;
+            } else {
+                return currentUser.username || 'Admin';
+            }
+        }
+
+        // Initialize chat buttons - call this when chat tab is opened
+        function initializeChatButtons() {
+            const sendBtn = document.getElementById('admin-chat-send-btn');
+            const inputField = document.getElementById('admin-chat-message-input');
+            const assignBtn = document.getElementById('assign-chat-btn');
+            const closeBtn = document.getElementById('close-chat-btn');
+            const filterSelect = document.getElementById('chat-status-filter');
+
+            if (sendBtn && !sendBtn.hasAttribute('data-listener-attached')) {
+                sendBtn.addEventListener('click', sendAdminMessage);
+                sendBtn.setAttribute('data-listener-attached', 'true');
+            }
+            
+            if (inputField && !inputField.hasAttribute('data-listener-attached')) {
+                inputField.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') sendAdminMessage();
+                });
+                inputField.setAttribute('data-listener-attached', 'true');
+            }
+
+            if (assignBtn && !assignBtn.hasAttribute('data-listener-attached')) {
+                assignBtn.addEventListener('click', async () => {
+            if (!currentAdminChatId) return;
+            try {
+                const response = await fetch(`/api/chat/${currentAdminChatId}/assign`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
+                });
+                if (!response.ok) throw new Error('Failed to assign chat');
+                await loadChats();
+                alert('Chat assigned to you');
+            } catch (error) {
+                console.error('Error assigning chat:', error);
+            }
+        });
+                assignBtn.setAttribute('data-listener-attached', 'true');
+            }
+
+            if (closeBtn && !closeBtn.hasAttribute('data-listener-attached')) {
+                closeBtn.addEventListener('click', async () => {
+            if (!currentAdminChatId) return;
+            if (!confirm('Are you sure you want to close this chat?')) return;
+            try {
+                const response = await fetch(`/api/chat/${currentAdminChatId}/close`, {
+                    method: 'PUT',
+                    credentials: 'include'
+                });
+                if (!response.ok) throw new Error('Failed to close chat');
+                currentAdminChatId = null;
+                document.getElementById('no-chat-selected').classList.remove('hidden');
+                document.getElementById('chat-messages-panel').classList.add('hidden');
+                await loadChats();
+            } catch (error) {
+                console.error('Error closing chat:', error);
+            }
+        });
+                closeBtn.setAttribute('data-listener-attached', 'true');
+            }
+
+            if (filterSelect && !filterSelect.hasAttribute('data-listener-attached')) {
+                filterSelect.addEventListener('change', () => {
+            loadChats();
+        });
+                filterSelect.setAttribute('data-listener-attached', 'true');
+            }
+        }
+
+        // Chat buttons will be initialized when chat tab is opened (in tab-chat click handler)
+
+        async function sendAdminMessage() {
+            const input = document.getElementById('admin-chat-message-input');
+            const text = input.value.trim();
+
+            if (!text) return;
+            if (!currentAdminChatId) return;
+
+            try {
+                const response = await fetch(`/api/chat/${currentAdminChatId}/message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({
+                        text,
+                        senderType: 'admin',
+                        senderName: getAdminDisplayName()
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to send message');
+
+                // Add message immediately to chat UI
+                try {
+                    const messageData = await response.json();
+                    if (messageData.message) {
+                        addAdminMessageToChat(messageData.message);
+                    } else if (messageData) {
+                        // Server might return the message directly
+                        addAdminMessageToChat(messageData);
+                    } else {
+                        // Fallback: create message object from form data
+                        addAdminMessageToChat({
+                            text,
+                            senderType: 'admin',
+                            senderName: getAdminDisplayName(),
+                            timestamp: new Date().toISOString()
+                        });
+                    }
+                } catch (jsonError) {
+                    // If response is not JSON, use fallback
+                    console.warn('Could not parse response as JSON, using fallback');
+                    addAdminMessageToChat({
+                        text,
+                        senderType: 'admin',
+                        senderName: getAdminDisplayName(),
+                        timestamp: new Date().toISOString()
+                    });
+                }
+
+                input.value = '';
+                scrollAdminChatToBottom();
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+        }
+        }
+
+
+
+        function scrollAdminChatToBottom() {
+            const messagesContainer = document.getElementById('admin-chat-messages');
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+    </script>
+<script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script>
+</body>
+</html>

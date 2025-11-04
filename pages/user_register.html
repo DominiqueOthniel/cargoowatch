@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - CargoWatch</title>
+    <!-- Langue par défaut : anglais -->
+    <script>
+        (function() {
+            const supportedLanguages = ['en', 'fr', 'es', 'de', 'pt', 'it', 'zh', 'ja', 'ru', 'ar'];
+            let detectedLang = 'en'; // Par défaut : anglais
+            
+            // Vérifier si une préférence est sauvegardée
+            try {
+                const savedLang = localStorage.getItem('cargowatch_lang');
+                if (savedLang && supportedLanguages.includes(savedLang)) {
+                    detectedLang = savedLang;
+                }
+            } catch(e) {}
+            
+            document.documentElement.setAttribute('lang', detectedLang);
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/main.css">
+    <script src="/public/i18n.js"></script>
+    <script src="/public/init-i18n.js"></script>
+</head>
+<body class="bg-background">
+    <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 px-4 py-8">
+        <div class="max-w-md w-full">
+            <!-- Logo -->
+            <div class="text-center mb-8">
+                <div class="flex items-center justify-center space-x-2 mb-4">
+                    <img src="/delivery-truck-logo.png" alt="CargoWatch Logo" class="w-12 h-12 object-contain">
+                    <span class="text-3xl font-bold text-primary">CargoWatch</span>
+                </div>
+                <h1 class="text-2xl font-bold text-text-primary">Create Your Account</h1>
+                <p class="text-text-secondary mt-2">Start tracking your shipments today</p>
+            </div>
+
+            <!-- Registration Form -->
+            <div class="bg-white rounded-2xl shadow-large p-8">
+                <form id="register-form" class="space-y-5">
+                    <div id="error-message" class="hidden bg-error-50 border border-error text-error px-4 py-3 rounded-lg text-sm"></div>
+                    <div id="success-message" class="hidden bg-success-50 border border-success text-success px-4 py-3 rounded-lg text-sm"></div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="firstName" class="block text-sm font-medium text-text-primary mb-2">First Name</label>
+                            <input 
+                                type="text" 
+                                id="firstName" 
+                                name="firstName"
+                                class="input-field w-full px-4 py-3"
+                                placeholder="John"
+                                autocomplete="given-name"
+                            >
+                        </div>
+                        <div>
+                            <label for="lastName" class="block text-sm font-medium text-text-primary mb-2">Last Name</label>
+                            <input 
+                                type="text" 
+                                id="lastName" 
+                                name="lastName"
+                                class="input-field w-full px-4 py-3"
+                                placeholder="Doe"
+                                autocomplete="family-name"
+                            >
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="username" class="block text-sm font-medium text-text-primary mb-2">Username *</label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            required
+                            class="input-field w-full px-4 py-3"
+                            placeholder="johndoe"
+                            autocomplete="username"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-text-primary mb-2">Email Address *</label>
+                        <input 
+                            type="email" 
+                            id="email" 
+                            name="email" 
+                            required
+                            class="input-field w-full px-4 py-3"
+                            placeholder="john@example.com"
+                            autocomplete="email"
+                        >
+                    </div>
+
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-text-primary mb-2">Password *</label>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required
+                            minlength="6"
+                            class="input-field w-full px-4 py-3"
+                            placeholder="At least 6 characters"
+                            autocomplete="new-password"
+                        >
+                        <p class="text-xs text-text-muted mt-1">Password must be at least 6 characters long</p>
+                    </div>
+
+                    <button 
+                        type="submit" 
+                        id="register-button"
+                        class="btn-primary w-full py-3 text-lg font-semibold"
+                    >
+                        Create Account
+                    </button>
+                </form>
+
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-text-secondary">
+                        Already have an account? 
+                        <a href="/pages/user_login.html" class="text-primary hover:underline font-medium">Sign in</a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Back to Home -->
+            <div class="text-center mt-6">
+                <a href="/pages/homepage.html" class="text-primary hover:underline text-sm">← Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
+            const registerButton = document.getElementById('register-button');
+            
+            // Hide messages
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+            
+            // Disable button
+            registerButton.disabled = true;
+            registerButton.textContent = 'Creating account...';
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    credentials: 'include',
+                    body: JSON.stringify({ firstName, lastName, username, email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.error || 'Registration failed');
+                }
+                
+                // Success
+                successDiv.textContent = 'Account created successfully! Redirecting...';
+                successDiv.classList.remove('hidden');
+                
+                // Redirect to tracking page after a short delay
+                setTimeout(() => {
+                    window.location.href = '/pages/public_tracking_interface.html';
+                }, 1000);
+                
+            } catch (error) {
+                errorDiv.textContent = error.message || 'An error occurred. Please try again.';
+                errorDiv.classList.remove('hidden');
+                registerButton.disabled = false;
+                registerButton.textContent = 'Create Account';
+            }
+        });
+    </script>
+</body>
+</html>
+

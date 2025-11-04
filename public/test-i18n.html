@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Test i18n</title>
+    <script src="/public/i18n.js"></script>
+</head>
+<body>
+    <h1 data-i18n="home.title">Your cargo.</h1>
+    <p data-i18n="home.description">Test description</p>
+    <button data-i18n="common.save">Save</button>
+    <script>
+        console.log('i18n available:', window.i18n);
+        setTimeout(() => {
+            console.log('Current language:', window.i18n?.getCurrentLanguage());
+            console.log('Translation test:', window.i18n?.t('home.title'));
+        }, 1000);
+    </script>
+</body>
+</html>
+

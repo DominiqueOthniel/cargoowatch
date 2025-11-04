@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Your Shipment - CargoWatch</title>
+    <!-- Langue par défaut : anglais -->
+    <script>
+        (function() {
+            const supportedLanguages = ['en', 'fr', 'es', 'de', 'pt', 'it', 'zh', 'ja', 'ru', 'ar'];
+            let detectedLang = 'en'; // Par défaut : anglais
+            
+            // Vérifier si une préférence est sauvegardée
+            try {
+                const savedLang = localStorage.getItem('cargowatch_lang');
+                if (savedLang && supportedLanguages.includes(savedLang)) {
+                    detectedLang = savedLang;
+                }
+            } catch(e) {}
+            
+            document.documentElement.setAttribute('lang', detectedLang);
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/public/i18n.js"></script>
+    <script src="/public/init-i18n.js"></script>
+    <style>
+        /* Leaflet map styles */
+        #tracking-map {
+            min-height: 256px;
+        }
+        .custom-marker {
+            background: transparent !important;
+            border: none !important;
+        }
+        .custom-marker > div {
+            position: relative;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0;
+                transform: scale(1.5);
+            }
+        }
+        /* Fullscreen modal for expanded map */
+        #map-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            z-index: 9999;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+        #map-modal.active {
+            display: flex;
+            flex-direction: column;
+        }
+        #map-modal-header {
+            background-color: white;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        #map-modal-content {
+            flex: 1;
+            margin: 1rem;
+            background-color: white;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            position: relative;
+        }
+        #map-modal-map {
+            width: 100%;
+            height: 100%;
+        }
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+  
+  <!-- Scripts Rocket désactivés temporairement pour éviter les boucles de redirection -->
+  <!-- <script type="module" src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fcargowatch6877back.builtwithrocket.new&_be=https%3A%2F%2Fapplication.rocket.new&_v=0.1.9"></script> -->
+  <!-- <script type="module" src="https://static.rocket.new/rocket-shot.js?v=0.0.1"></script> -->
+  </head>
+<body class="bg-background">
+    <!-- Smart Header with Navigation -->
+    <header class="bg-white border-b border-border sticky top-0 z-50 shadow-soft">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/pages/homepage.html" class="flex items-center space-x-2">
+                        <img src="/delivery-truck-logo.png" alt="CargoWatch Logo" class="w-8 h-8 object-contain">
+                        <span class="text-xl font-bold text-primary">CargoWatch</span>
+                    </a>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="/pages/homepage.html" class="text-text-secondary hover:text-primary transition-colors" data-i18n="nav.home">Home</a>
+                    <a href="/pages/public_tracking_interface.html" class="text-primary font-semibold" data-i18n="track.trackShipment">Track Shipment</a>
+                    <a href="/pages/support_hub.html" class="text-text-secondary hover:text-primary transition-colors" data-i18n="nav.support">Support</a>
+                </nav>
+
+                <!-- Tracking Search Bar -->
+                <div class="hidden lg:flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" id="header-tracking-input" data-i18n="track.enterTrackingId" placeholder="Enter tracking ID..." class="input-field w-64 pl-10 pr-4 py-2">
+                        <svg class="w-5 h-5 text-text-muted absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <a href="admin_dashboard.html" class="btn-primary hidden" data-i18n="nav.admin">Admin Login</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-text-secondary hover:text-primary" aria-label="Toggle menu">
+                    <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                    <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden border-t border-border bg-white">
+                <nav class="flex flex-col px-4 py-4 space-y-3">
+                    <a href="/pages/homepage.html" class="text-text-secondary hover:text-primary transition-colors py-2" data-i18n="nav.home">Home</a>
+                    <a href="/pages/public_tracking_interface.html" class="text-primary font-semibold py-2" data-i18n="track.trackShipment">Track Shipment</a>
+                    <a href="/pages/support_hub.html" class="text-text-secondary hover:text-primary transition-colors py-2" data-i18n="nav.support">Support</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Tracking Interface -->
+    <main class="min-h-screen">
+        <!-- Hero Search Section -->
+        <section class="bg-gradient-to-br from-primary-50 to-secondary-50 py-16">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <h1 class="text-4xl lg:text-5xl font-bold text-text-primary mb-6">
+                    <span data-i18n="track.trackYourShipment">Track Your Shipment</span>
+                </h1>
+                <p class="text-xl text-text-secondary mb-8 max-w-2xl mx-auto" data-i18n="track.enterTrackingDescription">
+                    Enter your tracking ID below to get real-time updates on your package location and delivery status.
+                </p>
+
+                <!-- Main Tracking Search -->
+                <div class="max-w-2xl mx-auto">
+                    <div class="relative">
+                        <input type="text" id="main-tracking-input" data-i18n="track.enterTrackingIdExample" placeholder="Enter tracking ID (e.g., CW20250101ABC123)" 
+                               class="input-field w-full pl-12 pr-32 py-4 text-lg rounded-xl shadow-medium">
+                        <svg class="w-6 h-6 text-text-muted absolute left-4 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                        <button id="track-button" class="absolute right-2 top-1/2 transform -translate-y-1/2 btn-primary px-6 py-2 rounded-lg" data-i18n="track.track">
+                            Track
+                        </button>
+                    </div>
+                    
+                    <!-- Quick Suggestions - Chargées dynamiquement depuis l'API -->
+                    <div id="recent-shipments" class="mt-4 text-sm text-text-muted">
+                        <span data-i18n="track.recentShipmentsLabel">Recent shipments: </span>
+                        <span id="recent-shipments-list" class="text-text-secondary" data-i18n="track.loading">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Tracking Results Section -->
+        <section id="tracking-results" class="py-12 hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <!-- Shipment Header -->
+                <div class="bg-white rounded-2xl shadow-large p-8 mb-8">
+                    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-6">
+                        <div>
+                            <h2 class="text-2xl font-bold text-text-primary mb-2" id="shipment-title">Package from TechCorp</h2>
+                            <div class="flex flex-wrap items-center gap-4 text-sm text-text-secondary">
+                                <span class="font-mono" id="tracking-id-display">---</span>
+                                <span class="status-success" id="current-status">In Transit</span>
+                                <span>Expected: <span id="expected-delivery" class="font-semibold">Nov 2, 2025</span></span>
+                            </div>
+                        </div>
+                        <div class="mt-4 lg:mt-0 flex flex-col sm:flex-row gap-3">
+                            <button id="notification-btn" class="btn-secondary flex items-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h8v-2H4v2zM4 11h8V9H4v2z"/>
+                                </svg>
+                                <span data-i18n="track.getNotifications">Get Notifications</span>
+                            </button>
+                            <button id="share-btn" class="btn-accent flex items-center space-x-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"/>
+                                </svg>
+                                <span data-i18n="track.share">Share</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="relative">
+                        <div class="flex justify-between text-xs text-text-muted mb-2">
+                            <span>Picked Up</span>
+                            <span>In Transit</span>
+                            <span>Out for Delivery</span>
+                            <span>Delivered</span>
+                        </div>
+                        <div class="w-full bg-border rounded-full h-2">
+                            <div class="bg-gradient-to-r from-primary to-accent h-2 rounded-full transition-all duration-500" style="width: 60%" id="progress-bar"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <!-- Timeline Section -->
+                    <div class="lg:col-span-2">
+                        <div class="bg-white rounded-2xl shadow-large p-8">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-semibold text-text-primary" data-i18n="track.shipmentTimeline">Shipment Timeline</h3>
+                                <button id="refresh-btn" class="text-primary hover:text-primary-700 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <!-- Timeline Items -->
+                            <div class="space-y-6" id="timeline-container">
+                                <!-- Timeline Item 1 - Completed -->
+                                <div class="flex items-start space-x-4">
+                                    <div class="flex-shrink-0 w-10 h-10 bg-success rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-lg font-semibold text-text-primary">Package Picked Up</h4>
+                                            <span class="text-sm text-text-muted">Nov 1, 2025 8:30 AM</span>
+                                        </div>
+                                        <p class="text-text-secondary mt-1">Your package has been collected from TechCorp facility</p>
+                                        <div class="text-sm text-text-muted mt-2">
+                                            <span class="font-medium">Location:</span> New York, NY 10001
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Timeline Item 2 - Completed -->
+                                <div class="flex items-start space-x-4">
+                                    <div class="flex-shrink-0 w-10 h-10 bg-success rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-lg font-semibold text-text-primary">Departed Origin Facility</h4>
+                                            <span class="text-sm text-text-muted">Nov 1, 2025 11:45 AM</span>
+                                        </div>
+                                        <p class="text-text-secondary mt-1">Package departed from New York distribution center</p>
+                                        <div class="text-sm text-text-muted mt-2">
+                                            <span class="font-medium">Next Stop:</span> Philadelphia, PA
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Timeline Item 3 - Current -->
+                                <div class="flex items-start space-x-4">
+                                    <div class="flex-shrink-0 w-10 h-10 bg-accent rounded-full flex items-center justify-center animate-pulse-soft">
+                                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-lg font-semibold text-text-primary">In Transit</h4>
+                                            <span class="text-sm text-text-muted">Nov 1, 2025 2:15 PM</span>
+                                        </div>
+                                        <p class="text-text-secondary mt-1">Package is currently in transit to destination facility</p>
+                                        <div class="text-sm text-text-muted mt-2">
+                                            <span class="font-medium">Current Location:</span> Philadelphia, PA
+                                            <span class="ml-4 font-medium">Next Update:</span> Expected in 2 hours
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Timeline Item 4 - Pending -->
+                                <div class="flex items-start space-x-4 opacity-50">
+                                    <div class="flex-shrink-0 w-10 h-10 bg-border rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-lg font-semibold text-text-muted">Out for Delivery</h4>
+                                            <span class="text-sm text-text-muted">Expected: Nov 2, 4:30 PM</span>
+                                        </div>
+                                        <p class="text-text-muted mt-1">Package will be out for final delivery</p>
+                                        <div class="text-sm text-text-muted mt-2">
+                                            <span class="font-medium">Delivery Address:</span> Washington, DC 20001
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Timeline Item 5 - Pending -->
+                                <div class="flex items-start space-x-4 opacity-50">
+                                    <div class="flex-shrink-0 w-10 h-10 bg-border rounded-full flex items-center justify-center">
+                                        <svg class="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                        </svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="text-lg font-semibold text-text-muted">Delivered</h4>
+                                            <span class="text-sm text-text-muted">Pending</span>
+                                        </div>
+                                        <p class="text-text-muted mt-1">Package will be delivered to recipient</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Sidebar Information -->
+                    <div class="space-y-6">
+                        <!-- Interactive Map -->
+                        <div class="bg-white rounded-2xl shadow-large p-6">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold text-text-primary">Live Location</h3>
+                                <div class="flex items-center space-x-2">
+                                    <button id="center-map-btn" class="text-text-muted hover:text-primary transition-colors" title="Center map" onclick="centerMapOnCurrent()">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                        </svg>
+                                    </button>
+                                    <button id="expand-map-btn" class="text-text-muted hover:text-primary transition-colors" title="Expand map" onclick="expandMap()">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="tracking-map" class="h-64 bg-surface rounded-lg overflow-hidden" style="z-index: 1;"></div>
+                            <div class="mt-4 text-sm text-text-secondary">
+                                <div class="flex items-center justify-between">
+                                    <span>Current Location:</span>
+                                    <span class="font-semibold" id="map-current-location">Loading...</span>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span>Distance Remaining:</span>
+                                    <span class="font-semibold" id="map-distance-remaining">Calculating...</span>
+                                </div>
+                                <div class="flex items-center justify-between mt-2">
+                                    <span>Estimated Arrival:</span>
+                                    <span class="font-semibold" id="map-eta">Calculating...</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shipment Details -->
+                        <div class="bg-white rounded-2xl shadow-large p-6">
+                            <h3 class="text-lg font-semibold text-text-primary mb-4">Shipment Details</h3>
+                            <div class="space-y-4">
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Service Type:</span>
+                                    <span class="font-semibold text-text-primary">Express Delivery</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Weight:</span>
+                                    <span class="font-semibold text-text-primary">2.5 lbs</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Dimensions:</span>
+                                    <span class="font-semibold text-text-primary">12×8×4 in</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Sender:</span>
+                                    <span class="font-semibold text-text-primary">TechCorp Inc.</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="text-text-secondary">Recipient:</span>
+                                    <span class="font-semibold text-text-primary">John Smith</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Delivery Options -->
+                        <div class="bg-white rounded-2xl shadow-large p-6">
+                            <h3 class="text-lg font-semibold text-text-primary mb-4">Delivery Options</h3>
+                            <div class="space-y-3">
+                                <button class="w-full text-left p-3 border border-border rounded-lg hover:border-primary hover:bg-primary-50 transition-colors">
+                                    <div class="flex items-center space-x-3">
+                                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                                        </svg>
+                                        <div>
+                                            <div class="font-medium text-text-primary">Delivery Instructions</div>
+                                            <div class="text-sm text-text-secondary">Add special delivery notes</div>
+                                        </div>
+                                    </div>
+                                </button>
+                                <button class="w-full text-left p-3 border border-border rounded-lg hover:border-primary hover:bg-primary-50 transition-colors">
+                                    <div class="flex items-center space-x-3">
+                                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        <div>
+                                            <div class="font-medium text-text-primary">Reschedule Delivery</div>
+                                            <div class="text-sm text-text-secondary">Choose a different delivery time</div>
+                                        </div>
+                                    </div>
+                                </button>
+                                <button class="w-full text-left p-3 border border-border rounded-lg hover:border-primary hover:bg-primary-50 transition-colors">
+                                    <div class="flex items-center space-x-3">
+                                        <svg class="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                        </svg>
+                                        <div>
+                                            <div class="font-medium text-text-primary">Hold at Location</div>
+                                            <div class="text-sm text-text-secondary">Pick up at nearby facility</div>
+                                        </div>
+                                    </div>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- No Results Section -->
+        <section id="no-results" class="py-20 hidden">
+            <div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                <div class="bg-white rounded-2xl shadow-large p-12">
+                    <div class="w-20 h-20 bg-error-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-10 h-10 text-error" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6-4h6m2 5.291A7.962 7.962 0 0112 15c-2.34 0-4.29-1.009-5.824-2.562M15 9.75a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-2xl font-bold text-text-primary mb-4" data-i18n="track.noShipments">Tracking ID Not Found</h3>
+                    <p class="text-text-secondary mb-8" data-i18n="track.noShipmentsFound">
+                        We couldn't find a shipment with that tracking ID. Please check the ID and try again, or contact support if you need assistance.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                        <button onclick="resetSearch()" class="btn-primary" data-i18n="track.tryAgain">Try Again</button>
+                        <a href="/pages/support_hub.html" class="btn-secondary" data-i18n="track.contactSupport">Contact Support</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Recent Shipments -->
+        <section class="py-12 bg-surface">
+            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-2xl font-bold text-text-primary mb-8 text-center" data-i18n="track.recentShipments">Recent Shipments</h2>
+                <div id="recent-shipments-grid" class="grid md:grid-cols-3 gap-6">
+                    <!-- Les shipments récents seront chargés dynamiquement ici -->
+                    <div class="col-span-full text-center text-text-muted py-8" data-i18n="track.loadingRecentShipments">
+                        Loading recent shipments...
+                        </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Client Reviews Section -->
+        <section class="py-16 bg-white">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-text-primary mb-4">What Our Clients Say</h2>
+                    <p class="text-lg text-text-secondary">Trusted by businesses worldwide</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- French Review -->
+                    <div class="card">
+                        <div class="flex items-center mb-4">
+                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330" 
+                                 alt="Sophie Martin" 
+                                 class="w-12 h-12 rounded-full object-cover mr-4"
+                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                            <div>
+                                <div class="font-semibold text-text-primary">Sophie Martin</div>
+                                <div class="text-sm text-text-muted">Paris, France 🇫🇷</div>
+                            </div>
+                        </div>
+                        <div class="flex mb-2">
+                            <span class="text-yellow-400">★★★★★</span>
+                        </div>
+                        <p class="text-text-secondary text-sm">"CargoWatch a révolutionné notre gestion logistique. Le suivi en temps réel et les livraisons mondiales nous ont permis d'étendre nos services à l'international avec une confiance totale. Excellent service!"</p>
+                        <div class="mt-3 text-xs text-text-muted">Il y a 3 jours</div>
+                    </div>
+
+                    <!-- German Review -->
+                    <div class="card">
+                        <div class="flex items-center mb-4">
+                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d" 
+                                 alt="Klaus Weber" 
+                                 class="w-12 h-12 rounded-full object-cover mr-4"
+                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                            <div>
+                                <div class="font-semibold text-text-primary">Klaus Weber</div>
+                                <div class="text-sm text-text-muted">Berlin, Deutschland 🇩🇪</div>
+                            </div>
+                        </div>
+                        <div class="flex mb-2">
+                            <span class="text-yellow-400">★★★★★</span>
+                        </div>
+                        <p class="text-text-secondary text-sm">"Die Echtzeitverfolgung ist fantastisch! Wir nutzen CargoWatch seit 6 Monaten und unsere Kundenzufriedenheit ist um 75% gestiegen. Sehr zuverlässig und professionell."</p>
+                        <div class="mt-3 text-xs text-text-muted">Il y a 5 jours</div>
+                    </div>
+
+                    <!-- Spanish Review -->
+                    <div class="card">
+                        <div class="flex items-center mb-4">
+                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e" 
+                                 alt="María González" 
+                                 class="w-12 h-12 rounded-full object-cover mr-4"
+                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                            <div>
+                                <div class="font-semibold text-text-primary">María González</div>
+                                <div class="text-sm text-text-muted">Madrid, España 🇪🇸</div>
+                            </div>
+                        </div>
+                        <div class="flex mb-2">
+                            <span class="text-yellow-400">★★★★★</span>
+                        </div>
+                        <p class="text-text-secondary text-sm">"Increíble plataforma de seguimiento. Los envíos internacionales ahora son tan fáciles como los nacionales. Nuestros clientes están encantados con la transparencia total. ¡Muy recomendable!"</p>
+                        <div class="mt-3 text-xs text-text-muted">Il y a 1 semaine</div>
+                    </div>
+
+                    <!-- Japanese Review -->
+                    <div class="card">
+                        <div class="flex items-center mb-4">
+                            <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5" 
+                                 alt="Hiroshi Tanaka" 
+                                 class="w-12 h-12 rounded-full object-cover mr-4"
+                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                            <div>
+                                <div class="font-semibold text-text-primary">田中 浩 (Hiroshi Tanaka)</div>
+                                <div class="text-sm text-text-muted">Tokyo, Japan 🇯🇵</div>
+                            </div>
+                        </div>
+                        <div class="flex mb-2">
+                            <span class="text-yellow-400">★★★★★</span>
+                        </div>
+                        <p class="text-text-secondary text-sm">"素晴らしいサービスです！リアルタイム追跡機能が非常に正確で、国際配送も簡単に管理できます。顧客満足度が大幅に向上しました。最高の物流プラットフォームです。"</p>
+                        <div class="mt-3 text-xs text-text-muted">Il y a 4 jours</div>
+                    </div>
+
+                    <!-- Chinese Review -->
+                    <div class="card">
+                        <div class="flex items-center mb-4">
+                            <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e" 
+                                 alt="Li Wei" 
+                                 class="w-12 h-12 rounded-full object-cover mr-4"
+                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                            <div>
+                                <div class="font-semibold text-text-primary">李伟 (Li Wei)</div>
+                                <div class="text-sm text-text-muted">Shanghai, China 🇨🇳</div>
+                            </div>
+                        </div>
+                        <div class="flex mb-2">
+                            <span class="text-yellow-400">★★★★★</span>
+                        </div>
+                        <p class="text-text-secondary text-sm">"非常出色的物流追踪系统！实时定位功能非常准确，全球配送管理变得简单高效。客户满意度显著提升。强烈推荐给所有需要国际物流服务的公司！"</p>
+                        <div class="mt-3 text-xs text-text-muted">Il y a 2 jours</div>
+                    </div>
+
+                    <!-- British Review -->
+                    <div class="card">
+                        <div class="flex items-center mb-4">
+                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb" 
+                                 alt="James Thompson" 
+                                 class="w-12 h-12 rounded-full object-cover mr-4"
+                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                            <div>
+                                <div class="font-semibold text-text-primary">James Thompson</div>
+                                <div class="text-sm text-text-muted">London, United Kingdom 🇬🇧</div>
+                            </div>
+                        </div>
+                        <div class="flex mb-2">
+                            <span class="text-yellow-400">★★★★★</span>
+                        </div>
+                        <p class="text-text-secondary text-sm">"Outstanding logistics platform! The real-time tracking is incredibly accurate and worldwide delivery support makes international shipping seamless. Customer complaints dropped by 65%. Top-notch service!"</p>
+                        <div class="mt-3 text-xs text-text-muted">Il y a 2 jours</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Support Section -->
+        <section class="py-16 bg-gradient-to-br from-primary-50 to-secondary-50">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold text-text-primary mb-4">Need Help? We're Here for You</h2>
+                    <p class="text-lg text-text-secondary">24/7 customer support available</p>
+                </div>
+
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Live Chat -->
+                    <div class="card text-center">
+                        <div class="w-16 h-16 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-text-primary mb-2">Live Chat</h3>
+                        <p class="text-text-secondary mb-4 text-sm">Get instant help from our support team. Average response time: 2 minutes.</p>
+                        <a href="/pages/support_hub.html" class="btn-primary inline-block">Start Live Chat</a>
+                    </div>
+
+                    <!-- Email Support -->
+                    <div class="card text-center">
+                        <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-text-primary mb-2">Email Support</h3>
+                        <p class="text-text-secondary mb-4 text-sm">Send us detailed questions and get comprehensive answers within 4 hours.</p>
+                        <a href="mailto:uncledrewlegacy@gmail.com?subject=Support Request" class="btn-secondary inline-block">Send Email</a>
+                    </div>
+
+                    <!-- Help Center -->
+                    <div class="card text-center">
+                        <div class="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-xl font-semibold text-text-primary mb-2">Help Center</h3>
+                        <p class="text-text-secondary mb-4 text-sm">Browse our comprehensive guides, FAQs, and tutorials to find answers instantly.</p>
+                        <a href="/pages/support_hub.html" class="btn-secondary inline-block">Visit Help Center</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Notification Modal -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-large max-w-md w-full p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-text-primary">Notification Preferences</h3>
+                <button onclick="closeNotificationModal()" class="text-text-muted hover:text-text-primary">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-text-secondary">SMS Notifications</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-text-secondary">Email Updates</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-text-secondary">Push Notifications</span>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" class="sr-only peer">
+                        <div class="w-11 h-6 bg-border peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+                    </label>
+                </div>
+            </div>
+            <div class="mt-6 flex gap-3">
+                <button onclick="saveNotificationPreferences()" class="btn-primary flex-1">Save Preferences</button>
+                <button onclick="closeNotificationModal()" class="btn-secondary flex-1">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-text-primary text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <img src="/delivery-truck-logo.png" alt="CargoWatch Logo" class="w-8 h-8 object-contain">
+                        <span class="text-xl font-bold">CargoWatch</span>
+                    </div>
+                    <p class="text-text-muted mb-4">Your cargo. Our watch. Every mile.</p>
+                    <p class="text-sm text-text-muted">© 2025 CargoWatch. All Rights Reserved.</p>
+                </div>
+
+                <!-- Services -->
+                <div>
+                    <h4 class="font-semibold mb-4">Services</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li><a href="/pages/public_tracking_interface.html" class="hover:text-white transition-colors">Package Tracking</a></li>
+                        <li><a href="/pages/support_hub.html" class="hover:text-white transition-colors">Support</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li><a href="/pages/support_hub.html" class="hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="/pages/support_hub.html" class="hover:text-white transition-colors">Contact Us</a></li>
+                        <li><a href="/pages/support_hub.html" class="hover:text-white transition-colors">System Status</a></li>
+                        <li><a href="/pages/support_hub.html" class="hover:text-white transition-colors">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div>
+                    <h4 class="font-semibold mb-4">Contact</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li>uncledrewlegacy@gmail.com</li>
+                        <li>24/7 Customer Support</li>
+                        <li>Enterprise Solutions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Fill tracking ID function
+        function fillTrackingId(trackingId) {
+            document.getElementById('main-tracking-input').value = trackingId;
+            document.getElementById('header-tracking-input').value = trackingId;
+            trackShipment(trackingId);
+        }
+
+        // Track shipment function - Appel API réel
+        async function trackShipment(trackingId = null) {
+            const input = trackingId || document.getElementById('main-tracking-input').value.trim();
+            
+            if (!input) {
+                alert('Please enter a tracking ID');
+                return;
+            }
+
+            // Stop any existing tracking
+            if (trackingInterval) {
+                clearInterval(trackingInterval);
+                trackingInterval = null;
+            }
+
+            // Hide all sections first
+            document.getElementById('tracking-results').classList.add('hidden');
+            document.getElementById('no-results').classList.add('hidden');
+
+            // Afficher un loader
+            const trackButton = document.getElementById('track-button');
+            const originalText = trackButton.textContent;
+            trackButton.textContent = 'Tracking...';
+            trackButton.disabled = true;
+
+            try {
+                // Nettoyer le tracking ID (enlever les caractères invalides)
+                const cleanTrackingId = input.trim().replace(/[^A-Z0-9]/gi, '').toUpperCase();
+                
+                const response = await fetch(`/api/shipments/${cleanTrackingId}`, {
+                    credentials: 'include' // Inclure les cookies de session si nécessaire
+                });
+                
+                if (!response.ok) {
+                    if (response.status === 404) {
+                        document.getElementById('no-results').classList.remove('hidden');
+                        trackButton.textContent = originalText;
+                        trackButton.disabled = false;
+                        return;
+                    }
+                    if (response.status === 403) {
+                        const errorData = await response.json().catch(() => ({ error: 'Access denied' }));
+                        console.error('403 Forbidden:', errorData);
+                        alert(`Access denied: ${errorData.message || 'You do not have permission to view this shipment'}`);
+                        document.getElementById('no-results').classList.remove('hidden');
+                        trackButton.textContent = originalText;
+                        trackButton.disabled = false;
+                        return;
+                    }
+                    throw new Error(`Failed to fetch shipment: ${response.status} ${response.statusText}`);
+                }
+
+                const shipment = await response.json();
+                displayTrackingResults(shipment.trackingId, shipment);
+            } catch (error) {
+                console.error('Error tracking shipment:', error);
+                alert('Error tracking shipment. Please try again.');
+                document.getElementById('no-results').classList.remove('hidden');
+            } finally {
+                trackButton.textContent = originalText;
+                trackButton.disabled = false;
+            }
+        }
+
+        // Display tracking results - Adapté pour l'API réelle
+        function displayTrackingResults(trackingId, shipment) {
+            // Update header information
+            const title = shipment.package?.description || `Shipment ${trackingId}`;
+            document.getElementById('shipment-title').textContent = title;
+            document.getElementById('tracking-id-display').textContent = trackingId;
+            
+            // Convertir le statut pour l'affichage
+            const statusMap = {
+                'pending': 'Pending Pickup',
+                'picked_up': 'Picked Up',
+                'in_transit': 'In Transit',
+                'out_for_delivery': 'Out for Delivery',
+                'delivered': 'Delivered',
+                'exception': 'Exception'
+            };
+            const displayStatus = statusMap[shipment.status] || shipment.status;
+            document.getElementById('current-status').textContent = displayStatus;
+            
+            // Calculer la date de livraison estimée
+            const expectedDelivery = shipment.estimatedDelivery 
+                ? new Date(shipment.estimatedDelivery).toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric', 
+                    year: 'numeric' 
+                })
+                : shipment.deliveredAt 
+                    ? `Delivered ${new Date(shipment.deliveredAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                    : 'Calculating...';
+            document.getElementById('expected-delivery').textContent = expectedDelivery;
+            
+            // Calculer le pourcentage de progression
+            const progress = calculateProgress(shipment.events || [], shipment.status);
+            document.getElementById('progress-bar').style.width = progress + '%';
+
+            // Update status class
+            const statusElement = document.getElementById('current-status');
+            statusElement.className = 'px-3 py-1 rounded-full text-sm font-medium';
+            if (shipment.status === 'delivered') {
+                statusElement.classList.add('status-success');
+            } else if (shipment.status === 'out_for_delivery') {
+                statusElement.classList.add('status-warning');
+            } else if (shipment.status === 'exception') {
+                statusElement.classList.add('status-error');
+            } else {
+                statusElement.classList.add('status-info');
+            }
+
+            // Update timeline - convertir les événements API en format timeline
+            const timelineContainer = document.getElementById('timeline-container');
+            timelineContainer.innerHTML = '';
+
+            const events = shipment.events || [];
+            events.forEach((event, index) => {
+                const timelineItem = createTimelineItemFromEvent(event, index);
+                timelineContainer.appendChild(timelineItem);
+            });
+
+            // Initialize and show map
+            initMap(shipment);
+            startRealtimeTracking(shipment);
+
+            // Show results
+            document.getElementById('tracking-results').classList.remove('hidden');
+            
+            // Scroll to results
+            document.getElementById('tracking-results').scrollIntoView({ 
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Calculer le pourcentage de progression basé sur les événements et le statut
+        function calculateProgress(events, status) {
+            // Si le shipment est livré, la barre doit être à 100%
+            if (status === 'delivered') {
+                return 100;
+            }
+            
+            if (!events || events.length === 0) return 0;
+            
+            // Mapping des statuts aux pourcentages
+            const statusProgressMap = {
+                'pending': 20,
+                'picked_up': 40,
+                'in_transit': 60,
+                'out_for_delivery': 80,
+                'delivered': 100,
+                'exception': 50
+            };
+            
+            // If we have a defined status, use corresponding progress
+            if (status && statusProgressMap[status] !== undefined) {
+                return statusProgressMap[status];
+            }
+            
+            // Otherwise, calculate based on completed events
+            const totalSteps = 5; // pending, picked_up, in_transit, out_for_delivery, delivered
+            const completedEvents = events.filter(e => e.completed).length;
+            const currentEvent = events.find(e => e.current);
+            
+            // If we have a current event, adjust progress
+            if (currentEvent) {
+                const completedCount = events.filter(e => e.completed).length;
+                return Math.min(100, ((completedCount + 0.5) / totalSteps) * 100);
+            }
+            
+            return Math.min(100, (completedEvents / totalSteps) * 100);
+        }
+
+        // Create timeline item from API event
+        function createTimelineItemFromEvent(event, index) {
+            const div = document.createElement('div');
+            div.className = 'flex items-start space-x-4';
+            
+            if (event.pending) {
+                div.classList.add('opacity-50');
+            }
+
+            let iconClass = 'w-10 h-10 rounded-full flex items-center justify-center';
+            let iconContent = '';
+
+            if (event.completed) {
+                iconClass += ' bg-success';
+                iconContent = `
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                `;
+            } else if (event.current) {
+                iconClass += ' bg-accent animate-pulse-soft';
+                iconContent = `
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                `;
+            } else {
+                iconClass += ' bg-border';
+                iconContent = `
+                    <svg class="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                `;
+            }
+
+            const eventTime = new Date(event.timestamp).toLocaleString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            div.innerHTML = `
+                <div class="flex-shrink-0 ${iconClass}">
+                    ${iconContent}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-lg font-semibold ${event.pending ? 'text-text-muted' : 'text-text-primary'}">${event.title}</h4>
+                        <span class="text-sm text-text-muted">${eventTime}</span>
+                    </div>
+                    <p class="${event.pending ? 'text-text-muted' : 'text-text-secondary'} mt-1">${event.description || ''}</p>
+                    ${event.location ? `<div class="text-sm text-text-muted mt-2">
+                        <span class="font-medium">Location:</span> ${event.location}
+                    </div>` : ''}
+                </div>
+            `;
+
+            return div;
+        }
+
+        // Create timeline item
+        function createTimelineItem(item, index) {
+            const div = document.createElement('div');
+            div.className = 'flex items-start space-x-4';
+            
+            if (item.pending) {
+                div.classList.add('opacity-50');
+            }
+
+            let iconClass = 'w-10 h-10 rounded-full flex items-center justify-center';
+            let iconContent = '';
+
+            if (item.completed) {
+                iconClass += ' bg-success';
+                iconContent = `
+                    <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                    </svg>
+                `;
+            } else if (item.current) {
+                iconClass += ' bg-accent animate-pulse-soft';
+                iconContent = `
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                `;
+            } else {
+                iconClass += ' bg-border';
+                iconContent = `
+                    <svg class="w-5 h-5 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                `;
+            }
+
+            div.innerHTML = `
+                <div class="flex-shrink-0 ${iconClass}">
+                    ${iconContent}
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between">
+                        <h4 class="text-lg font-semibold ${item.pending ? 'text-text-muted' : 'text-text-primary'}">${item.title}</h4>
+                        <span class="text-sm text-text-muted">${item.time}</span>
+                    </div>
+                    <p class="${item.pending ? 'text-text-muted' : 'text-text-secondary'} mt-1">${item.description}</p>
+                    ${item.location ? `<div class="text-sm text-text-muted mt-2">
+                        <span class="font-medium">Location:</span> ${item.location}
+                    </div>` : ''}
+                </div>
+            `;
+
+            return div;
+        }
+
+        // Reset search
+        function resetSearch() {
+            document.getElementById('main-tracking-input').value = '';
+            document.getElementById('header-tracking-input').value = '';
+            document.getElementById('tracking-results').classList.add('hidden');
+            document.getElementById('no-results').classList.add('hidden');
+            document.getElementById('main-tracking-input').focus();
+        }
+
+        // Notification modal functions
+        function openNotificationModal() {
+            document.getElementById('notification-modal').classList.remove('hidden');
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notification-modal').classList.add('hidden');
+        }
+
+        function saveNotificationPreferences() {
+            // Simulate saving preferences
+            alert('Notification preferences saved successfully!');
+            closeNotificationModal();
+        }
+
+        // Share function
+        function shareTracking() {
+            const trackingId = document.getElementById('tracking-id-display').textContent;
+            const url = `${window.location.origin}${window.location.pathname}?track=${trackingId}`;
+            
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Track Your Package',
+                    text: `Track your package with ID: ${trackingId}`,
+                    url: url
+                });
+            } else {
+                // Fallback - copy to clipboard
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Tracking link copied to clipboard!');
+                });
+            }
+        }
+
+        // Event listeners
+        // Check if user is logged in and hide navigation for clients
+        async function checkUserAndHideNav() {
+            try {
+                const response = await fetch('/api/auth/me', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.user && data.user.role !== 'admin') {
+                        // User is a client - hide navigation
+                        const nav = document.querySelector('nav.hidden.md\\:flex');
+                        if (nav) nav.style.display = 'none';
+                        
+                        // Hide "Create Shipment" links
+                        document.querySelectorAll('a[href*="shipment_creation_portal"]').forEach(link => {
+                            link.style.display = 'none';
+                        });
+                        
+                        // Also hide Admin Dashboard link for clients
+                        document.querySelectorAll('a[href*="admin_dashboard"]').forEach(link => {
+                            link.style.display = 'none';
+                        });
+                        
+                        // Update logo to not redirect
+                        const logoLink = document.querySelector('a[href="/pages/homepage.html"]');
+                        if (logoLink) {
+                            logoLink.href = '#';
+                            logoLink.style.cursor = 'default';
+                        }
+                        
+                        // Add user profile to header
+                        const headerRight = document.querySelector('.hidden.lg\\:flex.items-center.space-x-4');
+                        if (headerRight) {
+                            // Get display name
+                            let displayName = '';
+                            if (data.user.firstName && data.user.lastName) {
+                                displayName = `${data.user.firstName} ${data.user.lastName}`;
+                            } else if (data.user.firstName) {
+                                displayName = data.user.firstName;
+                            } else if (data.user.lastName) {
+                                displayName = data.user.lastName;
+                            } else {
+                                displayName = data.user.username || 'User';
+                            }
+                            
+                            // Get initials
+                            let initials = 'U';
+                            if (data.user.firstName || data.user.lastName) {
+                                const first = data.user.firstName ? data.user.firstName.charAt(0).toUpperCase() : '';
+                                const last = data.user.lastName ? data.user.lastName.charAt(0).toUpperCase() : '';
+                                initials = first + last || displayName.charAt(0).toUpperCase();
+                            } else {
+                                initials = displayName.substring(0, 2).toUpperCase();
+                            }
+                            
+                            headerRight.innerHTML = `
+                                <div class="flex items-center gap-3">
+                                    <div style="width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">
+                                        ${initials}
+                                    </div>
+                                    <span class="text-sm font-medium text-text-primary">${displayName}</span>
+                                    <button onclick="logout()" class="text-sm text-text-secondary hover:text-primary">Logout</button>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('Not logged in or error checking auth');
+            }
+        }
+        
+        // Logout function
+        async function logout() {
+            try {
+                await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+                window.location.href = '/pages/homepage.html';
+            } catch (error) {
+                console.error('Logout error:', error);
+                window.location.href = '/pages/homepage.html';
+            }
+        }
+
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            const closeIcon = document.getElementById('close-icon');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', () => {
+                    const isHidden = mobileMenu.classList.contains('hidden');
+                    if (isHidden) {
+                        mobileMenu.classList.remove('hidden');
+                        menuIcon.classList.add('hidden');
+                        closeIcon.classList.remove('hidden');
+                    } else {
+                        mobileMenu.classList.add('hidden');
+                        menuIcon.classList.remove('hidden');
+                        closeIcon.classList.add('hidden');
+                    }
+                });
+            }
+        });
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Check user and hide navigation if client
+            checkUserAndHideNav();
+            
+            // Track button click
+            document.getElementById('track-button').addEventListener('click', () => trackShipment());
+            
+            // Enter key in search input
+            document.getElementById('main-tracking-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    trackShipment();
+                }
+            });
+
+            // Header search
+            document.getElementById('header-tracking-input').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const value = this.value.trim();
+                    document.getElementById('main-tracking-input').value = value;
+                    trackShipment(value);
+                }
+            });
+
+            // Notification button
+            document.getElementById('notification-btn').addEventListener('click', openNotificationModal);
+            
+            // Share button
+            document.getElementById('share-btn').addEventListener('click', shareTracking);
+
+            // Refresh button
+            document.getElementById('refresh-btn').addEventListener('click', async function() {
+                const trackingId = document.getElementById('tracking-id-display').textContent;
+                if (trackingId) {
+                    // Animate refresh
+                    this.style.transform = 'rotate(360deg)';
+                    setTimeout(() => {
+                        this.style.transform = 'rotate(0deg)';
+                    }, 500);
+                    // Re-fetch from API
+                    await trackShipment(trackingId);
+                }
+            });
+
+            // Check for tracking ID in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const trackParam = urlParams.get('track');
+            if (trackParam) {
+                fillTrackingId(trackParam);
+            }
+
+            // Charger les suggestions de shipments récents
+            loadRecentShipments();
+            loadRecentShipmentsGrid();
+            
+            // Cleanup tracking on page unload
+            window.addEventListener('beforeunload', () => {
+                if (trackingInterval) {
+                    clearInterval(trackingInterval);
+                }
+            });
+
+            // Auto-refresh every 30 seconds if tracking results are visible (but don't interfere with real-time tracking)
+            setInterval(async () => {
+                if (!document.getElementById('tracking-results').classList.contains('hidden')) {
+                    const trackingId = document.getElementById('tracking-id-display').textContent;
+                    if (trackingId && !trackingInterval) {
+                        // Only refresh if real-time tracking is not active
+                        console.log('Auto-refreshing tracking data...');
+                        try {
+                            const response = await fetch(`/api/shipments/${trackingId}`);
+                            if (response.ok) {
+                                const shipment = await response.json();
+                                displayTrackingResults(trackingId, shipment);
+                            }
+                        } catch (error) {
+                            console.error('Error auto-refreshing:', error);
+                        }
+                    }
+                }
+            }, 30000);
+        });
+
+        // Charger les shipments récents pour les suggestions (petites suggestions en haut)
+        async function loadRecentShipments() {
+            try {
+                const response = await fetch('/api/shipments/recent?limit=3');
+                if (response.ok) {
+                    const recentShipments = await response.json();
+                    const listElement = document.getElementById('recent-shipments-list');
+                    
+                    if (recentShipments.length > 0) {
+                        listElement.innerHTML = recentShipments.map(s => 
+                            `<button class="text-primary hover:underline mx-2" onclick="fillTrackingId('${s.trackingId}')">${s.trackingId}</button>`
+                        ).join('');
+                    } else {
+                        if (window.i18n) {
+                            listElement.textContent = window.i18n.t('track.noShipments');
+                        } else {
+                            listElement.textContent = 'No recent shipments';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading recent shipments:', error);
+                document.getElementById('recent-shipments-list').textContent = 'Unable to load';
+            }
+        }
+
+        // Charger les shipments récents pour la section "Recent Shipments"
+        async function loadRecentShipmentsGrid() {
+            try {
+                const response = await fetch('/api/shipments/recent?limit=3');
+                if (response.ok) {
+                    const recentShipments = await response.json();
+                    const gridElement = document.getElementById('recent-shipments-grid');
+                    
+                    if (recentShipments.length > 0) {
+                        gridElement.innerHTML = recentShipments.map(s => {
+                            // Déterminer le statut et la classe CSS
+                            let statusClass = 'status-info';
+                            let statusText = s.status.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            let expectedText = '';
+                            
+                            if (s.status === 'delivered') {
+                                statusClass = 'status-success';
+                                if (s.deliveredAt) {
+                                    const deliveredDate = new Date(s.deliveredAt);
+                                    expectedText = `Delivered: ${deliveredDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                                } else {
+                                    expectedText = 'Delivered';
+                                }
+                            } else if (s.status === 'in_transit') {
+                                statusClass = 'status-warning';
+                                if (s.estimatedDelivery) {
+                                    const estDate = new Date(s.estimatedDelivery);
+                                    expectedText = `Expected: ${estDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                                } else {
+                                    expectedText = 'In Transit';
+                                }
+                            } else if (s.status === 'out_for_delivery') {
+                                statusClass = 'status-warning';
+                                expectedText = 'Expected: Today by 6 PM';
+                            } else {
+                                if (s.estimatedDelivery) {
+                                    const estDate = new Date(s.estimatedDelivery);
+                                    expectedText = `Expected: ${estDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                                } else {
+                                    expectedText = 'Pending';
+                                }
+                            }
+                            
+                            // Obtenir les informations d'origine et destination
+                            const originCity = s.sender?.address?.city || 'Unknown';
+                            const originState = s.sender?.address?.state || '';
+                            const destCity = s.recipient?.address?.city || 'Unknown';
+                            const destState = s.recipient?.address?.state || '';
+                            const route = `${originCity}${originState ? ', ' + originState : ''} → ${destCity}${destState ? ', ' + destState : ''}`;
+                            
+                            // Obtenir la description du package
+                            const packageDesc = s.package?.description || 'Package';
+                            
+                            return `
+                                <div class="card card-hover cursor-pointer" onclick="fillTrackingId('${s.trackingId}')">
+                                    <div class="flex items-center justify-between mb-4">
+                                        <span class="font-mono text-sm text-text-secondary">${s.trackingId}</span>
+                                        <span class="${statusClass}">${statusText}</span>
+                                    </div>
+                                    <h4 class="font-semibold text-text-primary mb-2">${packageDesc}</h4>
+                                    <p class="text-sm text-text-secondary">${route}</p>
+                                    <div class="mt-4 text-xs text-text-muted">${expectedText}</div>
+                                </div>
+                            `;
+                        }).join('');
+                    } else {
+                        const noShipmentsText = window.i18n ? window.i18n.t('track.noRecentShipments') : 'No recent shipments available. Create your first shipment to get started!';
+                        gridElement.innerHTML = `
+                            <div class="col-span-full text-center text-text-muted py-8" data-i18n="track.noRecentShipments">
+                                ${noShipmentsText}
+                            </div>
+                        `;
+                        // Réappliquer les traductions
+                        if (window.i18n) window.i18n.updatePage();
+                    }
+                } else {
+                    const gridElement = document.getElementById('recent-shipments-grid');
+                    const unableText = window.i18n ? window.i18n.t('track.unableToLoad') : 'Unable to load recent shipments.';
+                    gridElement.innerHTML = `
+                        <div class="col-span-full text-center text-text-muted py-8" data-i18n="track.unableToLoad">
+                            ${unableText}
+                        </div>
+                    `;
+                    // Réappliquer les traductions
+                    if (window.i18n) window.i18n.updatePage();
+                }
+            } catch (error) {
+                console.error('Error loading recent shipments grid:', error);
+                const gridElement = document.getElementById('recent-shipments-grid');
+                const errorText = window.i18n ? window.i18n.t('track.errorLoading') : 'Error loading recent shipments.';
+                gridElement.innerHTML = `
+                    <div class="col-span-full text-center text-text-muted py-8" data-i18n="track.errorLoading">
+                        ${errorText}
+                    </div>
+                `;
+                // Réappliquer les traductions
+                if (window.i18n) window.i18n.updatePage();
+            }
+        }
+    </script>
+    
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // Map tracking functionality
+        let map = null;
+        let currentMarker = null;
+        let routePolyline = null;
+        let originMarker = null;
+        let destinationMarker = null;
+        let trackingInterval = null;
+        
+        // Initialize map
+        function initMap(shipment) {
+            console.log('🗺️ Initializing map with shipment:', shipment);
+            
+            if (map) {
+                map.remove();
+                map = null;
+                originMarker = null;
+                destinationMarker = null;
+                currentMarker = null;
+                routePolyline = null;
+            }
+            
+            // Wait a bit for DOM to be ready
+            setTimeout(() => {
+                const mapContainer = document.getElementById('tracking-map');
+                if (!mapContainer) {
+                    console.error('❌ Map container not found!');
+                    return;
+                }
+                
+                // Get coordinates from shipment addresses (real GPS coordinates)
+                let originCoords = null;
+                if (shipment.sender?.address?.lat && shipment.sender?.address?.lng) {
+                    originCoords = [shipment.sender.address.lat, shipment.sender.address.lng];
+                    console.log('📍 Using stored origin coordinates:', originCoords);
+                } else {
+                    const originCity = shipment.sender?.address?.city || '';
+                    const originState = shipment.sender?.address?.state || '';
+                    const originLocation = originCity + (originState ? ', ' + originState : '');
+                    originCoords = getCityCoordinates(originLocation);
+                    console.log('📍 Looking up origin coordinates for:', originLocation, '→', originCoords);
+                }
+                
+                let destCoords = null;
+                if (shipment.recipient?.address?.lat && shipment.recipient?.address?.lng) {
+                    destCoords = [shipment.recipient.address.lat, shipment.recipient.address.lng];
+                    console.log('📍 Using stored destination coordinates:', destCoords);
+                } else {
+                    const destCity = shipment.recipient?.address?.city || '';
+                    const destState = shipment.recipient?.address?.state || '';
+                    const destLocation = destCity + (destState ? ', ' + destState : '');
+                    destCoords = getCityCoordinates(destLocation);
+                    console.log('📍 Looking up destination coordinates for:', destLocation, '→', destCoords);
+                }
+                
+                // Validate coordinates
+                if (!originCoords || !Array.isArray(originCoords) || originCoords.length !== 2 || !originCoords[0] || !originCoords[1]) {
+                    console.error('❌ Invalid origin coordinates:', originCoords);
+                    originCoords = [40.7128, -74.0060]; // Fallback to New York
+                }
+                
+                if (!destCoords || !Array.isArray(destCoords) || destCoords.length !== 2 || !destCoords[0] || !destCoords[1]) {
+                    console.error('❌ Invalid destination coordinates:', destCoords);
+                    destCoords = [38.9072, -77.0369]; // Fallback to Washington
+                }
+                
+                // Use actual GPS coordinates if available, otherwise calculate based on status
+                let currentCoords;
+                if (shipment.currentLocation?.lat && shipment.currentLocation?.lng) {
+                    // Use actual coordinates set by admin
+                    currentCoords = [shipment.currentLocation.lat, shipment.currentLocation.lng];
+                } else {
+                    // Fallback: calculate position based on status
+                    currentCoords = calculateCurrentPosition(originCoords, destCoords, shipment.status, shipment.events);
+                }
+                
+                console.log('📍 Coordinates:', { origin: originCoords, current: currentCoords, dest: destCoords });
+                
+                // Create map centered on the route
+                const centerLat = (originCoords[0] + destCoords[0]) / 2;
+                const centerLng = (originCoords[1] + destCoords[1]) / 2;
+                
+                map = L.map('tracking-map', {
+                    zoomControl: true,
+                    scrollWheelZoom: true
+                }).setView([centerLat, centerLng], 6);
+                
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(map);
+                
+                // Add origin marker (green)
+                const originIcon = L.divIcon({
+                    className: 'custom-marker origin-marker',
+                    html: '<div style="width: 20px; height: 20px; background-color: #10b981; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>',
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+                
+                const originCity = shipment.sender?.address?.city || 'Unknown';
+                const originState = shipment.sender?.address?.state || '';
+                const originLabel = originCity + (originState ? ', ' + originState : '');
+                
+                originMarker = L.marker(originCoords, { icon: originIcon })
+                    .addTo(map)
+                    .bindPopup(`<strong>📍 Origin</strong><br>${originLabel}`);
+                
+                console.log('✅ Origin marker added at:', originCoords);
+                
+                // Add destination marker (red)
+                const destIcon = L.divIcon({
+                    className: 'custom-marker destination-marker',
+                    html: '<div style="width: 20px; height: 20px; background-color: #ef4444; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>',
+                    iconSize: [20, 20],
+                    iconAnchor: [10, 10]
+                });
+                
+                const destCity = shipment.recipient?.address?.city || 'Unknown';
+                const destState = shipment.recipient?.address?.state || '';
+                const destLabel = destCity + (destState ? ', ' + destState : '');
+                
+                destinationMarker = L.marker(destCoords, { icon: destIcon })
+                    .addTo(map)
+                    .bindPopup(`<strong>🎯 Destination</strong><br>${destLabel}`);
+                
+                console.log('✅ Destination marker added at:', destCoords);
+                
+                // Add current location marker (blue, animated)
+                const currentIcon = L.divIcon({
+                    className: 'custom-marker current-marker',
+                    html: '<div style="width: 28px; height: 28px; background-color: #3b82f6; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); position: relative;"><div style="position: absolute; inset: -6px; background-color: #3b82f6; border-radius: 50%; opacity: 0.5; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div></div>',
+                    iconSize: [28, 28],
+                    iconAnchor: [14, 14]
+                });
+                
+                currentMarker = L.marker(currentCoords, { icon: currentIcon })
+                    .addTo(map)
+                    .bindPopup(`<strong>🚚 Current Location</strong><br>${shipment.currentLocation?.city || 'In Transit'}`);
+                
+                console.log('✅ Current location marker added at:', currentCoords);
+                
+                // Draw route polyline connecting origin -> current -> destination
+                if (routePolyline) {
+                    map.removeLayer(routePolyline);
+                }
+                
+                // Calculate route distance
+                const routeDistance = calculateRouteDistance(originCoords, currentCoords, destCoords);
+                
+                // Create polyline connecting all three points
+                routePolyline = L.polyline([originCoords, currentCoords, destCoords], {
+                    color: '#3b82f6',
+                    weight: 5,
+                    opacity: 0.8,
+                    dashArray: '10, 10'
+                }).addTo(map);
+                
+                console.log('✅ Route polyline added');
+                
+                // Fit map to show all markers with padding
+                const group = new L.featureGroup([originMarker, currentMarker, destinationMarker]);
+                map.fitBounds(group.getBounds().pad(0.15));
+                
+                console.log('✅ Map initialized successfully');
+                
+                // Update info with real route distance
+                updateMapInfo(shipment, originCoords, destCoords, currentCoords, routeDistance);
+            }, 100);
+        }
+        
+        // Calculate route distance (total distance traveled + remaining)
+        function calculateRouteDistance(origin, current, dest) {
+            const traveledDist = calculateDistance(origin, current);
+            const remainingDist = calculateDistance(current, dest);
+            return {
+                traveled: traveledDist,
+                remaining: remainingDist,
+                total: traveledDist + remainingDist
+            };
+        }
+        
+        // Center map on current location
+        function centerMapOnCurrent() {
+            if (map && currentMarker) {
+                map.setView(currentMarker.getLatLng(), 10);
+            }
+        }
+        
+        // Variables for expanded map
+        let expandedMap = null;
+        let expandedMapModal = null;
+        
+        // Expand map in fullscreen modal
+        function expandMap() {
+            if (!map) {
+                alert('Map is not loaded yet');
+                return;
+            }
+            
+            // Create or show modal
+            let modal = document.getElementById('map-modal');
+            if (!modal) {
+                // Create modal if it doesn't exist
+                modal = document.createElement('div');
+                modal.id = 'map-modal';
+                modal.innerHTML = `
+                    <div id="map-modal-header">
+                        <h3 class="text-lg font-semibold text-text-primary">Tracking Map - Enlarged View</h3>
+                        <button id="close-map-modal" class="text-text-muted hover:text-primary transition-colors" title="Close">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    <div id="map-modal-content">
+                        <div id="map-modal-map"></div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+                
+                // Add close event listener
+                document.getElementById('close-map-modal').addEventListener('click', closeExpandedMap);
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        closeExpandedMap();
+                    }
+                });
+            }
+            
+                modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Wait a bit for DOM to be ready
+            setTimeout(() => {
+                const mapContainer = document.getElementById('map-modal-map');
+                if (!mapContainer) return;
+                
+                // If expanded map already exists, remove it
+                if (expandedMap) {
+                    expandedMap.remove();
+                }
+                
+                // Get current position of original map
+                const center = map.getCenter();
+                const zoom = map.getZoom();
+                const bounds = map.getBounds();
+                
+                // Create new map in modal
+                expandedMap = L.map('map-modal-map', {
+                    zoomControl: true,
+                    scrollWheelZoom: true
+                }).setView(center, zoom);
+                
+                // Add OpenStreetMap tiles
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors',
+                    maxZoom: 19
+                }).addTo(expandedMap);
+                
+                // Copy markers from original map
+                if (originMarker) {
+                    const originCoords = originMarker.getLatLng();
+                    const originIcon = L.divIcon({
+                        className: 'custom-marker origin-marker',
+                        html: '<div style="width: 20px; height: 20px; background-color: #10b981; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    });
+                    L.marker(originCoords, { icon: originIcon })
+                        .addTo(expandedMap)
+                        .bindPopup(originMarker.getPopup()?.getContent() || 'Origin');
+                }
+                
+                if (destinationMarker) {
+                    const destCoords = destinationMarker.getLatLng();
+                    const destIcon = L.divIcon({
+                        className: 'custom-marker destination-marker',
+                        html: '<div style="width: 20px; height: 20px; background-color: #ef4444; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4);"></div>',
+                        iconSize: [20, 20],
+                        iconAnchor: [10, 10]
+                    });
+                    L.marker(destCoords, { icon: destIcon })
+                        .addTo(expandedMap)
+                        .bindPopup(destinationMarker.getPopup()?.getContent() || 'Destination');
+                }
+                
+                if (currentMarker) {
+                    const currentCoords = currentMarker.getLatLng();
+                    const currentIcon = L.divIcon({
+                        className: 'custom-marker',
+                        html: '<div style="width: 28px; height: 28px; background-color: #3b82f6; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); position: relative;"><div style="position: absolute; inset: -6px; background-color: #3b82f6; border-radius: 50%; opacity: 0.5; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div></div>',
+                        iconSize: [28, 28],
+                        iconAnchor: [14, 14]
+                    });
+                    L.marker(currentCoords, { icon: currentIcon })
+                        .addTo(expandedMap)
+                        .bindPopup(currentMarker.getPopup()?.getContent() || 'Current Location');
+                }
+                
+                // Copy polyline
+                if (routePolyline) {
+                    const latlngs = routePolyline.getLatLngs();
+                    L.polyline(latlngs, {
+                        color: '#3b82f6',
+                        weight: 5,
+                        opacity: 0.8,
+                        dashArray: '10, 10'
+                    }).addTo(expandedMap);
+                    
+                    // Adjust view to see all markers
+                    const markers = [];
+                    expandedMap.eachLayer(layer => {
+                        if (layer instanceof L.Marker) {
+                            markers.push(layer);
+                        }
+                    });
+                    if (markers.length > 0) {
+                        const group = new L.featureGroup(markers);
+                        expandedMap.fitBounds(group.getBounds().pad(0.1));
+                    }
+                } else {
+                    // If no polyline, use bounds from original map
+                    expandedMap.fitBounds(bounds);
+                }
+                
+                // Ensure map is properly sized
+                setTimeout(() => {
+                    expandedMap.invalidateSize();
+                }, 100);
+            }, 50);
+        }
+        
+        // Close expanded map
+        function closeExpandedMap() {
+            const modal = document.getElementById('map-modal');
+            if (modal) {
+                modal.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                // Clean up expanded map after animation
+                setTimeout(() => {
+                    if (expandedMap) {
+                        expandedMap.remove();
+                        expandedMap = null;
+                    }
+                }, 300);
+            }
+        }
+        
+        // Close with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeExpandedMap();
+            }
+        });
+        
+        // Get city coordinates (simplified - would use geocoding API in production)
+        function getCityCoordinates(city) {
+            const cityCoords = {
+                'New York': [40.7128, -74.0060],
+                'Los Angeles': [34.0522, -118.2437],
+                'Chicago': [41.8781, -87.6298],
+                'Houston': [29.7604, -95.3698],
+                'Philadelphia': [39.9526, -75.1652],
+                'Phoenix': [33.4484, -112.0740],
+                'San Antonio': [29.4241, -98.4936],
+                'San Diego': [32.7157, -117.1611],
+                'Dallas': [32.7767, -96.7970],
+                'San Jose': [37.3382, -121.8863],
+                'Washington': [38.9072, -77.0369],
+                'Boston': [42.3601, -71.0589],
+                'Detroit': [42.3314, -83.0458],
+                'Miami': [25.7617, -80.1918],
+                'Atlanta': [33.7490, -84.3880]
+            };
+            
+            // Try to find exact match first
+            for (const [key, coords] of Object.entries(cityCoords)) {
+                if (city.toLowerCase().includes(key.toLowerCase())) {
+                    return coords;
+                }
+            }
+            
+            // Default to center of US
+            return [39.8283, -98.5795];
+        }
+        
+        // Calculate current position based on status and progress
+        function calculateCurrentPosition(origin, dest, status, events) {
+            if (status === 'delivered') {
+                return dest;
+            }
+            if (status === 'pending' || status === 'picked_up') {
+                return origin;
+            }
+            
+            // Calculate progress based on events
+            const progress = calculateProgress(events || [], status) / 100;
+            
+            // Interpolate between origin and destination
+            const lat = origin[0] + (dest[0] - origin[0]) * progress;
+            const lng = origin[1] + (dest[1] - origin[1]) * progress;
+            
+            return [lat, lng];
+        }
+        
+        // Update map information
+        function updateMapInfo(shipment, originCoords, destCoords, currentCoords, routeDistance = null) {
+            const currentCity = shipment.currentLocation?.city || 
+                (shipment.events && shipment.events.length > 0 ? shipment.events[shipment.events.length - 1].location : 'In Transit');
+            
+            document.getElementById('map-current-location').textContent = currentCity;
+            
+            // Calculate distance remaining using route distance if available
+            let distance;
+            if (routeDistance) {
+                distance = routeDistance.remaining;
+            } else {
+                distance = calculateDistance(currentCoords, destCoords);
+            }
+            document.getElementById('map-distance-remaining').textContent = `${distance.toFixed(1)} miles`;
+            
+            // Calculate ETA
+            const eta = calculateETA(shipment, distance);
+            document.getElementById('map-eta').textContent = eta;
+        }
+        
+        // Calculate distance between two coordinates (Haversine formula)
+        function calculateDistance(coord1, coord2) {
+            const R = 3959; // Earth radius in miles
+            const dLat = (coord2[0] - coord1[0]) * Math.PI / 180;
+            const dLon = (coord2[1] - coord1[1]) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(coord1[0] * Math.PI / 180) * Math.cos(coord2[0] * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+        
+        // Calculate ETA
+        function calculateETA(shipment, distanceRemaining) {
+            if (shipment.status === 'delivered') {
+                return 'Delivered';
+            }
+            
+            if (shipment.estimatedDelivery) {
+                const eta = new Date(shipment.estimatedDelivery);
+                const now = new Date();
+                const diffHours = Math.max(0, (eta - now) / (1000 * 60 * 60));
+                
+                if (diffHours < 24) {
+                    return `${Math.round(diffHours)} hours`;
+                } else {
+                    return `${Math.round(diffHours / 24)} days`;
+                }
+            }
+            
+            // Estimate based on distance (assuming average speed)
+            const avgSpeed = 50; // mph
+            const hours = distanceRemaining / avgSpeed;
+            
+            if (hours < 24) {
+                return `${Math.round(hours)} hours`;
+            } else {
+                return `${Math.round(hours / 24)} days`;
+            }
+        }
+        
+        // Real-time tracking updates - Poll API for updates set by admin
+        function startRealtimeTracking(shipment) {
+            if (trackingInterval) {
+                clearInterval(trackingInterval);
+            }
+            
+            const trackingId = shipment.trackingId;
+            
+            // Poll API every 10 seconds to get updates from admin (more frequent for better UX)
+            trackingInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(`/api/shipments/${trackingId}`);
+                    if (response.ok) {
+                        const updatedShipment = await response.json();
+                        
+                        // Always update map if we have coordinates (even if status is pending)
+                        if (updatedShipment.currentLocation?.lat && updatedShipment.currentLocation?.lng) {
+                            const originCoords = updatedShipment.sender?.address?.lat && updatedShipment.sender?.address?.lng
+                                ? [updatedShipment.sender.address.lat, updatedShipment.sender.address.lng]
+                                : getCityCoordinates(updatedShipment.sender?.address?.city || 'New York');
+                            
+                            const destCoords = updatedShipment.recipient?.address?.lat && updatedShipment.recipient?.address?.lng
+                                ? [updatedShipment.recipient.address.lat, updatedShipment.recipient.address.lng]
+                                : getCityCoordinates(updatedShipment.recipient?.address?.city || 'Washington');
+                            
+                            const newCoords = [updatedShipment.currentLocation.lat, updatedShipment.currentLocation.lng];
+                            
+                            if (currentMarker && map) {
+                                const oldCoords = currentMarker.getLatLng();
+                                // Update if position changed (with smaller threshold for more sensitivity)
+                                const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
+                                const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
+                                
+                                // Always update if coordinates changed (smaller threshold for auto-progression)
+                                const coordinateChanged = latDiff > 0.00001 || lngDiff > 0.00001;
+                                
+                                // Extract current city from popup or marker data
+                                let currentCityInPopup = '';
+                                try {
+                                    const popupContent = currentMarker.getPopup()?.getContent() || '';
+                                    const cityMatch = popupContent.match(/<br>(.*?)(?:<|$)/);
+                                    currentCityInPopup = cityMatch ? cityMatch[1].replace(/🚚 Current Location|In Transit/g, '').trim() : '';
+                                } catch (e) {
+                                    currentCityInPopup = shipment.currentLocation?.city || '';
+                                }
+                                const cityChanged = updatedShipment.currentLocation.city && 
+                                                   updatedShipment.currentLocation.city !== currentCityInPopup &&
+                                                   updatedShipment.currentLocation.city !== 'In Transit';
+                                
+                                if (coordinateChanged || cityChanged) {
+                                    console.log(`📍 Map updating: ${updatedShipment.currentLocation.city} at [${newCoords[0].toFixed(4)}, ${newCoords[1].toFixed(4)}]`);
+                                    
+                                    // Smoothly animate marker movement
+                                    currentMarker.setLatLng(newCoords);
+                                    currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${updatedShipment.currentLocation.city || 'In Transit'}`);
+                                    
+                                    // Update route with real coordinates
+                                    const routeDistance = calculateRouteDistance(originCoords, newCoords, destCoords);
+                                    
+                                    if (routePolyline && map) {
+                                        map.removeLayer(routePolyline);
+                                        routePolyline = L.polyline([originCoords, newCoords, destCoords], {
+                                            color: '#3b82f6',
+                                            weight: 5,
+                                            opacity: 0.8,
+                                            dashArray: '10, 10'
+                                        }).addTo(map);
+                                    }
+                                    
+                                    // Update info with route distance
+                                    updateMapInfo(updatedShipment, originCoords, destCoords, newCoords, routeDistance);
+                                    
+                                    // Smoothly pan to new location (only if it's a significant move)
+                                    const distanceMoved = calculateDistance([oldCoords.lat, oldCoords.lng], newCoords);
+                                    if (distanceMoved > 10) { // Only pan if moved more than 10 miles
+                                        map.panTo(newCoords, { animate: true, duration: 1.5 });
+                                    }
+                                } else {
+                                    // Even if coordinates haven't changed, update the info in case status changed
+                                    updateMapInfo(updatedShipment, originCoords, destCoords, newCoords);
+                                }
+                            } else if (!currentMarker && map) {
+                                // Reinitialize map if marker was lost
+                                console.log('Reinitializing map - marker was lost');
+                                initMap(updatedShipment);
+                            }
+                        } else {
+                            console.log('⚠️ No coordinates available for shipment:', updatedShipment.currentLocation);
+                        }
+                        
+                        // Stop tracking if delivered
+                        if (updatedShipment.status === 'delivered') {
+                            if (trackingInterval) {
+                                clearInterval(trackingInterval);
+                                trackingInterval = null;
+                            }
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error polling shipment updates:', error);
+                }
+            }, 5000); // Poll every 5 seconds for auto-progression updates
+            
+            console.log(`🔄 Started real-time tracking for shipment ${trackingId} - polling every 5 seconds`);
+        }
+    </script>
+
+    <!-- Chat Bubble Widget - Modern Messaging Icon -->
+    <div id="chat-bubble-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; width: 64px; height: 64px;">
+        <button id="chat-bubble-btn" aria-label="Open live chat support" style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); color: white; border: none; box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4), 0 8px 32px rgba(37, 99, 235, 0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; position: relative; padding: 0;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 6px 25px rgba(37, 99, 235, 0.5), 0 12px 40px rgba(37, 99, 235, 0.3)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 20px rgba(37, 99, 235, 0.4), 0 8px 32px rgba(37, 99, 235, 0.2)';">
+            <!-- Modern Message Icon -->
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px;">
+                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 9H17M7 13H14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span id="chat-bubble-badge" class="absolute -top-1 -right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden" style="position: absolute; top: -4px; right: -4px; background-color: #EF4444; min-width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; border: 2px solid white; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);">0</span>
+            <!-- Pulse Animation -->
+            <div id="chat-bubble-pulse" style="position: absolute; inset: -4px; border-radius: 50%; background-color: #2563EB; opacity: 0.3; animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
+        </button>
+    </div>
+    <style>
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.3); opacity: 0.1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            #chat-bubble-widget {
+                bottom: 16px !important;
+                right: 16px !important;
+                width: 56px !important;
+                height: 56px !important;
+            }
+            #chat-bubble-btn {
+                width: 56px !important;
+                height: 56px !important;
+            }
+            #chat-bubble-btn svg {
+                width: 28px !important;
+                height: 28px !important;
+            }
+        }
+    </style>
+
+    <!-- Chat Widget -->
+    <div id="chat-widget" class="fixed bottom-6 right-6 z-50 hidden" style="bottom: 100px;">
+        <div class="bg-white rounded-lg shadow-2xl w-96 h-[600px] flex flex-col border border-border">
+            <div class="bg-primary text-white p-4 rounded-t-lg flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-success rounded-full animate-pulse"></div>
+                    <span class="font-semibold">Live Chat Support</span>
+                </div>
+                <button id="close-chat-tracking" class="text-white hover:text-gray-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <div id="chat-start-form-tracking" class="p-4 space-y-4 flex-1 flex flex-col">
+                <div>
+                    <label class="block text-sm font-medium text-text-primary mb-2">Your Name *</label>
+                    <input type="text" id="client-name-tracking" class="input-field" placeholder="John Doe" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-primary mb-2">Your Email *</label>
+                    <input type="email" id="client-email-tracking" class="input-field" placeholder="john@example.com" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-primary mb-2">Subject</label>
+                    <input type="text" id="chat-subject-tracking" class="input-field" placeholder="How can we help?">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-primary mb-2">Tracking ID (Optional)</label>
+                    <input type="text" id="chat-tracking-id-tracking" class="input-field" placeholder="CW20251101XXXXXX">
+                </div>
+                <button id="start-chat-form-btn-tracking" class="btn-primary w-full mt-auto">Start Chat</button>
+            </div>
+            
+            <div id="chat-messages-container-tracking" class="hidden flex-1 flex flex-col">
+                <div id="chat-header-info-tracking" class="px-4 py-2 bg-surface border-b border-border">
+                    <p class="text-sm text-text-secondary" id="chat-subject-display-tracking"></p>
+                </div>
+                <div id="chat-messages-tracking" class="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4"></div>
+                <div class="border-t border-border p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <input type="text" id="chat-message-input-tracking" class="input-field flex-1" placeholder="Type your message...">
+                        <button id="chat-send-btn-tracking" class="btn-primary px-4 py-2">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chat bubble functionality for tracking page
+        let chatSocketTracking = null;
+        let currentChatIdTracking = null;
+
+        document.getElementById('chat-bubble-btn')?.addEventListener('click', () => {
+            const chatWidget = document.getElementById('chat-widget');
+            const chatBubble = document.getElementById('chat-bubble-widget');
+            if (chatWidget.classList.contains('hidden')) {
+                chatWidget.classList.remove('hidden');
+                chatBubble.classList.add('hidden');
+                initSocketTracking();
+                // Auto-fill tracking ID if available
+                const trackingInput = document.getElementById('tracking-id-input');
+                const chatTrackingId = document.getElementById('chat-tracking-id-tracking');
+                if (trackingInput?.value && chatTrackingId) {
+                    chatTrackingId.value = trackingInput.value;
+                }
+            } else {
+                chatWidget.classList.add('hidden');
+                chatBubble.classList.remove('hidden');
+            }
+        });
+
+        function initSocketTracking() {
+            if (chatSocketTracking) return;
+            try {
+                chatSocketTracking = io(window.location.origin);
+                chatSocketTracking.on('connect', () => console.log('✅ Connected to chat'));
+                chatSocketTracking.on('new-message', (data) => {
+                    if (data.chatId === currentChatIdTracking) {
+                        addMessageToChatTracking(data.message);
+                    }
+                });
+            } catch (error) {
+                console.error('Error initializing socket:', error);
+            }
+        }
+
+        document.getElementById('close-chat-tracking')?.addEventListener('click', () => {
+            document.getElementById('chat-widget').classList.add('hidden');
+            document.getElementById('chat-bubble-widget').classList.remove('hidden');
+            if (chatSocketTracking) {
+                chatSocketTracking.disconnect();
+                chatSocketTracking = null;
+            }
+        });
+
+        document.getElementById('start-chat-form-btn-tracking')?.addEventListener('click', async () => {
+            const name = document.getElementById('client-name-tracking').value;
+            const email = document.getElementById('client-email-tracking').value;
+            const subject = document.getElementById('chat-subject-tracking').value || 'General Inquiry';
+            const trackingId = document.getElementById('chat-tracking-id-tracking').value || null;
+
+            if (!name || !email) {
+                alert('Please enter your name and email');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/chat/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ clientName: name, clientEmail: email, subject, trackingId })
+                });
+
+                if (!response.ok) throw new Error('Failed to start chat');
+                const chat = await response.json();
+                currentChatIdTracking = chat.id;
+                
+                if (chatSocketTracking) {
+                    chatSocketTracking.emit('join-chat', currentChatIdTracking);
+                }
+
+                document.getElementById('chat-start-form-tracking').classList.add('hidden');
+                document.getElementById('chat-messages-container-tracking').classList.remove('hidden');
+                document.getElementById('chat-subject-display-tracking').textContent = chat.subject;
+
+                loadChatMessagesTracking(currentChatIdTracking);
+            } catch (error) {
+                console.error('Error starting chat:', error);
+                alert('Failed to start chat. Please try again.');
+            }
+        });
+
+        async function loadChatMessagesTracking(chatId) {
+            try {
+                const response = await fetch(`/api/chat/${chatId}`);
+                if (!response.ok) throw new Error('Failed to load messages');
+                const chat = await response.json();
+                const messagesContainer = document.getElementById('chat-messages-tracking');
+                messagesContainer.innerHTML = '';
+                chat.messages.forEach(msg => addMessageToChatTracking(msg));
+                scrollToBottomTracking();
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        function addMessageToChatTracking(message) {
+            const messagesContainer = document.getElementById('chat-messages-tracking');
+            const isClient = message.senderType === 'client';
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${isClient ? 'justify-end' : 'justify-start'}`;
+            messageDiv.innerHTML = `
+                <div class="max-w-xs lg:max-w-sm ${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3 overflow-hidden">
+                    <div class="text-xs font-semibold mb-1">${message.senderName}</div>
+                    ${message.text ? `<div class="mb-2 break-words">${message.text}</div>` : ''}
+                    <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
+                </div>
+            `;
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottomTracking();
+        }
+
+        document.getElementById('chat-send-btn-tracking')?.addEventListener('click', sendMessageTracking);
+        document.getElementById('chat-message-input-tracking')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessageTracking();
+        });
+
+        async function sendMessageTracking() {
+            const input = document.getElementById('chat-message-input-tracking');
+            const text = input.value.trim();
+            if (!text) return;
+            if (!currentChatIdTracking) return;
+
+            try {
+                const response = await fetch(`/api/chat/${currentChatIdTracking}/message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text,
+                        senderType: 'client',
+                        senderName: document.getElementById('client-name-tracking').value
+                    })
+                });
+                if (!response.ok) throw new Error('Failed to send message');
+                input.value = '';
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+            }
+        }
+
+
+        function scrollToBottomTracking() {
+            const messagesContainer = document.getElementById('chat-messages-tracking');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+    </script>
+    
+<script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script>
+</body>
+</html>

@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CargoWatch - Your cargo. Our watch. Every mile.</title>
+    <!-- Langue par défaut : anglais -->
+    <script>
+        (function() {
+            const supportedLanguages = ['en', 'fr', 'es', 'de', 'pt', 'it', 'zh', 'ja', 'ru', 'ar'];
+            let detectedLang = 'en'; // Par défaut : anglais
+            
+            // Vérifier si une préférence est sauvegardée
+            try {
+                const savedLang = localStorage.getItem('cargowatch_lang');
+                if (savedLang && supportedLanguages.includes(savedLang)) {
+                    detectedLang = savedLang;
+                }
+            } catch(e) {}
+            
+            // Mettre à jour l'attribut lang
+            document.documentElement.setAttribute('lang', detectedLang);
+            
+            // Ajouter un meta tag pour aider le navigateur à détecter la langue
+            let metaLang = document.querySelector('meta[http-equiv="content-language"]');
+            if (!metaLang) {
+                metaLang = document.createElement('meta');
+                metaLang.setAttribute('http-equiv', 'content-language');
+                document.head.insertBefore(metaLang, document.head.firstChild);
+            }
+            metaLang.setAttribute('content', detectedLang);
+        })();
+    </script>
+    <link rel="stylesheet" href="../css/main.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/public/i18n.js"></script>
+    <script src="/public/init-i18n.js"></script>
+  
+  <!-- Scripts Rocket désactivés temporairement pour éviter les boucles de redirection -->
+  <!-- <script type="module" src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Fcargowatch6877back.builtwithrocket.new&_be=https%3A%2F%2Fapplication.rocket.new&_v=0.1.9"></script> -->
+  <!-- <script type="module" src="https://static.rocket.new/rocket-shot.js?v=0.0.1"></script> -->
+  </head>
+<body class="bg-background">
+    <!-- Smart Header with Navigation -->
+    <header class="bg-white border-b border-border sticky top-0 z-50 shadow-soft">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <a href="/pages/homepage.html" class="flex items-center space-x-2">
+                        <img src="/delivery-truck-logo.png" alt="CargoWatch Logo" class="w-8 h-8 object-contain">
+                        <span class="text-xl font-bold text-primary">CargoWatch</span>
+                    </a>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="hidden md:flex items-center space-x-8">
+                    <a href="/pages/homepage.html" class="text-primary font-semibold" data-i18n="nav.home">Home</a>
+                    <a href="/pages/public_tracking_interface.html" class="text-text-secondary hover:text-primary transition-colors" data-i18n="nav.trackShipment">Track Shipment</a>
+                    <a href="/pages/shipment_creation_portal.html" class="text-text-secondary hover:text-primary transition-colors hidden" data-i18n="nav.createShipment">Create Shipment</a>
+                    <a href="/pages/support_hub.html" class="text-text-secondary hover:text-primary transition-colors" data-i18n="nav.support">Support</a>
+                </nav>
+
+                <!-- Tracking Search Bar -->
+                <div class="hidden lg:flex items-center space-x-4">
+                    <div class="relative">
+                        <input type="text" data-i18n="track.enterTrackingId" placeholder="Enter tracking ID..." class="input-field w-64 pl-10 pr-4 py-2">
+                        <svg class="w-5 h-5 text-text-muted absolute left-3 top-1/2 transform -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                        </svg>
+                    </div>
+                    <a href="/pages/user_login.html" class="btn-secondary mr-2" data-i18n="nav.login">Login</a>
+                    <a href="/pages/admin_dashboard.html" class="btn-primary hidden" data-i18n="nav.admin">Admin</a>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button id="mobile-menu-button" class="md:hidden p-2 rounded-md text-text-secondary hover:text-primary" aria-label="Toggle menu">
+                    <svg id="menu-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                    <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Mobile Menu -->
+            <div id="mobile-menu" class="hidden md:hidden border-t border-border bg-white">
+                <nav class="flex flex-col px-4 py-4 space-y-3">
+                    <a href="/pages/homepage.html" class="text-primary font-semibold py-2" data-i18n="nav.home">Home</a>
+                    <a href="/pages/public_tracking_interface.html" class="text-text-secondary hover:text-primary transition-colors py-2" data-i18n="nav.trackShipment">Track Shipment</a>
+                    <a href="/pages/support_hub.html" class="text-text-secondary hover:text-primary transition-colors py-2" data-i18n="nav.support">Support</a>
+                    <a href="/pages/user_login.html" class="btn-secondary py-2 text-center mt-2" data-i18n="nav.login">Login</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="relative bg-gradient-to-br from-primary-50 to-secondary-50 overflow-hidden">
+        <div class="absolute inset-0 bg-white/50"></div>
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <!-- Hero Content -->
+                <div class="text-center lg:text-left">
+                    <h1 class="text-3xl sm:text-4xl lg:text-6xl font-bold text-text-primary mb-4 sm:mb-6">
+                        <span data-i18n="home.title">Your cargo.</span><br>
+                        <span class="text-gradient-primary" data-i18n="home.subtitle">Our watch.</span><br>
+                        <span data-i18n="home.tagline">Every mile.</span>
+                    </h1>
+                    <p class="text-base sm:text-xl text-text-secondary mb-6 sm:mb-8 max-w-2xl mx-auto sm:mx-0" data-i18n="home.description">
+                        Transform your logistics with real-time tracking, complete visibility, and enterprise-grade security. CargoWatch makes professional shipment monitoring accessible to businesses of all sizes.
+                    </p>
+                    
+                    <!-- Hero CTA Buttons -->
+                    <div class="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mb-12">
+                        <a href="/pages/shipment_creation_portal.html" class="btn-primary text-lg px-8 py-4 hidden" data-i18n="home.createShipment">
+                            Create Shipment
+                        </a>
+                        <a href="/pages/public_tracking_interface.html" class="btn-secondary text-lg px-8 py-4" data-i18n="home.trackPackage">
+                            Track Package
+                        </a>
+                    </div>
+
+                    <!-- Live Stats -->
+                    <div class="grid grid-cols-3 gap-6 text-center">
+                        <div>
+                            <div class="text-3xl font-bold text-primary" id="live-shipments">24,847</div>
+                            <div class="text-sm text-text-muted" data-i18n="home.activeShipments">Active Shipments</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-success" id="delivered-today">1,293</div>
+                            <div class="text-sm text-text-muted" data-i18n="home.deliveredToday">Delivered Today</div>
+                        </div>
+                        <div>
+                            <div class="text-3xl font-bold text-accent" id="countries-served">47</div>
+                            <div class="text-sm text-text-muted" data-i18n="home.countriesServed">Countries Served</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hero Visual -->
+                <div class="relative">
+                    <div class="bg-white rounded-2xl shadow-large p-8">
+                        <div class="flex items-center justify-between mb-6">
+                            <h3 class="text-lg font-semibold text-text-primary">Live Tracking Demo</h3>
+                            <span class="status-success">In Transit</span>
+                        </div>
+                        
+                        <!-- Mock Tracking Interface -->
+                        <div class="space-y-4">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-success rounded-full"></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-text-primary">Package Picked Up</div>
+                                    <div class="text-xs text-text-muted">New York, NY - Nov 1, 2025 8:30 AM</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-success rounded-full"></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-text-primary">In Transit</div>
+                                    <div class="text-xs text-text-muted">Philadelphia, PA - Nov 1, 2025 2:15 PM</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-accent rounded-full animate-pulse-soft"></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-text-primary">Out for Delivery</div>
+                                    <div class="text-xs text-text-muted">Washington, DC - Expected 4:30 PM</div>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-3">
+                                <div class="w-3 h-3 bg-border rounded-full"></div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium text-text-muted">Delivered</div>
+                                    <div class="text-xs text-text-muted">Pending</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Map Placeholder -->
+                        <div class="mt-6 h-32 bg-surface rounded-lg flex items-center justify-center">
+                            <img src="https://images.unsplash.com/photo-1610979602142-3906166288fb" 
+                                 alt="Interactive map showing real-time shipment tracking route from New York to Washington DC" 
+                                 class="w-full h-full object-cover rounded-lg"
+                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold text-text-primary mb-4">
+                    Complete visibility, every step
+                </h2>
+                <p class="text-xl text-text-secondary max-w-3xl mx-auto">
+                    From pickup to delivery, CargoWatch provides the transparency and control your business needs to exceed customer expectations.
+                </p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <!-- Real-Time Tracking -->
+                <div class="card card-hover text-center">
+                    <div class="w-16 h-16 bg-primary-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-4">Real-Time Tracking</h3>
+                    <p class="text-text-secondary mb-6">
+                        Live GPS tracking with minute-by-minute updates. Know exactly where your shipment is at every moment of its journey.
+                    </p>
+                    <img src="https://images.unsplash.com/photo-1625217527288-93919c99650a" 
+                         alt="GPS tracking device showing real-time location updates on a digital map interface" 
+                         class="w-full h-48 object-cover rounded-lg"
+                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                </div>
+
+                <!-- Smart Notifications -->
+                <div class="card card-hover text-center">
+                    <div class="w-16 h-16 bg-accent-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM4 19h6v-2H4v2zM4 15h8v-2H4v2zM4 11h8V9H4v2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-4">Smart Notifications</h3>
+                    <p class="text-text-secondary mb-6">
+                        Automated alerts via SMS, email, and push notifications. Keep customers informed without lifting a finger.
+                    </p>
+                    <img src="https://images.unsplash.com/photo-1589706705313-04fdd2e08371" 
+                         alt="Smartphone displaying push notifications for shipment status updates and delivery alerts" 
+                         class="w-full h-48 object-cover rounded-lg"
+                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                </div>
+
+                <!-- Enterprise Security -->
+                <div class="card card-hover text-center">
+                    <div class="w-16 h-16 bg-success-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                        <svg class="w-8 h-8 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-semibold text-text-primary mb-4">Enterprise Security</h3>
+                    <p class="text-text-secondary mb-6">
+                        Bank-level encryption and compliance certifications. Your data and shipments are protected at every level.
+                    </p>
+                    <img src="https://images.unsplash.com/photo-1654588827084-b6f27735ba7d" 
+                         alt="Digital security shield icon with encryption symbols representing enterprise-grade data protection" 
+                         class="w-full h-48 object-cover rounded-lg"
+                         onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Social Proof Section -->
+    <section class="py-20 bg-surface">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-text-primary mb-4">Trusted by businesses worldwide</h2>
+                <p class="text-lg text-text-secondary">Join thousands of companies who rely on CargoWatch for their logistics needs</p>
+            </div>
+
+            <!-- Customer Logos -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 items-center mb-16 opacity-60">
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-text-primary">TechCorp</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-text-primary">GlobalShip</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-text-primary">FastDelivery</div>
+                </div>
+                <div class="text-center">
+                    <div class="text-2xl font-bold text-text-primary">LogiPro</div>
+                </div>
+            </div>
+
+            <!-- Testimonials -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- French Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330" 
+                             alt="Photo de Sophie Martin, Directrice Logistique à Paris" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">Sophie Martin</div>
+                            <div class="text-sm text-text-muted">Directrice Logistique, Paris, France 🇫🇷</div>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary">"CargoWatch a révolutionné notre gestion logistique. Le suivi en temps réel et les livraisons mondiales nous ont permis d'étendre nos services à l'international avec une confiance totale. Excellent service!"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 3 jours</div>
+                </div>
+
+                <!-- German Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d" 
+                             alt="Photo de Klaus Weber, CEO à Berlin" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">Klaus Weber</div>
+                            <div class="text-sm text-text-muted">CEO, Berlin, Deutschland 🇩🇪</div>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary">"Die Echtzeitverfolgung ist fantastisch! Wir nutzen CargoWatch seit 6 Monaten und unsere Kundenzufriedenheit ist um 75% gestiegen. Sehr zuverlässig und professionell."</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 5 jours</div>
+                </div>
+
+                <!-- Spanish Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e" 
+                             alt="Photo de María González, Gerente de Operaciones en Madrid" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">María González</div>
+                            <div class="text-sm text-text-muted">Gerente de Operaciones, Madrid, España 🇪🇸</div>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary">"Increíble plataforma de seguimiento. Los envíos internacionales ahora son tan fáciles como los nacionales. Nuestros clientes están encantados con la transparencia total. ¡Muy recomendable!"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 1 semaine</div>
+                </div>
+
+                <!-- Japanese Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5" 
+                             alt="Photo de Hiroshi Tanaka, Director en Tokio" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">田中 浩 (Hiroshi Tanaka)</div>
+                            <div class="text-sm text-text-muted">Director, Tokyo, Japan 🇯🇵</div>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary">"素晴らしいサービスです！リアルタイム追跡機能が非常に正確で、国際配送も簡単に管理できます。顧客満足度が大幅に向上しました。最高の物流プラットフォームです。"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 4 jours</div>
+                </div>
+
+                <!-- Chinese Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e" 
+                             alt="Photo de Li Wei, Operations Manager à Shanghai" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">李伟 (Li Wei)</div>
+                            <div class="text-sm text-text-muted">运营经理, Shanghai, China 🇨🇳</div>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary">"非常出色的物流追踪系统！实时定位功能非常准确，全球配送管理变得简单高效。客户满意度显著提升。强烈推荐给所有需要国际物流服务的公司！"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 2 jours</div>
+                </div>
+
+                <!-- Arabic Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e" 
+                             alt="Photo de Ahmed Al-Rashid, CEO à Dubai" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">أحمد الراشد (Ahmed Al-Rashid)</div>
+                            <div class="text-sm text-text-muted">CEO, Dubai, UAE 🇦🇪</div>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary">"منصة ممتازة للتتبع اللوجستي! نظام التتبع في الوقت الفعلي دقيق جداً والخدمات الدولية سلسة للغاية. رضا العملاء زاد بنسبة 80%. خدمة احترافية ومستوى عالي من الجودة."</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 6 jours</div>
+                </div>
+
+                <!-- Brazilian Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7" 
+                             alt="Photo de Rafael Silva, Gerente em São Paulo" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">Rafael Silva</div>
+                            <div class="text-sm text-text-muted">Gerente de Logística, São Paulo, Brasil 🇧🇷</div>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary">"Plataforma incrível! O rastreamento em tempo real é muito preciso e as entregas internacionais ficaram muito mais fáceis. Nossos clientes adoram a transparência total. Altamente recomendado!"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 3 jours</div>
+                </div>
+
+                <!-- Indian Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d" 
+                             alt="Photo de Priya Sharma, Operations Director à Mumbai" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">Priya Sharma</div>
+                            <div class="text-sm text-text-muted">Operations Director, Mumbai, India 🇮🇳</div>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary">"Excellent tracking platform! Real-time location updates are very accurate and international shipping has become so much easier. Customer satisfaction increased by 70%. Highly professional service!"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 1 semaine</div>
+                </div>
+
+                <!-- British Review -->
+                <div class="card">
+                    <div class="flex items-center mb-4">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb" 
+                             alt="Photo de James Thompson, CEO à London" 
+                             class="w-12 h-12 rounded-full object-cover mr-4"
+                             onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
+                        <div>
+                            <div class="font-semibold text-text-primary">James Thompson</div>
+                            <div class="text-sm text-text-muted">CEO, London, United Kingdom 🇬🇧</div>
+                        </div>
+                    </div>
+                    <p class="text-text-secondary">"Outstanding logistics platform! The real-time tracking is incredibly accurate and worldwide delivery support makes international shipping seamless. Customer complaints dropped by 65%. Top-notch service!"</p>
+                    <div class="mt-3 text-xs text-text-muted">Il y a 2 jours</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-20 bg-gradient-to-r from-primary to-secondary">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-3xl lg:text-4xl font-bold text-white mb-6">
+                Ready to transform your logistics?
+            </h2>
+            <p class="text-xl text-primary-100 mb-8">
+                Join thousands of businesses who trust CargoWatch with their most important shipments.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="/pages/public_tracking_interface.html" class="bg-white text-primary px-8 py-4 rounded-lg font-semibold hover:bg-primary-50 transition-colors">
+                    Start Tracking Today
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-text-primary text-white py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <!-- Company Info -->
+                <div>
+                    <div class="flex items-center space-x-2 mb-6">
+                        <img src="/delivery-truck-logo.png" alt="CargoWatch Logo" class="w-8 h-8 object-contain">
+                        <span class="text-xl font-bold">CargoWatch</span>
+                    </div>
+                    <p class="text-text-muted mb-4">Your cargo. Our watch. Every mile.</p>
+                    <p class="text-sm text-text-muted">© 2025 CargoWatch. All Rights Reserved.</p>
+                </div>
+
+                <!-- Services -->
+                <div>
+                    <h4 class="font-semibold mb-4">Services</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li><a href="/pages/public_tracking_interface.html" class="hover:text-white transition-colors">Package Tracking</a></li>
+                        <li><a href="/pages/shipment_creation_portal.html" class="hover:text-white transition-colors hidden">Create Shipment</a></li>
+                        <li><a href="/pages/admin_dashboard.html" class="hover:text-white transition-colors hidden">Admin Dashboard</a></li>
+                    </ul>
+                </div>
+
+                <!-- Support -->
+                <div>
+                    <h4 class="font-semibold mb-4">Support</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li><a href="/pages/support_hub.html" class="hover:text-white transition-colors">Help Center</a></li>
+                        <li><a href="/pages/support_hub.html" class="hover:text-white transition-colors">Contact Us</a></li>
+                        <li><a href="/pages/support_hub.html" class="hover:text-white transition-colors">System Status</a></li>
+                        <li><a href="/pages/support_hub.html" class="hover:text-white transition-colors">FAQ</a></li>
+                    </ul>
+                </div>
+
+                <!-- Contact -->
+                <div>
+                    <h4 class="font-semibold mb-4">Contact</h4>
+                    <ul class="space-y-2 text-sm text-text-muted">
+                        <li>uncledrewlegacy@gmail.com</li>
+                        <li>24/7 Customer Support</li>
+                        <li>Enterprise Solutions</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            const menuIcon = document.getElementById('menu-icon');
+            const closeIcon = document.getElementById('close-icon');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', () => {
+                    const isHidden = mobileMenu.classList.contains('hidden');
+                    if (isHidden) {
+                        mobileMenu.classList.remove('hidden');
+                        menuIcon.classList.add('hidden');
+                        closeIcon.classList.remove('hidden');
+                    } else {
+                        mobileMenu.classList.add('hidden');
+                        menuIcon.classList.remove('hidden');
+                        closeIcon.classList.add('hidden');
+                    }
+                });
+            }
+        });
+        
+        // Live counter animation
+        function animateCounter(elementId, target, duration = 2000) {
+            const element = document.getElementById(elementId);
+            const start = parseInt(element.textContent.replace(/,/g, ''));
+            const increment = (target - start) / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= target) {
+                    current = target;
+                    clearInterval(timer);
+                }
+                element.textContent = Math.floor(current).toLocaleString();
+            }, 16);
+        }
+
+        // Charger les statistiques depuis l'API
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    
+                    // Mettre à jour les compteurs
+                    animateCounter('live-shipments', stats.activeShipments || 0);
+                    animateCounter('delivered-today', stats.deliveredToday || 0);
+                    animateCounter('countries-served', stats.countriesServed || 47);
+                } else {
+                    // Utiliser des valeurs par défaut si l'API échoue
+                    animateCounter('live-shipments', 24847);
+                    animateCounter('delivered-today', 1293);
+                    animateCounter('countries-served', 47);
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+                // Valeurs par défaut en cas d'erreur
+                animateCounter('live-shipments', 24847);
+                animateCounter('delivered-today', 1293);
+                animateCounter('countries-served', 47);
+            }
+        }
+
+        // Check user session and update header
+        async function checkUserSession() {
+            try {
+                const response = await fetch('/api/auth/me', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    // If user is logged in (client or admin), redirect to appropriate page
+                    if (data.user) {
+                        if (data.user.role === 'admin') {
+                            window.location.href = '/pages/admin_dashboard.html';
+                        } else {
+                            window.location.href = '/pages/public_tracking_interface.html';
+                        }
+                    }
+                }
+            } catch (error) {
+                // User not logged in, keep default header
+                console.log('No active session');
+            }
+        }
+
+        function updateHeaderForUser(user) {
+            // Find the login/admin buttons container
+            const headerButtons = document.querySelector('.hidden.lg\\:flex.items-center.space-x-4');
+            if (!headerButtons) return;
+
+            // Replace login/admin buttons with user profile
+            const searchInput = headerButtons.querySelector('.relative');
+            headerButtons.innerHTML = '';
+            
+            // Keep search input
+            if (searchInput) {
+                headerButtons.appendChild(searchInput);
+            }
+
+            // Get display name (fallback to username if firstName/lastName not available)
+            const displayName = getDisplayName(user);
+            const initials = getInitials(user);
+
+            // Add user profile dropdown
+            const userProfile = document.createElement('div');
+            userProfile.className = 'flex items-center gap-3';
+            userProfile.innerHTML = `
+                <div class="flex items-center gap-2">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); display: flex; align-items: center; justify-content: center; color: white; font-weight: 600; font-size: 14px;">
+                        ${initials}
+                    </div>
+                    <div style="display: flex; flex-direction: column;">
+                        <span style="font-size: 14px; font-weight: 600; color: #1e293b;">${displayName}</span>
+                        <span style="font-size: 12px; color: #64748b;">${user.role === 'admin' ? 'Administrator' : 'Client'}</span>
+                    </div>
+                </div>
+                <a href="${user.role === 'admin' ? '/pages/admin_dashboard.html' : '/pages/client_dashboard.html'}" class="btn-primary" style="padding: 0.5rem 1rem;">
+                    Dashboard
+                </a>
+            `;
+            headerButtons.appendChild(userProfile);
+            
+            // Hide all "Create Shipment" links for clients (only admins can create shipments)
+            if (user.role !== 'admin') {
+                const createShipmentLinks = document.querySelectorAll('a[href="/pages/shipment_creation_portal.html"]');
+                createShipmentLinks.forEach(link => {
+                    link.style.display = 'none';
+                });
+            }
+        }
+
+        function getDisplayName(user) {
+            // If firstName and lastName exist, use them
+            if (user.firstName && user.lastName) {
+                return `${user.firstName} ${user.lastName}`;
+            }
+            // If only firstName exists
+            if (user.firstName) {
+                return user.firstName;
+            }
+            // If only lastName exists
+            if (user.lastName) {
+                return user.lastName;
+            }
+            // Fallback to username
+            return user.username || 'User';
+        }
+
+        function getInitials(user) {
+            // Try to get initials from firstName and lastName
+            if (user.firstName || user.lastName) {
+                const first = user.firstName ? user.firstName.charAt(0).toUpperCase() : '';
+                const last = user.lastName ? user.lastName.charAt(0).toUpperCase() : '';
+                return first + last || user.username.charAt(0).toUpperCase();
+            }
+            // Fallback to username initial
+            return user.username ? user.username.substring(0, 2).toUpperCase() : 'U';
+        }
+
+        // Animate counters on page load
+        window.addEventListener('load', () => {
+            loadStats();
+            checkUserSession();
+            
+            // Appliquer les traductions
+            setTimeout(() => {
+                if (window.i18n) {
+                    window.i18n.updatePage();
+                }
+            }, 300);
+        });
+
+        // Update live stats every 30 seconds
+        setInterval(() => {
+            loadStats();
+        }, 30000);
+    </script>
+
+    <!-- Chat Bubble Widget - Modern Messaging Icon -->
+    <div id="chat-bubble-widget" style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; width: 64px; height: 64px;">
+        <button id="chat-bubble-btn" aria-label="Open live chat support" style="width: 64px; height: 64px; border-radius: 50%; background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); color: white; border: none; box-shadow: 0 4px 20px rgba(37, 99, 235, 0.4), 0 8px 32px rgba(37, 99, 235, 0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; position: relative; padding: 0;" onmouseover="this.style.transform='scale(1.1)'; this.style.boxShadow='0 6px 25px rgba(37, 99, 235, 0.5), 0 12px 40px rgba(37, 99, 235, 0.3)';" onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 20px rgba(37, 99, 235, 0.4), 0 8px 32px rgba(37, 99, 235, 0.2)';">
+            <!-- Modern Message Icon -->
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 32px; height: 32px;">
+                <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M7 9H17M7 13H14" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span id="chat-bubble-badge" class="absolute -top-1 -right-1 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden" style="position: absolute; top: -4px; right: -4px; background-color: #EF4444; min-width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; border: 2px solid white; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);">0</span>
+            <!-- Pulse Animation -->
+            <div id="chat-bubble-pulse" style="position: absolute; inset: -4px; border-radius: 50%; background-color: #2563EB; opacity: 0.3; animation: pulse-ring 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div>
+        </button>
+    </div>
+    <style>
+        @keyframes pulse-ring {
+            0% { transform: scale(1); opacity: 0.3; }
+            50% { transform: scale(1.3); opacity: 0.1; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+        /* Responsive adjustments */
+        @media (max-width: 640px) {
+            #chat-bubble-widget {
+                bottom: 16px !important;
+                right: 16px !important;
+                width: 56px !important;
+                height: 56px !important;
+            }
+            #chat-bubble-btn {
+                width: 56px !important;
+                height: 56px !important;
+            }
+            #chat-bubble-btn svg {
+                width: 28px !important;
+                height: 28px !important;
+            }
+        }
+    </style>
+
+    <!-- Chat Widget (same as support_hub) -->
+    <div id="chat-widget" class="fixed bottom-6 right-6 z-50 hidden" style="bottom: 100px;">
+        <div class="bg-white rounded-lg shadow-2xl w-96 h-[600px] flex flex-col border border-border">
+            <!-- Chat Header -->
+            <div class="bg-primary text-white p-4 rounded-t-lg flex items-center justify-between">
+                <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-success rounded-full animate-pulse"></div>
+                    <span class="font-semibold">Live Chat Support</span>
+                </div>
+                <button id="close-chat" class="text-white hover:text-gray-200">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Chat Start Form -->
+            <div id="chat-start-form" class="p-4 space-y-4 flex-1 flex flex-col">
+                <div>
+                    <label class="block text-sm font-medium text-text-primary mb-2">Your Name *</label>
+                    <input type="text" id="client-name" class="input-field" placeholder="John Doe" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-primary mb-2">Your Email *</label>
+                    <input type="email" id="client-email" class="input-field" placeholder="john@example.com" required>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-primary mb-2">Subject</label>
+                    <input type="text" id="chat-subject" class="input-field" placeholder="How can we help?">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-text-primary mb-2">Tracking ID (Optional)</label>
+                    <input type="text" id="chat-tracking-id" class="input-field" placeholder="CW20251101XXXXXX">
+                </div>
+                <button id="start-chat-form-btn" class="btn-primary w-full mt-auto">Start Chat</button>
+            </div>
+            
+            <!-- Chat Messages Area -->
+            <div id="chat-messages-container" class="hidden flex-1 flex flex-col">
+                <div id="chat-header-info" class="px-4 py-2 bg-surface border-b border-border">
+                    <p class="text-sm text-text-secondary" id="chat-subject-display"></p>
+                </div>
+                <div id="chat-messages" class="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4">
+                    <!-- Messages will be inserted here -->
+                </div>
+                <div class="border-t border-border p-4">
+                    <div class="flex items-center space-x-2 mb-2">
+                        <input type="text" id="chat-message-input" class="input-field flex-1" placeholder="Type your message...">
+                        <button id="chat-send-btn" class="btn-primary px-4 py-2">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Chat bubble functionality
+        let socket = null;
+        let currentChatId = null;
+
+        document.getElementById('chat-bubble-btn')?.addEventListener('click', () => {
+            const chatWidget = document.getElementById('chat-widget');
+            const chatBubble = document.getElementById('chat-bubble-widget');
+            if (chatWidget.classList.contains('hidden')) {
+                chatWidget.classList.remove('hidden');
+                chatBubble.classList.add('hidden');
+                initSocket();
+            } else {
+                chatWidget.classList.add('hidden');
+                chatBubble.classList.remove('hidden');
+            }
+        });
+
+        function initSocket() {
+            if (socket) return;
+            try {
+                socket = io(window.location.origin);
+                socket.on('connect', () => {
+                    console.log('✅ Connected to chat server');
+                });
+                socket.on('new-message', (data) => {
+                    if (data.chatId === currentChatId) {
+                        addMessageToChat(data.message);
+                        scrollToBottom();
+                    }
+                });
+            } catch (error) {
+                console.error('Error initializing socket:', error);
+            }
+        }
+
+        document.getElementById('close-chat')?.addEventListener('click', () => {
+            document.getElementById('chat-widget').classList.add('hidden');
+            document.getElementById('chat-bubble-widget').classList.remove('hidden');
+            if (socket) {
+                socket.disconnect();
+                socket = null;
+            }
+        });
+
+        document.getElementById('start-chat-form-btn')?.addEventListener('click', async () => {
+            const name = document.getElementById('client-name').value;
+            const email = document.getElementById('client-email').value;
+            const subject = document.getElementById('chat-subject').value || 'General Inquiry';
+            const trackingId = document.getElementById('chat-tracking-id').value || null;
+
+            if (!name || !email) {
+                alert('Please enter your name and email');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/chat/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ clientName: name, clientEmail: email, subject, trackingId })
+                });
+
+                if (!response.ok) throw new Error('Failed to start chat');
+
+                const chat = await response.json();
+                currentChatId = chat.id;
+                
+                if (socket) {
+                    socket.emit('join-chat', currentChatId);
+                }
+
+                document.getElementById('chat-start-form').classList.add('hidden');
+                document.getElementById('chat-messages-container').classList.remove('hidden');
+                document.getElementById('chat-subject-display').textContent = chat.subject;
+
+                loadChatMessages(currentChatId);
+            } catch (error) {
+                console.error('Error starting chat:', error);
+                alert('Failed to start chat. Please try again.');
+            }
+        });
+
+        async function loadChatMessages(chatId) {
+            try {
+                const response = await fetch(`/api/chat/${chatId}`);
+                if (!response.ok) throw new Error('Failed to load messages');
+                
+                const chat = await response.json();
+                const messagesContainer = document.getElementById('chat-messages');
+                messagesContainer.innerHTML = '';
+
+                chat.messages.forEach(msg => {
+                    addMessageToChat(msg);
+                });
+
+                scrollToBottom();
+            } catch (error) {
+                console.error('Error loading messages:', error);
+            }
+        }
+
+        function addMessageToChat(message) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const isClient = message.senderType === 'client';
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `flex ${isClient ? 'justify-end' : 'justify-start'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="max-w-xs lg:max-w-sm ${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3 overflow-hidden">
+                    <div class="text-xs font-semibold mb-1">${message.senderName}</div>
+                    ${message.text ? `<div class="mb-2 break-words">${message.text}</div>` : ''}
+                    <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
+                </div>
+            `;
+            
+            messagesContainer.appendChild(messageDiv);
+            scrollToBottom();
+        }
+
+        document.getElementById('chat-send-btn')?.addEventListener('click', sendMessage);
+        document.getElementById('chat-message-input')?.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        async function sendMessage() {
+            const input = document.getElementById('chat-message-input');
+            const text = input.value.trim();
+
+            if (!text) return;
+            if (!currentChatId) return;
+
+            try {
+                const response = await fetch(`/api/chat/${currentChatId}/message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        text,
+                        senderType: 'client',
+                        senderName: document.getElementById('client-name').value
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to send message');
+
+                input.value = '';
+            } catch (error) {
+                console.error('Error sending message:', error);
+                alert('Failed to send message. Please try again.');
+            }
+        }
+
+
+        function scrollToBottom() {
+            const messagesContainer = document.getElementById('chat-messages');
+            if (messagesContainer) {
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }
+        }
+    </script>
+
+<script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script>
+</body>
+</html>
