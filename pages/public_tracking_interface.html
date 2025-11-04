@@ -882,6 +882,9 @@
                 timelineContainer.appendChild(timelineItem);
             });
 
+            // Stocker le shipment dans la variable globale
+            currentShipment = shipment;
+            
             // Initialize and show map
             initMap(shipment);
             startRealtimeTracking(shipment);
@@ -1418,6 +1421,7 @@
         let originMarker = null;
         let destinationMarker = null;
         let trackingInterval = null;
+        let currentShipment = null; // Variable globale pour stocker le shipment actuel (mis à jour en temps réel)
         
         // Initialize map
         function initMap(shipment) {
@@ -1984,21 +1988,29 @@
             
             const trackingId = shipment.trackingId;
             
+            // Stocker le shipment dans la variable globale
+            currentShipment = shipment;
+            
             // Démarrer la progression continue (toutes les 500ms pour animation fluide et rapide)
             if (shipment.status !== 'pending' && shipment.status !== 'delivered') {
+                console.log('🚀 Starting continuous progression interval for:', shipment.trackingId);
                 continuousProgressionInterval = setInterval(() => {
-                    if (!map || !currentMarker || !shipment) return;
+                    // Utiliser currentShipment qui est mis à jour en temps réel
+                    if (!map || !currentMarker || !currentShipment) {
+                        if (!currentShipment) console.warn('⚠️ No currentShipment available');
+                        return;
+                    }
                     
-                    const originCoords = shipment.sender?.address?.lat && shipment.sender?.address?.lng
-                        ? [shipment.sender.address.lat, shipment.sender.address.lng]
-                        : getCityCoordinates(shipment.sender?.address?.city || 'New York');
+                    const originCoords = currentShipment.sender?.address?.lat && currentShipment.sender?.address?.lng
+                        ? [currentShipment.sender.address.lat, currentShipment.sender.address.lng]
+                        : getCityCoordinates(currentShipment.sender?.address?.city || 'New York');
                     
-                    const destCoords = shipment.recipient?.address?.lat && shipment.recipient?.address?.lng
-                        ? [shipment.recipient.address.lat, shipment.recipient.address.lng]
-                        : getCityCoordinates(shipment.recipient?.address?.city || 'Washington');
+                    const destCoords = currentShipment.recipient?.address?.lat && currentShipment.recipient?.address?.lng
+                        ? [currentShipment.recipient.address.lat, currentShipment.recipient.address.lng]
+                        : getCityCoordinates(currentShipment.recipient?.address?.city || 'Washington');
                     
-                    // Calculer la nouvelle position basée sur la progression continue
-                    const newCoords = calculateCurrentPosition(originCoords, destCoords, shipment.status, shipment.events, shipment);
+                    // Calculer la nouvelle position basée sur la progression continue (utiliser currentShipment)
+                    const newCoords = calculateCurrentPosition(originCoords, destCoords, currentShipment.status, currentShipment.events, currentShipment);
                     const oldCoords = currentMarker.getLatLng();
                     
                     // Mettre à jour si la position change (seuil plus petit pour plus de sensibilité)
@@ -2022,10 +2034,10 @@
                         
                         // Mettre à jour les infos
                         const routeDistance = calculateRouteDistance(originCoords, newCoords, destCoords);
-                        updateMapInfo(shipment, originCoords, destCoords, newCoords, routeDistance);
+                        updateMapInfo(currentShipment, originCoords, destCoords, newCoords, routeDistance);
                         
                         // Mettre à jour la barre de progression
-                        const progress = calculateContinuousProgress(shipment) * 100;
+                        const progress = calculateContinuousProgress(currentShipment) * 100;
                         const progressBar = document.getElementById('progress-bar');
                         if (progressBar) {
                             progressBar.style.width = progress + '%';
@@ -2180,17 +2192,19 @@
                             console.log('⚠️ No coordinates available for shipment:', updatedShipment.currentLocation);
                         }
                         
-                        // Mettre à jour shipment pour la progression continue
-                        shipment = updatedShipment;
+                        // Mettre à jour la variable globale currentShipment pour la progression continue
+                        currentShipment = updatedShipment;
                         
                         // Arrêter la progression continue si livré ou pending
                         if (updatedShipment.status === 'delivered' || updatedShipment.status === 'pending') {
                             if (continuousProgressionInterval) {
+                                console.log('⏸️ Stopping continuous progression (status:', updatedShipment.status, ')');
                                 clearInterval(continuousProgressionInterval);
                                 continuousProgressionInterval = null;
                             }
                         } else if (!continuousProgressionInterval) {
                             // Redémarrer la progression continue si le statut change vers actif
+                            console.log('▶️ Restarting continuous progression (status:', updatedShipment.status, ')');
                             startRealtimeTracking(updatedShipment);
                         }
                         
