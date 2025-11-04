@@ -1902,12 +1902,31 @@
                         
                         // Déterminer les nouvelles coordonnées
                         let newCoords = null;
+                        let useServerCoords = false;
+                        
+                        // Vérifier si les coordonnées du serveur sont valides et différentes de l'origine
                         if (updatedShipment.currentLocation?.lat && updatedShipment.currentLocation?.lng) {
-                            // Utiliser les coordonnées réelles du serveur
-                            newCoords = [updatedShipment.currentLocation.lat, updatedShipment.currentLocation.lng];
-                            console.log('📍 Using server coordinates:', newCoords);
+                            const serverCoords = [updatedShipment.currentLocation.lat, updatedShipment.currentLocation.lng];
+                            // Vérifier si les coordonnées sont différentes de l'origine (si elles sont identiques, calculer la progression)
+                            const originLatDiff = Math.abs(serverCoords[0] - originCoords[0]);
+                            const originLngDiff = Math.abs(serverCoords[1] - originCoords[1]);
+                            
+                            // Si les coordonnées sont très proches de l'origine (moins de 0.01 degrés), calculer la progression
+                            if (originLatDiff > 0.01 || originLngDiff > 0.01) {
+                                newCoords = serverCoords;
+                                useServerCoords = true;
+                                console.log('📍 Using server coordinates:', newCoords);
+                            } else {
+                                // Coordonnées identiques à l'origine, calculer la progression
+                                newCoords = calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events);
+                                console.log('📍 Server coords at origin, calculating progression:', {
+                                    status: updatedShipment.status,
+                                    progress: calculateProgress(updatedShipment.events || [], updatedShipment.status),
+                                    calculated: newCoords
+                                });
+                            }
                         } else {
-                            // Calculer la position basée sur le statut et la progression
+                            // Pas de coordonnées serveur, calculer la position basée sur le statut et la progression
                             newCoords = calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events);
                             console.log('📍 Calculated position based on status:', {
                                 status: updatedShipment.status,
