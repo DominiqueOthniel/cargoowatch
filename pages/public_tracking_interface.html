@@ -1866,24 +1866,26 @@
             let progress = Math.min(1.0, Math.max(0.0, elapsedTime / totalTime));
             
             // Accélérer la progression pour la rendre plus visible et réaliste
-            // Multiplier par un facteur d'accélération (1.5x = 50% plus rapide)
-            const speedMultiplier = 1.5;
+            // Multiplier par un facteur d'accélération (2.0x = 100% plus rapide pour test)
+            const speedMultiplier = 2.0;
             progress = Math.min(1.0, progress * speedMultiplier);
             
-            // Pour picked_up, commencer à 10% minimum
-            if (shipment.status === 'picked_up' && progress < 0.1) {
-                progress = 0.1;
+            // Pour picked_up, commencer à 10% minimum mais ne pas forcer si le temps n'est pas encore écoulé
+            if (shipment.status === 'picked_up' && progress < 0.1 && elapsedTime > 0) {
+                progress = Math.max(0.1, progress);
             }
             
-            // Pour in_transit, s'assurer que la progression est au moins à 40%
-            if (shipment.status === 'in_transit' && progress < 0.4) {
-                progress = Math.max(0.4, progress);
-            }
+            // Pour in_transit, permettre la progression naturelle (ne pas forcer le minimum)
+            // La progression basée sur le temps doit être naturelle
+            // Si on force 40%, ça bloque la progression
+            // if (shipment.status === 'in_transit' && progress < 0.4) {
+            //     progress = Math.max(0.4, progress);
+            // }
             
-            // Pour out_for_delivery, s'assurer que la progression est au moins à 80%
-            if (shipment.status === 'out_for_delivery' && progress < 0.8) {
-                progress = Math.max(0.8, progress);
-            }
+            // Pour out_for_delivery, permettre la progression naturelle
+            // if (shipment.status === 'out_for_delivery' && progress < 0.8) {
+            //     progress = Math.max(0.8, progress);
+            // }
             
             return progress;
         }
