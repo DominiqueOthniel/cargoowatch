@@ -779,7 +779,6 @@ app.post('/api/shipments', async (req, res) => {
         console.log('📦 Creating new shipment...');
         console.log('Request body:', JSON.stringify(req.body, null, 2));
         
-        const shipments = await readShipments();
         const trackingId = generateTrackingId();
         const newShipment = {
             id: uuidv4(),
@@ -909,23 +908,34 @@ app.post('/api/shipments', async (req, res) => {
         }
 
         // Save to database
-        const shipments = await readShipments();
-        shipments.push(newShipment);
-        const writeSuccess = await writeShipments(shipments);
-        if (!writeSuccess) {
-            throw new Error('Failed to save shipment to database');
-        }
-        
-        // Verify the shipment was written
-        const verifyShipments = await readShipments();
-        const verifyShipment = verifyShipments.find(s => s.trackingId === newShipment.trackingId);
-        if (!verifyShipment) {
-            console.error('⚠️ Warning: Shipment was not found after write!');
+        let savedShipment;
+        if (db && db.createShipment) {
+            // Use Supabase directly
+            savedShipment = await db.createShipment(newShipment);
+            if (!savedShipment) {
+                throw new Error('Failed to create shipment in Supabase');
+            }
+            console.log(`✅ Shipment created in Supabase: ${savedShipment.trackingId}`);
         } else {
-            console.log(`✅ Shipment created and verified: ${newShipment.trackingId} (Total shipments: ${verifyShipments.length})`);
+            // Use JSON file storage
+            const shipments = await readShipments();
+            shipments.push(newShipment);
+            const writeSuccess = await writeShipments(shipments);
+            if (!writeSuccess) {
+                throw new Error('Failed to save shipment to database');
+            }
+            
+            // Verify the shipment was written
+            const verifyShipments = await readShipments();
+            savedShipment = verifyShipments.find(s => s.trackingId === newShipment.trackingId);
+            if (!savedShipment) {
+                console.error('⚠️ Warning: Shipment was not found after write!');
+            } else {
+                console.log(`✅ Shipment created and verified: ${newShipment.trackingId} (Total shipments: ${verifyShipments.length})`);
+            }
         }
         
-        res.status(201).json(newShipment);
+        res.status(201).json(savedShipment || newShipment);
     } catch (error) {
         console.error('❌ Error creating shipment:', error);
         console.error('Error stack:', error.stack);
