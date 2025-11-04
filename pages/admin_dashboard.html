@@ -338,8 +338,8 @@
                             <option value="open">Ouvert</option>
                             <option value="active">Actif</option>
                             <option value="closed">Fermé</option>
-                        </select>
-                    </div>
+                            </select>
+                            </div>
                     <div id="chat-list" class="space-y-3 max-h-[700px] overflow-y-auto">
                         <div class="text-center py-8 text-text-muted">
                             <svg class="w-12 h-12 mx-auto mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,14 +347,14 @@
                             </svg>
                             <p class="text-sm">Chargement des conversations...</p>
                         </div>
-                    </div>
-                </div>
+                            </div>
+                        </div>
 
                 <!-- Zone de Messages (Colonne Droite) -->
                 <div class="card flex flex-col" style="min-height: 700px;">
                     <!-- État: Aucun chat sélectionné -->
-                    <div id="no-chat-selected" class="flex-1 flex items-center justify-center text-center p-8">
-                        <div>
+                        <div id="no-chat-selected" class="flex-1 flex items-center justify-center text-center p-8">
+                                            <div>
                             <div class="w-20 h-20 bg-primary-50 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <svg class="w-10 h-10 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
@@ -362,11 +362,11 @@
                             </div>
                             <h3 class="text-lg font-semibold text-text-primary mb-2">Sélectionnez une conversation</h3>
                             <p class="text-text-secondary text-sm">Choisissez une conversation dans la liste pour voir les messages</p>
+                            </div>
                         </div>
-                    </div>
 
                     <!-- État: Chat sélectionné avec messages -->
-                    <div id="chat-messages-panel" class="hidden flex-1 flex flex-col">
+                        <div id="chat-messages-panel" class="hidden flex-1 flex flex-col">
                         <!-- En-tête du Chat -->
                         <div class="border-b border-border p-4 bg-surface">
                             <div class="flex items-center justify-between">
@@ -379,8 +379,8 @@
                                     <button id="assign-chat-btn" class="btn-secondary text-sm px-4 py-2">M'assigner</button>
                                     <button id="close-chat-btn" class="text-sm px-4 py-2 bg-error-100 text-error hover:bg-error-200 rounded-lg">Fermer</button>
                                 </div>
-                            </div>
-                        </div>
+                    </div>
+                </div>
 
                         <!-- Zone des Messages -->
                         <div id="admin-chat-messages" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50" style="min-height: 400px;">
@@ -398,19 +398,19 @@
                                 >
                                 <button id="admin-chat-send-btn" class="btn-primary px-6 py-3 rounded-lg font-semibold">
                                     Envoyer
-                                </button>
-                            </div>
+                                    </button>
+                        </div>
+                        </div>
+                        </div>
                         </div>
                     </div>
-                </div>
-            </div>
 
         <!-- Reviews Tab Content -->
         <div id="content-reviews" class="hidden">
             <div class="mb-6">
                 <h2 class="text-2xl font-bold text-text-primary mb-2">Client Reviews</h2>
                 <p class="text-text-secondary">See what our international clients are saying about CargoWatch</p>
-            </div>
+                </div>
 
             <!-- Reviews Grid -->
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -1424,9 +1424,9 @@
             } else {
                 console.error('❌ content-chat element not found!');
                 alert('Error: Chat content element not found. Please refresh the page.');
-                return;
-            }
-            
+                    return;
+                }
+
             if (contentReviews) {
                 contentReviews.classList.add('hidden');
             }
@@ -1532,7 +1532,7 @@
                     console.log('✅ Admin connected to chat server, socket ID:', chatSocket.id);
                     // Reload chats when connected
                     if (typeof loadChats === 'function') {
-                        loadChats();
+            loadChats();
                     }
                 });
                 
@@ -1547,10 +1547,10 @@
                 chatSocket.on('new-chat', (chat) => {
                     console.log('📨 New chat received:', chat);
                     if (typeof loadChats === 'function') {
-                        loadChats();
+                    loadChats();
                     }
                     if (typeof updateChatBadge === 'function') {
-                        updateChatBadge();
+                    updateChatBadge();
                     }
                 });
                 
@@ -1558,11 +1558,11 @@
                     console.log('💬 New message received:', data);
                     if (data.chatId === currentAdminChatId) {
                         if (typeof addAdminMessageToChat === 'function') {
-                            addAdminMessageToChat(data.message);
+                        addAdminMessageToChat(data.message);
                         }
                         if (typeof scrollAdminChatToBottom === 'function') {
-                            scrollAdminChatToBottom();
-                        }
+                        scrollAdminChatToBottom();
+                    }
                         // If admin is viewing the chat, mark new client messages as read automatically
                         if (data.message.senderType === 'client' && !data.message.read) {
                             fetch(`/api/chat/${data.chatId}/read`, {
@@ -1589,7 +1589,7 @@
                 chatSocket.on('chat-assigned', (data) => {
                     console.log('👤 Chat assigned:', data);
                     if (typeof loadChats === 'function') {
-                        loadChats();
+                    loadChats();
                     }
                 });
                 
@@ -1603,7 +1603,7 @@
                         if (chatMessagesPanel) chatMessagesPanel.classList.add('hidden');
                     }
                     if (typeof loadChats === 'function') {
-                        loadChats();
+                    loadChats();
                     }
                 });
             } catch (error) {
@@ -1642,7 +1642,7 @@
                     chatList.innerHTML = '<p class="text-sm text-text-muted p-4">Aucune conversation disponible</p>';
                     return;
                 }
-                
+
                 // Nettoyer le message de chargement
                 chatList.innerHTML = '';
                 console.log('🧹 Cleared chat-list, ready to add chats');
@@ -1701,7 +1701,7 @@
                                 <div class="flex items-center space-x-3 mb-2">
                                     <div class="w-12 h-12 bg-primary-100 rounded-full flex items-center justify-center flex-shrink-0">
                                         <span class="text-primary font-bold text-base">${clientInitial}</span>
-                                    </div>
+                            </div>
                                     <div class="flex-1 min-w-0">
                                         <div class="font-bold text-text-primary truncate">${clientName}</div>
                                         <div class="text-xs text-text-muted truncate">${clientEmail}</div>
@@ -1841,7 +1841,7 @@
                 }, 100);
                 
                 if (typeof updateChatBadge === 'function') {
-                    updateChatBadge(chats);
+                updateChatBadge(chats);
                 }
             } catch (error) {
                 console.error('Error loading chats:', error);
@@ -1854,7 +1854,7 @@
 
         function updateChatBadge(chats) {
             if (!chats) return;
-            const badge = document.getElementById('chat-badge');
+                        const badge = document.getElementById('chat-badge');
             if (!badge) return;
             
             const unreadCount = chats.reduce((total, chat) => {
@@ -1920,7 +1920,7 @@
                             text: msg.text?.substring(0, 30)
                         });
                         if (typeof addAdminMessageToChat === 'function') {
-                            addAdminMessageToChat(msg);
+                    addAdminMessageToChat(msg);
                         }
                     });
                 } else {
@@ -1939,7 +1939,7 @@
                 console.log('✅ Chat panel displayed');
                 
                 if (typeof scrollAdminChatToBottom === 'function') {
-                    scrollAdminChatToBottom();
+                scrollAdminChatToBottom();
                 }
                 
                 if (typeof initializeChatButtons === 'function') {
@@ -1978,15 +1978,15 @@
              
              // Message de l'admin (à droite, bleu)
              if (isAdmin) {
-                 messageDiv.innerHTML = `
+             messageDiv.innerHTML = `
                      <div class="flex flex-col items-end max-w-[70%]">
                          <div class="bg-primary text-white rounded-2xl rounded-tr-sm px-4 py-3 shadow-md">
                              <div class="text-sm font-medium mb-1">${message.senderName || 'Admin'}</div>
                              <div class="text-white break-words">${message.text || ''}</div>
                          </div>
                          <span class="text-xs text-text-muted mt-1 px-2">${timeString}</span>
-                     </div>
-                 `;
+                 </div>
+             `;
              } 
              // Message du client (à gauche, gris)
              else if (isClient) {
@@ -2005,7 +2005,7 @@
              console.log('✅ Message added to container. Total messages:', messagesContainer.children.length);
              
              if (typeof scrollAdminChatToBottom === 'function') {
-                 scrollAdminChatToBottom();
+             scrollAdminChatToBottom();
              }
          }
 
@@ -2054,47 +2054,47 @@
 
             if (assignBtn && !assignBtn.hasAttribute('data-listener-attached')) {
                 assignBtn.addEventListener('click', async () => {
-                    if (!currentAdminChatId) return;
-                    try {
-                        const response = await fetch(`/api/chat/${currentAdminChatId}/assign`, {
-                            method: 'PUT',
-                            headers: { 'Content-Type': 'application/json' },
-                            credentials: 'include'
-                        });
-                        if (!response.ok) throw new Error('Failed to assign chat');
-                        if (typeof loadChats === 'function') {
-                            await loadChats();
-                        }
-                        alert('Chat assigned to you');
-                    } catch (error) {
-                        console.error('Error assigning chat:', error);
-                    }
+            if (!currentAdminChatId) return;
+            try {
+                const response = await fetch(`/api/chat/${currentAdminChatId}/assign`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include'
                 });
+                if (!response.ok) throw new Error('Failed to assign chat');
+                        if (typeof loadChats === 'function') {
+                await loadChats();
+                        }
+                alert('Chat assigned to you');
+            } catch (error) {
+                console.error('Error assigning chat:', error);
+            }
+        });
                 assignBtn.setAttribute('data-listener-attached', 'true');
             }
 
             if (closeBtn && !closeBtn.hasAttribute('data-listener-attached')) {
                 closeBtn.addEventListener('click', async () => {
-                    if (!currentAdminChatId) return;
-                    if (!confirm('Are you sure you want to close this chat?')) return;
-                    try {
-                        const response = await fetch(`/api/chat/${currentAdminChatId}/close`, {
-                            method: 'PUT',
-                            credentials: 'include'
-                        });
-                        if (!response.ok) throw new Error('Failed to close chat');
-                        currentAdminChatId = null;
+            if (!currentAdminChatId) return;
+            if (!confirm('Are you sure you want to close this chat?')) return;
+            try {
+                const response = await fetch(`/api/chat/${currentAdminChatId}/close`, {
+                    method: 'PUT',
+                    credentials: 'include'
+                });
+                if (!response.ok) throw new Error('Failed to close chat');
+                currentAdminChatId = null;
                         const noChatSelected = document.getElementById('no-chat-selected');
                         const chatMessagesPanel = document.getElementById('chat-messages-panel');
                         if (noChatSelected) noChatSelected.classList.remove('hidden');
                         if (chatMessagesPanel) chatMessagesPanel.classList.add('hidden');
                         if (typeof loadChats === 'function') {
-                            await loadChats();
+                await loadChats();
                         }
-                    } catch (error) {
-                        console.error('Error closing chat:', error);
-                    }
-                });
+            } catch (error) {
+                console.error('Error closing chat:', error);
+            }
+        });
                 closeBtn.setAttribute('data-listener-attached', 'true');
             }
         }
@@ -2144,7 +2144,7 @@
         function scrollAdminChatToBottom() {
             const messagesContainer = document.getElementById('admin-chat-messages');
             if (messagesContainer) {
-                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }
         }
 
@@ -2160,8 +2160,8 @@
             if (!trackingIdEl || !modal) {
                 console.error('❌ Receipt modal elements not found!', { trackingIdEl: !!trackingIdEl, modal: !!modal });
                 alert('Error: Receipt create modal not found. Please refresh the page.');
-                        return;
-                    }
+                return;
+            }
             trackingIdEl.textContent = trackingId;
             
             // Set default language from browser or saved preference
