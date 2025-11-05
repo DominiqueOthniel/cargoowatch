@@ -2139,8 +2139,16 @@
                                     currentMarker.setLatLng(newCoords);
                                 currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${newCity}`);
                                     
-                                // Mettre à jour la route
-                                    const routeDistance = calculateRouteDistance(originCoords, newCoords, destCoords);
+                                // Calculer la distance directe (garantit que remaining diminue toujours)
+                                const directDistanceToDest = calculateDistance(newCoords, destCoords);
+                                const directDistanceFromOrigin = calculateDistance(originCoords, newCoords);
+                                
+                                // Créer routeDistance avec les distances directes pour garantir la cohérence
+                                const routeDistance = {
+                                    traveled: directDistanceFromOrigin,
+                                    remaining: directDistanceToDest,
+                                    total: directDistanceFromOrigin + directDistanceToDest
+                                };
                                 
                                 // Log pour déboguer la distance
                                 console.log('📏 Route distance:', {
