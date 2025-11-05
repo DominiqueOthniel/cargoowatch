@@ -2113,9 +2113,8 @@
                             // Pour une progression continue, TOUJOURS mettre à jour le marqueur
                             // Même si les changements sont très petits, déplacer le marqueur pour une animation fluide
                             if (shouldUpdate || forceUpdate || updatedShipment.status !== 'pending') {
-                                // TOUJOURS déplacer le marqueur si on calcule la progression côté client (forceUpdate)
-                                // Cela garantit une animation continue même avec de très petits changements
-                                // Ne pas retourner tôt - toujours déplacer le marqueur pour progression continue
+                                // TOUJOURS déplacer le marqueur pour progression continue
+                                // Même si les changements sont minimes, déplacer pour animation fluide
                                 console.log(`📍 Map updating:`, {
                                     city: newCity,
                                     coords: newCoords,
@@ -2124,12 +2123,23 @@
                                     cityChanged,
                                     statusChanged,
                                     useServerCoords,
+                                    forceUpdate,
                                     progress: calculateProgress(updatedShipment.events || [], updatedShipment.status),
-                                    oldCoords: [oldCoords.lat, oldCoords.lng]
+                                    oldCoords: [oldCoords.lat, oldCoords.lng],
+                                    latDiff,
+                                    lngDiff
                                 });
                                 
-                                // Animer le mouvement du marqueur
-                                    currentMarker.setLatLng(newCoords);
+                                // TOUJOURS déplacer le marqueur pour progression continue
+                                // Même si les changements sont très petits, déplacer pour animation fluide
+                                console.log('📍 Moving marker:', {
+                                    from: [oldCoords.lat.toFixed(6), oldCoords.lng.toFixed(6)],
+                                    to: [newCoords[0].toFixed(6), newCoords[1].toFixed(6)],
+                                    latDiff: latDiff.toFixed(6),
+                                    lngDiff: lngDiff.toFixed(6),
+                                    distanceMoved: calculateDistance([oldCoords.lat, oldCoords.lng], newCoords).toFixed(4) + ' miles'
+                                });
+                                currentMarker.setLatLng(newCoords);
                                 currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${newCity}`);
                                     
                                 // Calculer la distance directe (garantit que remaining diminue toujours)
