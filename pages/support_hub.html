@@ -612,6 +612,11 @@
         #chat-messages {
             scrollbar-width: thin;
             scrollbar-color: #cbd5e0 #f7fafc;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
         
         #chat-messages::-webkit-scrollbar {
@@ -630,6 +635,22 @@
         
         #chat-messages::-webkit-scrollbar-thumb:hover {
             background: #a0aec0;
+        }
+        
+        /* Ensure messages don't overflow */
+        #chat-messages > div {
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            max-width: 100%;
+            min-width: 0;
+        }
+        
+        #chat-messages > div > div {
+            max-width: 100% !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            hyphens: auto;
+            box-sizing: border-box;
         }
         
         #chat-start-form {
