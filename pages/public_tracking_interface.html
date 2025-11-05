@@ -1900,39 +1900,78 @@
                             ? [updatedShipment.recipient.address.lat, updatedShipment.recipient.address.lng]
                             : getCityCoordinates(updatedShipment.recipient?.address?.city || 'Washington');
                         
-                        // Déterminer les nouvelles coordonnées
+                        // Calculer la progression continue basée sur le temps écoulé
                         let newCoords = null;
                         let useServerCoords = false;
                         
-                        // Vérifier si les coordonnées du serveur sont valides et différentes de l'origine
+                        // Fonction pour calculer la progression continue
+                        const calculateContinuousProgression = () => {
+                            if (updatedShipment.status === 'delivered') {
+                                return destCoords;
+                            }
+                            
+                            // Utiliser autoProgress si disponible pour calculer la progression en temps réel
+                            if (updatedShipment.autoProgress?.enabled && !updatedShipment.autoProgress?.paused && 
+                                updatedShipment.estimatedDelivery && updatedShipment.sender?.address?.lat) {
+                                
+                                const now = new Date();
+                                const estimatedDelivery = new Date(updatedShipment.estimatedDelivery);
+                                
+                                // Déterminer le point de départ
+                                let startedAt = null;
+                                if (updatedShipment.autoProgress.startedAt) {
+                                    startedAt = new Date(updatedShipment.autoProgress.startedAt);
+                                } else if (updatedShipment.status !== 'pending') {
+                                    const firstActiveEvent = updatedShipment.events?.find(e => e.status !== 'pending');
+                                    startedAt = firstActiveEvent ? new Date(firstActiveEvent.timestamp) : new Date(updatedShipment.createdAt);
+                                } else {
+                                    startedAt = new Date(updatedShipment.createdAt);
+                                }
+                                
+                                if (startedAt) {
+                                    const totalTime = estimatedDelivery - startedAt;
+                                    let pausedDuration = updatedShipment.autoProgress.pausedDuration || 0;
+                                    
+                                    if (updatedShipment.autoProgress.paused && updatedShipment.autoProgress.pausedAt) {
+                                        const pauseStart = new Date(updatedShipment.autoProgress.pausedAt);
+                                        pausedDuration += (now - pauseStart);
+                                    }
+                                    
+                                    const elapsedTime = (now - startedAt) - pausedDuration;
+                                    let progress = Math.min(1, Math.max(0, elapsedTime / totalTime));
+                                    
+                                    // Interpoler entre origine et destination pour une progression continue
+                                    const lat = originCoords[0] + (destCoords[0] - originCoords[0]) * progress;
+                                    const lng = originCoords[1] + (destCoords[1] - originCoords[1]) * progress;
+                                    
+                                    return [lat, lng];
+                                }
+                            }
+                            
+                            // Fallback: utiliser calculateCurrentPosition basé sur le statut
+                            return calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events);
+                        };
+                        
+                        // Toujours calculer la progression continue pour une animation fluide
+                        // Utiliser les coordonnées du serveur seulement si elles sont très récentes (< 2 secondes)
                         if (updatedShipment.currentLocation?.lat && updatedShipment.currentLocation?.lng) {
                             const serverCoords = [updatedShipment.currentLocation.lat, updatedShipment.currentLocation.lng];
-                            // Vérifier si les coordonnées sont différentes de l'origine (si elles sont identiques, calculer la progression)
-                            const originLatDiff = Math.abs(serverCoords[0] - originCoords[0]);
-                            const originLngDiff = Math.abs(serverCoords[1] - originCoords[1]);
+                            const lastUpdate = updatedShipment.autoProgress?.lastUpdate 
+                                ? new Date(updatedShipment.autoProgress.lastUpdate) 
+                                : null;
+                            const now = new Date();
                             
-                            // Si les coordonnées sont très proches de l'origine (moins de 0.01 degrés), calculer la progression
-                            if (originLatDiff > 0.01 || originLngDiff > 0.01) {
+                            // Utiliser les coordonnées du serveur seulement si elles sont très récentes
+                            if (lastUpdate && (now - lastUpdate) < 2000) {
                                 newCoords = serverCoords;
                                 useServerCoords = true;
-                                console.log('📍 Using server coordinates:', newCoords);
                             } else {
-                                // Coordonnées identiques à l'origine, calculer la progression
-                                newCoords = calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events);
-                                console.log('📍 Server coords at origin, calculating progression:', {
-                                    status: updatedShipment.status,
-                                    progress: calculateProgress(updatedShipment.events || [], updatedShipment.status),
-                                    calculated: newCoords
-                                });
+                                // Calculer la progression continue côté client
+                                newCoords = calculateContinuousProgression();
                             }
                         } else {
-                            // Pas de coordonnées serveur, calculer la position basée sur le statut et la progression
-                            newCoords = calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events);
-                            console.log('📍 Calculated position based on status:', {
-                                status: updatedShipment.status,
-                                progress: calculateProgress(updatedShipment.events || [], updatedShipment.status),
-                                coords: newCoords
-                            });
+                            // Pas de coordonnées serveur, calculer la progression continue
+                            newCoords = calculateContinuousProgression();
                         }
                         
                         if (currentMarker && map && newCoords && Array.isArray(newCoords) && newCoords.length === 2) {
@@ -1965,11 +2004,12 @@
                             // Toujours mettre à jour si coordonnées ou ville changent, ou si le statut change
                             const statusChanged = updatedShipment.status !== shipment.status;
                             
-                            // Pour la progression automatique : toujours mettre à jour si les coordonnées calculées diffèrent
-                            // même légèrement, ou si on vient de calculer (pas de serveur)
+                            // Pour la progression continue : toujours mettre à jour pour une animation fluide
+                            // Même avec de petits changements, mettre à jour pour une progression continue
                             const shouldUpdate = coordinateChanged || cityChanged || statusChanged || !useServerCoords;
                             
-                            if (shouldUpdate) {
+                            // Toujours mettre à jour pour une progression continue (même si le statut est pending)
+                            if (shouldUpdate || updatedShipment.status !== 'pending') {
                                 console.log(`📍 Map updating:`, {
                                     city: newCity,
                                     coords: newCoords,

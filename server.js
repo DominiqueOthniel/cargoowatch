@@ -719,8 +719,9 @@ app.get('/api/shipments/:trackingId', async (req, res) => {
         }
         */
 
+        // Calculer la progression même pour "pending" si autoProgress est activé
         if (shipment.autoProgress?.enabled && !shipment.autoProgress?.paused && 
-            shipment.status !== 'delivered' && shipment.status !== 'pending' &&
+            shipment.status !== 'delivered' &&
             shipment.sender?.address?.lat && shipment.recipient?.address?.lat) {
             const autoPos = calculateAutomaticProgression(shipment);
             if (autoPos) {
