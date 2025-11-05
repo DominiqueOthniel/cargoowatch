@@ -2139,8 +2139,31 @@
                                     lngDiff: lngDiff.toFixed(6),
                                     distanceMoved: calculateDistance([oldCoords.lat, oldCoords.lng], newCoords).toFixed(4) + ' miles'
                                 });
-                                currentMarker.setLatLng(newCoords);
-                                currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${newCity}`);
+                                
+                                // Forcer le déplacement du marqueur avec animation
+                                // Utiliser une animation fluide pour les petits changements
+                                if (currentMarker && map) {
+                                    // Créer une nouvelle position L.LatLng pour forcer la mise à jour
+                                    const newLatLng = L.latLng(newCoords[0], newCoords[1]);
+                                    
+                                    // Déplacer avec animation si Leaflet supporte
+                                    if (currentMarker.setLatLng) {
+                                        currentMarker.setLatLng(newLatLng);
+                                        
+                                        // Forcer le rafraîchissement visuel du marqueur
+                                        // Retirer et réajouter le marqueur si nécessaire pour forcer le rendu
+                                        const markerElement = currentMarker.getElement();
+                                        if (markerElement) {
+                                            // Forcer le navigateur à recalculer le style
+                                            markerElement.style.transition = 'transform 0.3s ease-out';
+                                        }
+                                    }
+                                    
+                                    currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${newCity}`);
+                                    
+                                    // Forcer la mise à jour de la carte pour afficher le nouveau marqueur
+                                    map.invalidateSize();
+                                }
                                     
                                 // Calculer la distance directe (garantit que remaining diminue toujours)
                                 const directDistanceToDest = calculateDistance(newCoords, destCoords);
