@@ -27,6 +27,51 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/public/i18n.js"></script>
     <script src="/public/init-i18n.js"></script>
+    <style>
+        /* Fullscreen Chat Styles */
+        body.chat-fullscreen {
+            overflow: hidden;
+        }
+        
+        .chat-list-container {
+            max-height: 700px;
+        }
+        
+        .chat-messages-container {
+            min-height: 700px;
+        }
+        
+        body.chat-fullscreen .chat-list-container {
+            max-height: calc(100vh - 200px);
+            height: calc(100vh - 200px);
+        }
+        
+        body.chat-fullscreen .chat-messages-container {
+            min-height: calc(100vh - 200px);
+            height: calc(100vh - 200px);
+        }
+        
+        body.chat-fullscreen #chat-container {
+            display: grid;
+            grid-template-columns: 400px 1fr;
+            gap: 1.5rem;
+            height: 100vh;
+            padding: 1.5rem;
+        }
+        
+        body.chat-fullscreen #chat-container .card {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        @media (max-width: 1024px) {
+            body.chat-fullscreen #chat-container {
+                grid-template-columns: 1fr;
+                grid-template-rows: 300px 1fr;
+            }
+        }
+    </style>
   
   <!-- Scripts Rocket désactivés -->
   </head>
