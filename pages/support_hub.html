@@ -975,7 +975,12 @@
 
         function scrollToBottom() {
             const messagesContainer = document.getElementById('chat-messages');
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            if (messagesContainer) {
+                // Use setTimeout to ensure DOM is updated before scrolling
+                setTimeout(() => {
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }, 100);
+            }
         }
 
         // Check if user is logged in and hide navigation for clients
