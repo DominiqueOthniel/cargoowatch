@@ -373,8 +373,8 @@
                                     <span class="font-semibold" id="map-distance-traveled">0.0 miles</span>
                                 </div>
                                 <div class="flex items-center justify-between mt-2">
-                                    <span>Distance Remaining:</span>
-                                    <span class="font-semibold" id="map-distance-remaining">Calculating...</span>
+                                    <span>Initial Distance:</span>
+                                    <span class="font-semibold" id="map-initial-distance">Calculating...</span>
                                 </div>
                                 <div class="flex items-center justify-between mt-2">
                                     <span>Estimated Arrival:</span>
@@ -1827,38 +1827,28 @@
             
             // Calculate distances
             let distanceTraveled = 0;
-            let distanceRemaining = 0;
+            const initialDistance = calculateDistance(originCoords, destCoords);
             
             if (routeDistance) {
-                // Utiliser la distance directe pour garantir que remaining diminue toujours
-                const directRemaining = calculateDistance(currentCoords, destCoords);
-                const directTraveled = calculateDistance(originCoords, currentCoords);
-                
-                // Utiliser la distance directe si elle est plus petite que routeDistance.remaining
-                // Cela garantit que remaining diminue toujours
-                if (directRemaining < routeDistance.remaining) {
-                    distanceRemaining = directRemaining;
-                    distanceTraveled = directTraveled;
-                } else {
-                    // Utiliser routeDistance mais s'assurer que remaining ne peut que diminuer
-                    distanceRemaining = Math.min(routeDistance.remaining, directRemaining);
-                    distanceTraveled = routeDistance.traveled;
-                }
+                distanceTraveled = routeDistance.traveled;
             } else {
-                distanceRemaining = calculateDistance(currentCoords, destCoords);
                 distanceTraveled = calculateDistance(originCoords, currentCoords);
             }
             
-            // Afficher la distance restante (qui doit toujours diminuer)
-            document.getElementById('map-distance-remaining').textContent = `${distanceRemaining.toFixed(1)} miles`;
+            // Afficher la distance initiale (distance totale du voyage)
+            const initialDistanceElement = document.getElementById('map-initial-distance');
+            if (initialDistanceElement) {
+                initialDistanceElement.textContent = `${initialDistance.toFixed(1)} miles`;
+            }
             
-            // Afficher la distance parcourue si l'élément existe
+            // Afficher la distance parcourue
             const distanceTraveledElement = document.getElementById('map-distance-traveled');
             if (distanceTraveledElement) {
                 distanceTraveledElement.textContent = `${distanceTraveled.toFixed(1)} miles`;
             }
             
-            // Calculate ETA
+            // Calculate ETA using remaining distance
+            const distanceRemaining = calculateDistance(currentCoords, destCoords);
             const eta = calculateETA(shipment, distanceRemaining);
             document.getElementById('map-eta').textContent = eta;
         }
