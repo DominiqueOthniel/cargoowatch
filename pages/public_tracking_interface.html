@@ -2206,17 +2206,36 @@
                                             dashArray: '10, 10'
                                         }).addTo(map);
                                         
+                                        // Forcer la carte à se centrer légèrement sur le nouveau marqueur
+                                        // Utiliser panTo avec animation pour rendre le mouvement visible
+                                        const currentZoom = map.getZoom();
+                                        map.panTo(newLatLng, {
+                                            animate: true,
+                                            duration: 0.3,
+                                            easeLinearity: 0.25
+                                        });
+                                        
+                                        // Forcer plusieurs méthodes de redraw
+                                        map.invalidateSize();
+                                        if (map._renderer && map._renderer._update) {
+                                            map._renderer._update();
+                                        }
+                                        
+                                        // Forcer le redraw via requestAnimationFrame
+                                        requestAnimationFrame(() => {
+                                            if (map) {
+                                                map.invalidateSize();
+                                                // Créer un événement pour forcer le redraw
+                                                map.fire('moveend');
+                                            }
+                                        });
+                                        
                                         console.log('✅ Marker recreated at new position:', newLatLng);
                                         console.log('✅ Route polyline updated with new coordinates');
+                                        console.log('✅ Map panned to new marker position');
                                     } else {
                                         currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${newCity}`);
                                     }
-                                    
-                                    // Forcer la mise à jour de la carte
-                                    map.invalidateSize();
-                                    
-                                    // Forcer le redraw de la carte pour afficher les changements
-                                    map._renderer._update();
                                 }
                                     
                                 // Calculer la distance directe (garantit que remaining diminue toujours)
