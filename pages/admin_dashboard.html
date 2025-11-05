@@ -1463,7 +1463,7 @@
             const contentShipments = document.getElementById('content-shipments');
             const contentChat = document.getElementById('content-chat');
             const contentReviews = document.getElementById('content-reviews');
-            
+
             if (tabShipments) {
                 tabShipments.classList.add('active', 'border-primary', 'text-primary');
                 tabShipments.classList.remove('border-transparent', 'text-text-secondary');
@@ -1486,8 +1486,8 @@
             }
             if (contentReviews) {
                 contentReviews.classList.add('hidden');
-            }
-        }
+                    }
+                }
 
         // Function to switch to chat tab
         function switchToChatTab() {
@@ -1522,7 +1522,7 @@
             if (tabReviews) {
                 tabReviews.classList.remove('active', 'border-primary', 'text-primary');
                 tabReviews.classList.add('border-transparent', 'text-text-secondary');
-            }
+                }
             
             if (contentShipments) {
                 contentShipments.classList.add('hidden');
@@ -1579,7 +1579,7 @@
                     initializeChatButtons();
                 } else {
                     console.warn('⚠️ initializeChatButtons is not a function');
-                }
+                        }
             };
             
             // Try immediately first
@@ -1595,7 +1595,7 @@
                         console.error('❌ Chat functions still not available after delay');
                         console.error('❌ initAdminSocket type:', typeof initAdminSocket);
                         console.error('❌ loadChats type:', typeof loadChats);
-                    }
+                }
                 }, 200);
             }
         }
@@ -1624,7 +1624,7 @@
             if (contentShipments) contentShipments.classList.add('hidden');
             if (contentChat) contentChat.classList.add('hidden');
             if (contentReviews) contentReviews.classList.remove('hidden');
-        }
+            }
 
         // ==================== CHAT FUNCTIONALITY ====================
         // Define these BEFORE DOMContentLoaded so they're available when tab switching occurs
@@ -1653,8 +1653,8 @@
                     if (typeof loadChats === 'function') {
             loadChats();
                     }
-                });
-                
+        });
+
                 chatSocket.on('connect_error', (error) => {
                     console.error('❌ Socket connection error:', error);
                 });
@@ -1859,7 +1859,7 @@
                     
                     chatList.appendChild(chatItem);
                     console.log(`✅ Chat item ${index + 1} appended to chat-list`);
-                    
+
                     // Vérifier que l'élément est bien dans le DOM et visible
                     setTimeout(() => {
                         const addedItem = chatList.querySelector(`[data-chat-id="${chat.id}"]`);
@@ -2252,7 +2252,7 @@
                 }
                 
                 if (typeof loadChats === 'function') {
-                    loadChats();
+            loadChats();
                 }
             } catch (error) {
                 console.error('Error sending message:', error);
