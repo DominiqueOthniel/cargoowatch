@@ -1974,6 +1974,16 @@
                             newCoords = calculateContinuousProgression();
                         }
                         
+                        // Log pour déboguer
+                        console.log('🔍 Progression calculation:', {
+                            hasServerCoords: !!updatedShipment.currentLocation?.lat,
+                            useServerCoords,
+                            newCoords,
+                            status: updatedShipment.status,
+                            autoProgress: updatedShipment.autoProgress,
+                            estimatedDelivery: updatedShipment.estimatedDelivery
+                        });
+                        
                         if (currentMarker && map && newCoords && Array.isArray(newCoords) && newCoords.length === 2) {
                             const oldCoords = currentMarker.getLatLng();
                             
@@ -2008,8 +2018,10 @@
                             // Même avec de petits changements, mettre à jour pour une progression continue
                             const shouldUpdate = coordinateChanged || cityChanged || statusChanged || !useServerCoords;
                             
-                            // Toujours mettre à jour pour une progression continue (même si le statut est pending)
-                            if (shouldUpdate || updatedShipment.status !== 'pending') {
+                            // Toujours mettre à jour pour une progression continue
+                            // Forcer la mise à jour même si les changements sont minimes pour une animation fluide
+                            const forceUpdate = !useServerCoords; // Toujours mettre à jour si on calcule côté client
+                            if (shouldUpdate || forceUpdate || updatedShipment.status !== 'pending') {
                                 console.log(`📍 Map updating:`, {
                                     city: newCity,
                                     coords: newCoords,
