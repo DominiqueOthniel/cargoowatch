@@ -2113,9 +2113,9 @@
                             // Pour une progression continue, TOUJOURS mettre à jour le marqueur
                             // Même si les changements sont très petits, déplacer le marqueur pour une animation fluide
                             if (shouldUpdate || forceUpdate || updatedShipment.status !== 'pending') {
-                                // TOUJOURS déplacer le marqueur si on calcule la progression côté client
+                                // TOUJOURS déplacer le marqueur si on calcule la progression côté client (forceUpdate)
                                 // Cela garantit une animation continue même avec de très petits changements
-                                if (forceUpdate || coordinateChanged) {
+                                // Ne pas retourner tôt - toujours déplacer le marqueur pour progression continue
                                 console.log(`📍 Map updating:`, {
                                     city: newCity,
                                     coords: newCoords,
