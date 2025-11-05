@@ -856,8 +856,8 @@
             
             messageDiv.innerHTML = `
                 <div class="max-w-xs lg:max-w-sm ${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3 overflow-hidden">
-                    <div class="text-xs font-semibold mb-1">${message.senderName}</div>
-                    ${message.text ? `<div class="mb-2 break-words">${message.text}</div>` : ''}
+                    <div class="${isClient ? 'text-xs' : 'text-sm'} font-semibold mb-1">${message.senderName}</div>
+                    ${message.text ? `<div class="${isClient ? 'text-sm' : 'text-base'} mb-2 break-words">${message.text}</div>` : ''}
                     <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
                 </div>
             `;
