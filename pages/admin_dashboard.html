@@ -42,13 +42,25 @@
         }
         
         body.chat-fullscreen .chat-list-container {
-            max-height: calc(100vh - 200px);
-            height: calc(100vh - 200px);
+            max-height: calc(100vh - 250px);
+            height: calc(100vh - 250px);
+            overflow-y: auto;
+            overflow-x: hidden;
         }
         
         body.chat-fullscreen .chat-messages-container {
-            min-height: calc(100vh - 200px);
-            height: calc(100vh - 200px);
+            min-height: calc(100vh - 250px);
+            height: calc(100vh - 250px);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        
+        body.chat-fullscreen #admin-chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            max-height: calc(100vh - 350px);
         }
         
         body.chat-fullscreen #chat-container {
@@ -63,6 +75,58 @@
             height: 100%;
             display: flex;
             flex-direction: column;
+            overflow: hidden;
+        }
+        
+        /* Ensure scrolling works in normal mode too */
+        .chat-list-container {
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f7fafc;
+        }
+        
+        .chat-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .chat-list-container::-webkit-scrollbar-track {
+            background: #f7fafc;
+            border-radius: 4px;
+        }
+        
+        .chat-list-container::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+        
+        .chat-list-container::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
+        }
+        
+        #admin-chat-messages {
+            overflow-y: auto;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f7fafc;
+        }
+        
+        #admin-chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #admin-chat-messages::-webkit-scrollbar-track {
+            background: #f7fafc;
+            border-radius: 4px;
+        }
+        
+        #admin-chat-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+        
+        #admin-chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
         }
         
         @media (max-width: 1024px) {
