@@ -2097,7 +2097,10 @@
                                           (updatedShipment.events && updatedShipment.events.length > 0 
                                            ? updatedShipment.events[updatedShipment.events.length - 1].location 
                                            : 'In Transit');
-                            const cityChanged = newCity && newCity !== currentCityInPopup && newCity !== 'In Transit';
+                            
+                            // Toujours considérer que la ville change si on force la mise à jour (calcul côté client)
+                            // Cela permet de toujours mettre à jour le marqueur même si la ville n'a pas changé textuellement
+                            const cityChanged = forceUpdate || (newCity && newCity !== currentCityInPopup && newCity !== 'In Transit');
                             
                             // Toujours mettre à jour si coordonnées ou ville changent, ou si le statut change
                             const statusChanged = updatedShipment.status !== shipment.status;
