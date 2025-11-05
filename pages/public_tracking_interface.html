@@ -1945,6 +1945,13 @@
                                 }
                                 
                                 const elapsedTime = (now - startedAt) - pausedDuration;
+                                
+                                // S'assurer que totalTime n'est pas négatif ou trop petit
+                                if (totalTime <= 0) {
+                                    console.warn('⚠️ Total time is invalid:', totalTime);
+                                    return calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events);
+                                }
+                                
                                 let progress = Math.min(1, Math.max(0, elapsedTime / totalTime));
                                 
                                 // Interpoler entre origine et destination pour une progression continue
@@ -1955,10 +1962,23 @@
                                     progress: (progress * 100).toFixed(2) + '%',
                                     elapsedTime: (elapsedTime / 1000 / 60).toFixed(2) + ' min',
                                     totalTime: (totalTime / 1000 / 60).toFixed(2) + ' min',
-                                    coords: [lat, lng]
+                                    startedAt: startedAt.toISOString(),
+                                    estimatedDelivery: estimatedDelivery.toISOString(),
+                                    now: now.toISOString(),
+                                    coords: [lat, lng],
+                                    originCoords,
+                                    destCoords
                                 });
                                 
                                 return [lat, lng];
+                            } else {
+                                console.warn('⚠️ Cannot calculate continuous progression:', {
+                                    hasStartedAt: !!startedAt,
+                                    hasEstimatedDelivery: !!estimatedDelivery,
+                                    hasSenderLat: !!updatedShipment.sender?.address?.lat,
+                                    startedAt,
+                                    estimatedDelivery
+                                });
                             }
                             
                             // Fallback: utiliser calculateCurrentPosition basé sur le statut
@@ -2011,6 +2031,17 @@
                             // Pour la progression automatique, utiliser un seuil encore plus petit
                             const coordinateChanged = latDiff > 0.00001 || lngDiff > 0.00001;
                             
+                            // Log pour déboguer pourquoi les coordonnées ne changent pas
+                            if (!coordinateChanged && !useServerCoords) {
+                                console.log('⚠️ Coordinates unchanged but calculated:', {
+                                    oldCoords: [oldCoords.lat, oldCoords.lng],
+                                    newCoords,
+                                    latDiff,
+                                    lngDiff,
+                                    threshold: 0.00001
+                                });
+                            }
+                            
                             // Extraire la ville actuelle
                             let currentCityInPopup = '';
                             try {
@@ -2037,7 +2068,20 @@
                             // Toujours mettre à jour pour une progression continue
                             // Forcer la mise à jour même si les changements sont minimes pour une animation fluide
                             const forceUpdate = !useServerCoords; // Toujours mettre à jour si on calcule côté client
+                            
+                            // Pour une progression continue, mettre à jour même si les coordonnées sont identiques
+                            // Cela permet de mettre à jour la route et les infos même si la position n'a pas changé
+                            // Mais on ne met à jour le marqueur que si les coordonnées changent vraiment
                             if (shouldUpdate || forceUpdate || updatedShipment.status !== 'pending') {
+                                // Si les coordonnées ne changent pas mais qu'on force la mise à jour,
+                                // mettre à jour quand même pour rafraîchir les infos (mais pas le marqueur)
+                                if (!coordinateChanged && forceUpdate) {
+                                    console.log('🔄 Forcing map info update (coordinates unchanged but calculated)');
+                                    // Mettre à jour les infos mais pas le marqueur si les coordonnées sont identiques
+                                    updateMapInfo(updatedShipment, originCoords, destCoords, newCoords);
+                                    shipment = updatedShipment;
+                                    return; // Ne pas déplacer le marqueur si les coordonnées sont identiques
+                                }
                                 console.log(`📍 Map updating:`, {
                                     city: newCity,
                                     coords: newCoords,
