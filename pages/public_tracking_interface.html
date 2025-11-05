@@ -2112,6 +2112,16 @@
                                 // Mettre à jour la route
                                 const routeDistance = calculateRouteDistance(originCoords, newCoords, destCoords);
                                 
+                                // Log pour déboguer la distance
+                                console.log('📏 Route distance:', {
+                                    traveled: routeDistance.traveled.toFixed(2) + ' miles',
+                                    remaining: routeDistance.remaining.toFixed(2) + ' miles',
+                                    total: routeDistance.total.toFixed(2) + ' miles',
+                                    newCoords,
+                                    originCoords,
+                                    destCoords
+                                });
+                                
                                 if (routePolyline && map) {
                                     map.removeLayer(routePolyline);
                                 }
@@ -2122,7 +2132,7 @@
                                     dashArray: '10, 10'
                                 }).addTo(map);
                                 
-                                // Mettre à jour les infos
+                                // Mettre à jour les infos avec la distance recalculée
                                 updateMapInfo(updatedShipment, originCoords, destCoords, newCoords, routeDistance);
                                 
                                 // Centrer la carte si le mouvement est significatif
