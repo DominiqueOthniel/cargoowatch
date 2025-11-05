@@ -375,9 +375,10 @@ function findNearestCity(lat, lng) {
 }
 
 function calculateAutomaticProgression(shipment) {
-    if (!shipment.autoProgress?.enabled || shipment.status === 'delivered' || shipment.status === 'pending') {
+    if (!shipment.autoProgress?.enabled || shipment.status === 'delivered') {
         return null;
     }
+    // Permettre le calcul même pour "pending" si autoProgress est activé
     if (!shipment.sender?.address?.lat || !shipment.recipient?.address?.lat) {
         return null;
     }

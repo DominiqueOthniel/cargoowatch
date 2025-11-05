@@ -770,10 +770,6 @@
                 clearInterval(trackingInterval);
                 trackingInterval = null;
             }
-            if (continuousProgressionInterval) {
-                clearInterval(continuousProgressionInterval);
-                continuousProgressionInterval = null;
-            }
 
             // Hide all sections first
             document.getElementById('tracking-results').classList.add('hidden');
@@ -882,9 +878,6 @@
                 timelineContainer.appendChild(timelineItem);
             });
 
-            // Stocker le shipment dans la variable globale
-            currentShipment = shipment;
-            
             // Initialize and show map
             initMap(shipment);
             startRealtimeTracking(shipment);
@@ -1421,7 +1414,6 @@
         let originMarker = null;
         let destinationMarker = null;
         let trackingInterval = null;
-        let currentShipment = null; // Variable globale pour stocker le shipment actuel (mis à jour en temps réel)
         
         // Initialize map
         function initMap(shipment) {
@@ -1480,23 +1472,14 @@
                     destCoords = [38.9072, -77.0369]; // Fallback to Washington
                 }
                 
-                // Use actual GPS coordinates if available, otherwise calculate based on continuous time-based progress
+                // Use actual GPS coordinates if available, otherwise calculate based on status
                 let currentCoords;
                 if (shipment.currentLocation?.lat && shipment.currentLocation?.lng) {
-                    const serverCoords = [shipment.currentLocation.lat, shipment.currentLocation.lng];
-                    // Vérifier si les coordonnées sont différentes de l'origine
-                    const originLatDiff = Math.abs(serverCoords[0] - originCoords[0]);
-                    const originLngDiff = Math.abs(serverCoords[1] - originCoords[1]);
-                    
-                    // Si très proche de l'origine, utiliser la progression continue
-                    if (originLatDiff < 0.01 && originLngDiff < 0.01 && shipment.status !== 'pending') {
-                        currentCoords = calculateCurrentPosition(originCoords, destCoords, shipment.status, shipment.events, shipment);
-                    } else {
-                        currentCoords = serverCoords;
-                    }
+                    // Use actual coordinates set by admin
+                    currentCoords = [shipment.currentLocation.lat, shipment.currentLocation.lng];
                 } else {
-                    // Calculate position based on continuous time-based progress
-                    currentCoords = calculateCurrentPosition(originCoords, destCoords, shipment.status, shipment.events, shipment);
+                    // Fallback: calculate position based on status
+                    currentCoords = calculateCurrentPosition(originCoords, destCoords, shipment.status, shipment.events);
                 }
                 
                 console.log('📍 Coordinates:', { origin: originCoords, current: currentCoords, dest: destCoords });
@@ -1812,101 +1795,17 @@
             return [39.8283, -98.5795];
         }
         
-        // Calculate continuous progress based on time elapsed (not just status)
-        function calculateContinuousProgress(shipment) {
-            if (shipment.status === 'delivered') {
-                return 1.0; // 100%
-            }
-            if (shipment.status === 'pending') {
-                return 0.0; // 0% - rester à l'origine
-            }
-            
-            // Si pas de estimatedDelivery, utiliser le calcul basé sur les statuts
-            if (!shipment.estimatedDelivery) {
-                return calculateProgress(shipment.events || [], shipment.status) / 100;
-            }
-            
-            // Déterminer le point de départ
-            let startTime = null;
-            if (shipment.autoProgress?.startedAt) {
-                startTime = new Date(shipment.autoProgress.startedAt);
-            } else if (shipment.status !== 'pending') {
-                // Trouver le premier événement actif
-                const firstActiveEvent = shipment.events?.find(e => e.status !== 'pending');
-                if (firstActiveEvent) {
-                    startTime = new Date(firstActiveEvent.timestamp);
-                } else if (shipment.createdAt) {
-                    startTime = new Date(shipment.createdAt);
-                }
-            } else {
-                // Toujours pending, pas de progression
-                return 0.0;
-            }
-            
-            if (!startTime) {
-                return calculateProgress(shipment.events || [], shipment.status) / 100;
-            }
-            
-            const now = new Date();
-            const estimatedDelivery = new Date(shipment.estimatedDelivery);
-            const totalTime = estimatedDelivery - startTime;
-            
-            if (totalTime <= 0) {
-                return 1.0; // Livraison estimée déjà passée
-            }
-            
-            // Calculer le temps écoulé (en tenant compte des pauses)
-            let pausedDuration = shipment.autoProgress?.pausedDuration || 0;
-            if (shipment.autoProgress?.paused && shipment.autoProgress?.pausedAt) {
-                const pauseStart = new Date(shipment.autoProgress.pausedAt);
-                pausedDuration += (now - pauseStart);
-            }
-            
-            const elapsedTime = (now - startTime) - pausedDuration;
-            let progress = Math.min(1.0, Math.max(0.0, elapsedTime / totalTime));
-            
-            // Accélérer la progression pour la rendre plus visible et réaliste
-            // Multiplier par un facteur d'accélération (2.0x = 100% plus rapide pour test)
-            const speedMultiplier = 2.0;
-            progress = Math.min(1.0, progress * speedMultiplier);
-            
-            // Pour picked_up, commencer à 10% minimum mais ne pas forcer si le temps n'est pas encore écoulé
-            if (shipment.status === 'picked_up' && progress < 0.1 && elapsedTime > 0) {
-                progress = Math.max(0.1, progress);
-            }
-            
-            // Pour in_transit, permettre la progression naturelle (ne pas forcer le minimum)
-            // La progression basée sur le temps doit être naturelle
-            // Si on force 40%, ça bloque la progression
-            // if (shipment.status === 'in_transit' && progress < 0.4) {
-            //     progress = Math.max(0.4, progress);
-            // }
-            
-            // Pour out_for_delivery, permettre la progression naturelle
-            // if (shipment.status === 'out_for_delivery' && progress < 0.8) {
-            //     progress = Math.max(0.8, progress);
-            // }
-            
-            return progress;
-        }
-        
-        // Calculate current position based on status and continuous time-based progress
-        function calculateCurrentPosition(origin, dest, status, events, shipment = null) {
+        // Calculate current position based on status and progress
+        function calculateCurrentPosition(origin, dest, status, events) {
             if (status === 'delivered') {
                 return dest;
             }
-            if (status === 'pending') {
+            if (status === 'pending' || status === 'picked_up') {
                 return origin;
             }
             
-            // Utiliser la progression continue basée sur le temps si shipment est fourni
-            let progress = 0;
-            if (shipment) {
-                progress = calculateContinuousProgress(shipment);
-            } else {
-                // Fallback : calculer basé sur les événements
-                progress = calculateProgress(events || [], status) / 100;
-            }
+            // Calculate progress based on events
+            const progress = calculateProgress(events || [], status) / 100;
             
             // Interpolate between origin and destination
             const lat = origin[0] + (dest[0] - origin[0]) * progress;
@@ -1977,93 +1876,15 @@
             }
         }
         
-        // Real-time tracking updates - Poll API for updates set by admin + continuous progression
-        let continuousProgressionInterval = null;
-        
+        // Real-time tracking updates - Poll API for updates set by admin
         function startRealtimeTracking(shipment) {
             if (trackingInterval) {
                 clearInterval(trackingInterval);
             }
-            if (continuousProgressionInterval) {
-                clearInterval(continuousProgressionInterval);
-            }
             
             const trackingId = shipment.trackingId;
             
-            // Stocker le shipment dans la variable globale
-            currentShipment = shipment;
-            
-            // Démarrer la progression continue (toutes les 500ms pour animation fluide et rapide)
-            if (shipment.status !== 'pending' && shipment.status !== 'delivered') {
-                console.log('🚀 Starting continuous progression interval for:', shipment.trackingId);
-                continuousProgressionInterval = setInterval(() => {
-                    // Utiliser currentShipment qui est mis à jour en temps réel
-                    if (!map || !currentMarker || !currentShipment) {
-                        if (!currentShipment) console.warn('⚠️ No currentShipment available');
-                        return;
-                    }
-                    
-                    const originCoords = currentShipment.sender?.address?.lat && currentShipment.sender?.address?.lng
-                        ? [currentShipment.sender.address.lat, currentShipment.sender.address.lng]
-                        : getCityCoordinates(currentShipment.sender?.address?.city || 'New York');
-                    
-                    const destCoords = currentShipment.recipient?.address?.lat && currentShipment.recipient?.address?.lng
-                        ? [currentShipment.recipient.address.lat, currentShipment.recipient.address.lng]
-                        : getCityCoordinates(currentShipment.recipient?.address?.city || 'Washington');
-                    
-                    // Calculer la nouvelle position basée sur la progression continue (utiliser currentShipment)
-                    const newCoords = calculateCurrentPosition(originCoords, destCoords, currentShipment.status, currentShipment.events, currentShipment);
-                    const oldCoords = currentMarker.getLatLng();
-                    
-                    // Calculer la progression pour logging
-                    const progress = calculateContinuousProgress(currentShipment);
-                    
-                    // TOUJOURS mettre à jour pour animation fluide (même si changement minime)
-                    // Le temps s'écoule, donc la position doit changer
-                    const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
-                    const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
-                    
-                    // Mettre à jour même si le changement est très petit (progression continue)
-                    if (latDiff > 0.0000001 || lngDiff > 0.0000001 || true) { // Toujours mettre à jour pour progression fluide
-                        // Animer le mouvement du marqueur
-                        currentMarker.setLatLng(newCoords);
-                        
-                        // Mettre à jour la route
-                        if (routePolyline && map) {
-                            map.removeLayer(routePolyline);
-                        }
-                        routePolyline = L.polyline([originCoords, newCoords, destCoords], {
-                            color: '#3b82f6',
-                            weight: 5,
-                            opacity: 0.8,
-                            dashArray: '10, 10'
-                        }).addTo(map);
-                        
-                        // Mettre à jour les infos
-                        const routeDistance = calculateRouteDistance(originCoords, newCoords, destCoords);
-                        updateMapInfo(currentShipment, originCoords, destCoords, newCoords, routeDistance);
-                        
-                        // Mettre à jour la barre de progression (utiliser la progression calculée)
-                        const progressPercent = progress * 100;
-                        const progressBar = document.getElementById('progress-bar');
-                        if (progressBar) {
-                            progressBar.style.width = progressPercent + '%';
-                        }
-                        
-                        // Log pour déboguer (toutes les 10 secondes seulement pour éviter spam)
-                        if (Math.random() < 0.1) { // 10% de chance = environ toutes les 5 secondes
-                            console.log('🔄 Continuous progression:', {
-                                progress: (progress * 100).toFixed(2) + '%',
-                                status: currentShipment.status,
-                                coords: newCoords.map(c => c.toFixed(6)),
-                                oldCoords: [oldCoords.lat.toFixed(6), oldCoords.lng.toFixed(6)]
-                            });
-                        }
-                    }
-                }, 500); // Mise à jour toutes les 500ms (2 fois par seconde) pour progression plus rapide et fluide
-            }
-            
-            // Poll API every 10 seconds to get updates from admin (more frequent for better UX)
+            // Poll API every 3 seconds for smooth continuous progression
             trackingInterval = setInterval(async () => {
                 try {
                     const response = await fetch(`/api/shipments/${trackingId}`);
@@ -2096,22 +1917,20 @@
                                 useServerCoords = true;
                                 console.log('📍 Using server coordinates:', newCoords);
                             } else {
-                                // Coordonnées identiques à l'origine, calculer la progression continue
-                                newCoords = calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events, updatedShipment);
-                                const continuousProgress = calculateContinuousProgress(updatedShipment);
-                                console.log('📍 Server coords at origin, calculating continuous progression:', {
+                                // Coordonnées identiques à l'origine, calculer la progression
+                                newCoords = calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events);
+                                console.log('📍 Server coords at origin, calculating progression:', {
                                     status: updatedShipment.status,
-                                    progress: (continuousProgress * 100).toFixed(1) + '%',
+                                    progress: calculateProgress(updatedShipment.events || [], updatedShipment.status),
                                     calculated: newCoords
                                 });
                             }
                         } else {
-                            // Pas de coordonnées serveur, calculer la position basée sur la progression continue
-                            newCoords = calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events, updatedShipment);
-                            const continuousProgress = calculateContinuousProgress(updatedShipment);
-                            console.log('📍 Calculated position based on continuous progress:', {
+                            // Pas de coordonnées serveur, calculer la position basée sur le statut et la progression
+                            newCoords = calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events);
+                            console.log('📍 Calculated position based on status:', {
                                 status: updatedShipment.status,
-                                progress: (continuousProgress * 100).toFixed(1) + '%',
+                                progress: calculateProgress(updatedShipment.events || [], updatedShipment.status),
                                 coords: newCoords
                             });
                         }
@@ -2189,8 +2008,8 @@
                                     map.panTo(newCoords, { animate: true, duration: 1.5 });
                                 }
                                 
-                                // Mettre à jour la barre de progression (utiliser la progression continue)
-                                const progress = calculateContinuousProgress(updatedShipment) * 100;
+                                // Mettre à jour la barre de progression
+                                const progress = calculateProgress(updatedShipment.events || [], updatedShipment.status);
                                 const progressBar = document.getElementById('progress-bar');
                                 if (progressBar) {
                                     progressBar.style.width = progress + '%';
@@ -2207,22 +2026,6 @@
                             initMap(updatedShipment);
                         } else {
                             console.log('⚠️ No coordinates available for shipment:', updatedShipment.currentLocation);
-                        }
-                        
-                        // Mettre à jour la variable globale currentShipment pour la progression continue
-                        currentShipment = updatedShipment;
-                        
-                        // Arrêter la progression continue si livré ou pending
-                        if (updatedShipment.status === 'delivered' || updatedShipment.status === 'pending') {
-                            if (continuousProgressionInterval) {
-                                console.log('⏸️ Stopping continuous progression (status:', updatedShipment.status, ')');
-                                clearInterval(continuousProgressionInterval);
-                                continuousProgressionInterval = null;
-                            }
-                        } else if (!continuousProgressionInterval) {
-                            // Redémarrer la progression continue si le statut change vers actif
-                            console.log('▶️ Restarting continuous progression (status:', updatedShipment.status, ')');
-                            startRealtimeTracking(updatedShipment);
                         }
                         
                         // Stop tracking if delivered
