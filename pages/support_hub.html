@@ -880,6 +880,39 @@
             }
         }
 
+        // Load user info and pre-fill chat form
+        async function loadUserInfoForChat() {
+            try {
+                const response = await fetch('/api/auth/me', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.user) {
+                        // Pre-fill name field
+                        const nameInput = document.getElementById('client-name');
+                        if (nameInput) {
+                            if (data.user.firstName && data.user.lastName) {
+                                nameInput.value = `${data.user.firstName} ${data.user.lastName}`;
+                            } else if (data.user.firstName) {
+                                nameInput.value = data.user.firstName;
+                            } else if (data.user.username) {
+                                nameInput.value = data.user.username;
+                            }
+                            nameInput.readOnly = true; // Make it readonly since user is logged in
+                        }
+                        
+                        // Pre-fill email field
+                        const emailInput = document.getElementById('client-email');
+                        if (emailInput && data.user.email) {
+                            emailInput.value = data.user.email;
+                            emailInput.readOnly = true; // Make it readonly since user is logged in
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('User not logged in or error loading user info:', error);
+            }
+        }
+
         // Chat bubble button handler
         document.getElementById('chat-bubble-btn-support')?.addEventListener('click', () => {
             const chatWidget = document.getElementById('chat-widget');
@@ -888,6 +921,7 @@
                 chatWidget.classList.remove('hidden');
                 chatBubble.classList.add('hidden');
                 initSocket();
+                loadUserInfoForChat(); // Pre-fill user info when opening chat
             } else {
                 chatWidget.classList.add('hidden');
                 chatBubble.classList.remove('hidden');
@@ -906,6 +940,9 @@
                 
                 // Initialize socket if not already done
                 initSocket();
+                
+                // Pre-fill user info when opening chat
+                loadUserInfoForChat();
                 
                 // Scroll to chat widget smoothly
                 setTimeout(() => {

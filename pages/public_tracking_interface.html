@@ -2519,6 +2519,39 @@
         let chatSocketTracking = null;
         let currentChatIdTracking = null;
 
+        // Load user info and pre-fill chat form
+        async function loadUserInfoForChatTracking() {
+            try {
+                const response = await fetch('/api/auth/me', { credentials: 'include' });
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.user) {
+                        // Pre-fill name field
+                        const nameInput = document.getElementById('client-name-tracking');
+                        if (nameInput) {
+                            if (data.user.firstName && data.user.lastName) {
+                                nameInput.value = `${data.user.firstName} ${data.user.lastName}`;
+                            } else if (data.user.firstName) {
+                                nameInput.value = data.user.firstName;
+                            } else if (data.user.username) {
+                                nameInput.value = data.user.username;
+                            }
+                            nameInput.readOnly = true; // Make it readonly since user is logged in
+                        }
+                        
+                        // Pre-fill email field
+                        const emailInput = document.getElementById('client-email-tracking');
+                        if (emailInput && data.user.email) {
+                            emailInput.value = data.user.email;
+                            emailInput.readOnly = true; // Make it readonly since user is logged in
+                        }
+                    }
+                }
+            } catch (error) {
+                console.log('User not logged in or error loading user info:', error);
+            }
+        }
+
         document.getElementById('chat-bubble-btn')?.addEventListener('click', () => {
             const chatWidget = document.getElementById('chat-widget');
             const chatBubble = document.getElementById('chat-bubble-widget');
@@ -2526,6 +2559,8 @@
                 chatWidget.classList.remove('hidden');
                 chatBubble.classList.add('hidden');
                 initSocketTracking();
+                // Pre-fill user info when opening chat
+                loadUserInfoForChatTracking();
                 // Auto-fill tracking ID if available
                 const trackingInput = document.getElementById('tracking-id-input');
                 const chatTrackingId = document.getElementById('chat-tracking-id-tracking');
