@@ -712,9 +712,32 @@
         
         /* Chat Messages - Scrollable area with proper overflow handling */
         #chat-messages {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f7fafc;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
             min-height: 0 !important;
+            flex: 1 1 0% !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+        }
+        
+        #chat-messages::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        #chat-messages::-webkit-scrollbar-track {
+            background: #f7fafc;
+            border-radius: 4px;
+        }
+        
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: #cbd5e0;
+            border-radius: 4px;
+        }
+        
+        #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #a0aec0;
         }
         
         /* Ensure messages don't overflow - CRITICAL */
@@ -729,7 +752,7 @@
         }
         
         #chat-messages > div > div {
-            max-width: 85% !important;
+            max-width: 75% !important;
             width: fit-content !important;
             min-width: 0 !important;
             word-wrap: break-word !important;
@@ -767,12 +790,30 @@
                 width: 28px !important;
                 height: 28px !important;
             }
+            
+            #chat-widget {
+                top: 10px !important;
+                left: 10px !important;
+                right: 10px !important;
+                bottom: 10px !important;
+                max-width: calc(100vw - 20px) !important;
+                max-height: calc(100vh - 20px) !important;
+            }
+            
+            #chat-widget > div {
+                width: 100% !important;
+                height: 100% !important;
+            }
+            
+            #chat-messages > div > div {
+                max-width: 85% !important;
+            }
         }
     </style>
 
     <!-- Chat Widget (same as support_hub) -->
-    <div id="chat-widget" class="fixed bottom-6 right-6 z-50 hidden" style="bottom: 100px;">
-        <div class="bg-white rounded-lg shadow-2xl w-96 h-[600px] flex flex-col border border-border">
+    <div id="chat-widget" class="fixed z-50 hidden" style="top: 20px; left: 20px; right: 20px; bottom: 20px; max-width: calc(100vw - 40px); max-height: calc(100vh - 40px);">
+        <div class="bg-white rounded-lg shadow-2xl flex flex-col border border-border" style="width: 100%; height: 100%; overflow: hidden;">
             <!-- Chat Header -->
             <div class="bg-primary text-white p-4 rounded-t-lg flex items-center justify-between">
                 <div class="flex items-center space-x-2">
@@ -940,9 +981,9 @@
             messageDiv.style.cssText = 'width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;';
             
             messageDiv.innerHTML = `
-                <div class="${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3" style="max-width: 85% !important; width: fit-content !important; min-width: 0 !important; word-wrap: break-word !important; overflow-wrap: break-word !important; box-sizing: border-box !important; overflow: visible !important; display: inline-block !important;">
-                    <div class="text-xs font-semibold mb-1" style="word-wrap: break-word !important; overflow-wrap: break-word !important; overflow: visible !important;">${safeName}</div>
-                    ${safeText ? `<div class="mb-2 break-words" style="word-wrap: break-word !important; overflow-wrap: break-word !important; white-space: pre-wrap !important; overflow: visible !important; max-width: 100% !important;">${safeText}</div>` : ''}
+                <div class="${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3" style="max-width: 75% !important; width: fit-content !important; min-width: 0 !important; word-wrap: break-word !important; overflow-wrap: break-word !important; box-sizing: border-box !important; overflow: visible !important; display: inline-block !important;">
+                    <div class="text-xs font-semibold mb-1" style="word-wrap: break-word !important; overflow-wrap: break-word !important; overflow: visible !important; max-width: 100% !important;">${safeName}</div>
+                    ${safeText ? `<div class="mb-2 break-words" style="word-wrap: break-word !important; overflow-wrap: break-word !important; white-space: pre-wrap !important; overflow: visible !important; max-width: 100% !important; word-break: break-word !important;">${safeText}</div>` : ''}
                     <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
                 </div>
             `;

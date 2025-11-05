@@ -554,8 +554,8 @@
     </style>
 
     <!-- Live Chat Widget -->
-    <div id="chat-widget" class="fixed bottom-6 right-6 z-50 hidden" style="bottom: 100px; max-height: calc(100vh - 120px);">
-        <div id="chat-widget-container" class="bg-white rounded-lg shadow-2xl w-96 max-w-[calc(100vw-48px)] h-[600px] max-h-[calc(100vh-120px)] flex flex-col border border-border" style="overflow: hidden; display: flex; flex-direction: column;">
+    <div id="chat-widget" class="fixed z-50 hidden" style="top: 20px; left: 20px; right: 20px; bottom: 20px; max-width: calc(100vw - 40px); max-height: calc(100vh - 40px);">
+        <div id="chat-widget-container" class="bg-white rounded-lg shadow-2xl flex flex-col border border-border" style="width: 100%; height: 100%; overflow: hidden; display: flex; flex-direction: column;">
             <!-- Chat Header -->
             <div class="bg-primary text-white p-4 rounded-t-lg flex items-center justify-between" style="flex-shrink: 0;">
                 <div class="flex items-center space-x-2">
@@ -630,13 +630,11 @@
             scrollbar-width: thin;
             scrollbar-color: #cbd5e0 #f7fafc;
             min-height: 0 !important;
-            max-height: 100% !important;
-            height: 100% !important; /* Take full height of parent */
+            flex: 1 1 0% !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
-            flex: 1 1 0% !important;
             display: block !important;
             position: relative !important;
         }
@@ -672,14 +670,14 @@
         }
         
         #chat-messages > div > div {
-            max-width: 85% !important;
-            width: auto !important;
+            max-width: 75% !important;
+            width: fit-content !important;
             min-width: 0 !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
             hyphens: auto;
             box-sizing: border-box !important;
-            overflow: hidden !important;
+            overflow: visible !important;
             display: inline-block !important;
         }
         
@@ -721,19 +719,22 @@
         /* Mobile Responsive */
         @media (max-width: 640px) {
             #chat-widget {
-                bottom: 16px !important;
-                right: 16px !important;
-                left: 16px !important;
-                width: auto !important;
-                max-width: none !important;
-                max-height: calc(100vh - 80px) !important;
+                top: 10px !important;
+                left: 10px !important;
+                right: 10px !important;
+                bottom: 10px !important;
+                max-width: calc(100vw - 20px) !important;
+                max-height: calc(100vh - 20px) !important;
             }
             
             #chat-widget > div {
                 width: 100% !important;
                 max-width: 100% !important;
                 height: 100% !important;
-                max-height: calc(100vh - 80px) !important;
+            }
+            
+            #chat-messages > div > div {
+                max-width: 85% !important;
             }
         }
     </style>
@@ -984,32 +985,10 @@
             }
         }
 
-        // Force chat messages container to respect height constraints
+        // Force chat messages container to respect height constraints (not needed with fullscreen)
         function enforceChatHeight() {
-            const chatWidget = document.getElementById('chat-widget-container');
-            const chatMessagesContainer = document.getElementById('chat-messages-container');
-            const chatMessages = document.getElementById('chat-messages');
-            
-            if (!chatWidget || !chatMessagesContainer || !chatMessages) return;
-            
-            // Only enforce if messages container is visible
-            if (chatMessagesContainer.classList.contains('hidden')) return;
-            
-            // Get widget height
-            const widgetHeight = chatWidget.offsetHeight;
-            const headerHeight = chatWidget.querySelector('.bg-primary')?.offsetHeight || 64;
-            const headerInfoHeight = document.getElementById('chat-header-info')?.offsetHeight || 0;
-            const inputAreaHeight = chatMessagesContainer.querySelector('.border-t')?.offsetHeight || 80;
-            
-            // Calculate available height for messages
-            const availableHeight = widgetHeight - headerHeight - headerInfoHeight - inputAreaHeight;
-            
-            // Force the messages container and messages area to respect this height
-            if (availableHeight > 0) {
-                chatMessagesContainer.style.maxHeight = `${availableHeight + headerInfoHeight + inputAreaHeight}px`;
-                chatMessages.style.maxHeight = `${availableHeight}px`;
-                chatMessages.style.height = `${availableHeight}px`;
-            }
+            // Function kept for compatibility but no longer needed with fullscreen layout
+            // The flexbox layout handles height automatically
         }
         
         // Add message to chat UI
@@ -1031,9 +1010,9 @@
             // The CSS rule #chat-messages > div > div already handles max-width: 85%
             // This ensures messages adapt to container width regardless of screen size
             messageDiv.innerHTML = `
-                <div class="${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3" style="max-width: 85% !important; width: fit-content !important; min-width: 0 !important; word-wrap: break-word !important; overflow-wrap: break-word !important; hyphens: auto; box-sizing: border-box !important; overflow: visible !important; display: inline-block !important;">
-                    <div class="${isClient ? 'text-xs' : 'text-sm'} font-semibold mb-1" style="word-wrap: break-word !important; overflow-wrap: break-word !important; overflow: visible !important;">${safeName}</div>
-                    ${safeText ? `<div class="${isClient ? 'text-sm' : 'text-base'} mb-2" style="word-wrap: break-word !important; overflow-wrap: break-word !important; white-space: pre-wrap !important; overflow: visible !important; max-width: 100% !important;">${safeText}</div>` : ''}
+                <div class="${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3" style="max-width: 75% !important; width: fit-content !important; min-width: 0 !important; word-wrap: break-word !important; overflow-wrap: break-word !important; hyphens: auto; box-sizing: border-box !important; overflow: visible !important; display: inline-block !important;">
+                    <div class="${isClient ? 'text-xs' : 'text-sm'} font-semibold mb-1" style="word-wrap: break-word !important; overflow-wrap: break-word !important; overflow: visible !important; max-width: 100% !important;">${safeName}</div>
+                    ${safeText ? `<div class="${isClient ? 'text-sm' : 'text-base'} mb-2" style="word-wrap: break-word !important; overflow-wrap: break-word !important; white-space: pre-wrap !important; overflow: visible !important; max-width: 100% !important; word-break: break-word !important;">${safeText}</div>` : ''}
                     <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
                 </div>
             `;
