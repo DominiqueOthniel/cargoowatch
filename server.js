@@ -2777,9 +2777,10 @@ app.post('/api/chat/:chatId/message', async (req, res) => {
         chat.updatedAt = new Date().toISOString();
         chat.status = chat.status === 'open' ? 'active' : chat.status;
         await writeChats(chats);
-        // Emit to all users in the specific chat room and also broadcast to all admins
+        // Emit to all users in the specific chat room (clients and admins viewing this chat)
         io.to(`chat-${chatId}`).emit('new-message', { chatId, message });
-        io.emit('new-message', { chatId, message }); // Also emit to all (for admin dashboard updates)
+        // Also emit to admin room for dashboard updates (admins must join this room)
+        io.to('admins').emit('new-message', { chatId, message });
         res.json(message);
     } catch (error) {
         console.error('Error sending message:', error);
@@ -2876,22 +2877,59 @@ app.put('/api/chat/:chatId/read', requireAuth, requireAdmin, async (req, res) =>
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
-    console.log('ðŸ‘¤ User connected:', socket.id);
+    console.log('👤 User connected:', socket.id);
+    
     socket.on('join-chat', (chatId) => {
         socket.join(`chat-${chatId}`);
-        console.log(`ðŸ‘¥ User ${socket.id} joined chat ${chatId}`);
+        console.log(`💬 User ${socket.id} joined chat ${chatId}`);
     });
+    
     socket.on('leave-chat', (chatId) => {
         socket.leave(`chat-${chatId}`);
-        console.log(`ðŸ‘‹ User ${socket.id} left chat ${chatId}`);
+        console.log(`👋 User ${socket.id} left chat ${chatId}`);
     });
+    
+    socket.on('join-admins', () => {
+        socket.join('admins');
+        console.log(`👑 Admin ${socket.id} joined admin room`);
+    });
+    
+    socket.on('leave-admins', () => {
+        socket.leave('admins');
+        console.log(`👋 Admin ${socket.id} left admin room`);
+    });
+    
     socket.on('disconnect', () => {
-        console.log('ðŸ‘‹ User disconnected:', socket.id);
+        console.log('👋 User disconnected:', socket.id);
     });
 });
 
-// Routes pour servir les pages
-app.get('/pages/:page', (req, res) => {
+// Pages publiques qui ne nécessitent pas d'authentification
+const publicPages = ['user_login', 'user_register', 'admin_login', 'public_tracking_interface'];
+
+// Middleware pour vérifier l'authentification sur les pages principales
+function requirePageAuth(req, res, next) {
+    const page = req.params.page;
+    const pageName = page.replace(/\.html$/, '');
+    
+    // Si la page est publique, laisser passer
+    if (publicPages.includes(pageName)) {
+        return next();
+    }
+    
+    // Vérifier si l'utilisateur est authentifié
+    if (req.session && req.session.userId) {
+        return next();
+    }
+    
+    // Rediriger vers la page de login appropriée
+    // Les admins vers admin_login, les autres vers user_login
+    const loginPage = pageName.includes('admin') ? 'admin_login.html' : 'user_login.html';
+    res.redirect(`/pages/${loginPage}`);
+}
+
+// Routes pour servir les pages avec authentification obligatoire
+app.get('/pages/:page', requirePageAuth, (req, res) => {
     const page = req.params.page;
     const pageName = page.replace(/\.html$/, '');
     const filePath = path.join(__dirname, 'pages', `${pageName}.html`);
@@ -2904,7 +2942,12 @@ app.get('/pages/:page', (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    // Rediriger vers la page de login si non authentifié, sinon vers homepage
+    if (req.session && req.session.userId) {
+        res.redirect('/pages/homepage.html');
+    } else {
+        res.redirect('/pages/user_login.html');
+    }
 });
 
 // Serve receipts directory with proper PDF Content-Type

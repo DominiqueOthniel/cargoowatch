@@ -2544,8 +2544,16 @@
                 chatSocketTracking = io(window.location.origin);
                 chatSocketTracking.on('connect', () => console.log('✅ Connected to chat'));
                 chatSocketTracking.on('new-message', (data) => {
+                    // Only process messages for the current chat to avoid duplicates
                     if (data.chatId === currentChatIdTracking) {
-                        addMessageToChatTracking(data.message);
+                        // Check if message already exists to prevent duplicates
+                        const messagesContainer = document.getElementById('chat-messages-tracking');
+                        if (messagesContainer) {
+                            const existingMessage = messagesContainer.querySelector(`[data-message-id="${data.message.id}"]`);
+                            if (!existingMessage) {
+                                addMessageToChatTracking(data.message);
+                            }
+                        }
                     }
                 });
             } catch (error) {
@@ -2626,6 +2634,7 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `flex ${isClient ? 'justify-end' : 'justify-start'} mb-3`;
             messageDiv.style.cssText = 'width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;';
+            messageDiv.setAttribute('data-message-id', message.id || Date.now().toString());
             
             messageDiv.innerHTML = `
                 <div class="${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3" style="max-width: 75% !important; width: fit-content !important; min-width: 0 !important; word-wrap: break-word !important; overflow-wrap: break-word !important; box-sizing: border-box !important; overflow: visible !important; display: inline-block !important;">

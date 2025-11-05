@@ -1649,11 +1649,13 @@
                 
                 chatSocket.on('connect', () => {
                     console.log('✅ Admin connected to chat server, socket ID:', chatSocket.id);
+                    // Join admin room to receive all chat updates
+                    chatSocket.emit('join-admins');
                     // Reload chats when connected
                     if (typeof loadChats === 'function') {
-            loadChats();
+                        loadChats();
                     }
-        });
+                });
 
                 chatSocket.on('connect_error', (error) => {
                     console.error('❌ Socket connection error:', error);

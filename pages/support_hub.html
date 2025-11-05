@@ -852,9 +852,17 @@
                 });
                 
                 socket.on('new-message', (data) => {
+                    // Only process messages for the current chat to avoid duplicates
                     if (data.chatId === currentChatId) {
-                        addMessageToChat(data.message);
-                        scrollToBottom();
+                        // Check if message already exists to prevent duplicates
+                        const messagesContainer = document.getElementById('chat-messages');
+                        if (messagesContainer) {
+                            const existingMessage = messagesContainer.querySelector(`[data-message-id="${data.message.id}"]`);
+                            if (!existingMessage) {
+                                addMessageToChat(data.message);
+                                scrollToBottom();
+                            }
+                        }
                     }
                 });
                 
@@ -1001,6 +1009,7 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `flex ${isClient ? 'justify-end' : 'justify-start'} mb-3`;
             messageDiv.style.cssText = 'width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;';
+            messageDiv.setAttribute('data-message-id', message.id || Date.now().toString());
             
             // Escape HTML to prevent XSS and ensure proper text wrapping
             const safeText = message.text ? message.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
