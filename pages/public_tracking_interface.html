@@ -2007,12 +2007,6 @@
                                     return [adjustedLat, adjustedLng];
                                 }
                                 
-                                // Vérifier que les coordonnées calculées sont valides
-                                if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-                                    console.warn('⚠️ Invalid coordinates calculated, using origin:', { lat, lng, progress });
-                                    return originCoords;
-                                }
-                                
                                 console.log('📊 Continuous progression calculated:', {
                                     progress: (progress * 100).toFixed(2) + '%',
                                     elapsedTime: (elapsedTime / 1000 / 60).toFixed(2) + ' min',
@@ -2022,8 +2016,7 @@
                                     now: now.toISOString(),
                                     coords: [lat, lng],
                                     originCoords,
-                                    destCoords,
-                                    status: updatedShipment.status
+                                    destCoords
                                 });
                                 
                                 return [lat, lng];
@@ -2076,27 +2069,16 @@
                         };
                         console.log('🔍 Progression calculation:', debugInfo);
                         
-                        // Vérifier que toutes les conditions sont remplies avant de mettre à jour
                         if (currentMarker && map && newCoords && Array.isArray(newCoords) && newCoords.length === 2) {
-                            // Valider les coordonnées
-                            const lat = newCoords[0];
-                            const lng = newCoords[1];
-                            
-                            if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-                                console.warn('⚠️ Invalid coordinates detected, skipping update:', { lat, lng, newCoords });
-                                return;
-                            }
-                            
-                            try {
                                 const oldCoords = currentMarker.getLatLng();
-                                
-                                // Calculer la différence
+                            
+                            // Calculer la différence
                                 const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
                                 const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
                                 
-                                // Pour une progression continue, accepter même les plus petits changements
-                                // Seuil très bas pour détecter tout mouvement, même minime
-                                const coordinateChanged = latDiff > 0.000001 || lngDiff > 0.000001;
+                            // Pour une progression continue, accepter même les plus petits changements
+                            // Seuil très bas pour détecter tout mouvement, même minime
+                            const coordinateChanged = latDiff > 0.000001 || lngDiff > 0.000001;
                             
                             // Log pour voir si les coordonnées changent vraiment
                             if (!coordinateChanged && !useServerCoords) {
@@ -2154,8 +2136,7 @@
                             // Pour une progression continue, TOUJOURS mettre à jour le marqueur
                             // Même si les changements sont très petits, déplacer le marqueur pour une animation fluide
                             // MAIS ne pas mettre à jour si le statut est "pending" (le colis n'a pas encore bougé)
-                            // Ne pas mettre à jour non plus si on n'a pas de coordonnées valides
-                            if ((shouldUpdate || forceUpdate) && updatedShipment.status !== 'pending' && newCoords && Array.isArray(newCoords) && newCoords.length === 2) {
+                            if ((shouldUpdate || forceUpdate) && updatedShipment.status !== 'pending') {
                                 // TOUJOURS déplacer le marqueur pour progression continue
                                 // Même si les changements sont minimes, déplacer pour animation fluide
                                 console.log(`📍 Map updating:`, {
@@ -2238,7 +2219,7 @@
                                         
                                         // Mettre à jour la polyline pour montrer le mouvement
                                         if (routePolyline) {
-                                            map.removeLayer(routePolyline);
+                                        map.removeLayer(routePolyline);
                                         }
                                         
                                         // Recréer la polyline avec les nouvelles coordonnées
