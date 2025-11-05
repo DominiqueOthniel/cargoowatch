@@ -2053,12 +2053,24 @@
                                 const oldCoords = currentMarker.getLatLng();
                             
                             // Calculer la différence
-                                const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
-                                const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
-                                
-                            // Mettre à jour si la position change (seuil réduit pour plus de sensibilité)
-                            // Pour la progression automatique, utiliser un seuil encore plus petit
-                                const coordinateChanged = latDiff > 0.00001 || lngDiff > 0.00001;
+                            const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
+                            const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
+                            
+                            // Pour une progression continue, accepter même les plus petits changements
+                            // Seuil très bas pour détecter tout mouvement, même minime
+                            const coordinateChanged = latDiff > 0.000001 || lngDiff > 0.000001;
+                            
+                            // Log pour voir si les coordonnées changent vraiment
+                            if (!coordinateChanged && !useServerCoords) {
+                                console.log('🔍 Coordinate check:', {
+                                    oldCoords: [oldCoords.lat, oldCoords.lng],
+                                    newCoords,
+                                    latDiff,
+                                    lngDiff,
+                                    threshold: 0.000001,
+                                    changed: coordinateChanged
+                                });
+                            }
                                 
                             // Log pour déboguer pourquoi les coordonnées ne changent pas
                             if (!coordinateChanged && !useServerCoords) {
@@ -2098,21 +2110,12 @@
                             // Forcer la mise à jour même si les changements sont minimes pour une animation fluide
                             const forceUpdate = !useServerCoords; // Toujours mettre à jour si on calcule côté client
                             
-                            // Pour une progression continue, mettre à jour même si les coordonnées sont identiques
-                            // Cela permet de mettre à jour la route et les infos même si la position n'a pas changé
-                            // Mais on ne met à jour le marqueur que si les coordonnées changent vraiment
+                            // Pour une progression continue, TOUJOURS mettre à jour le marqueur
+                            // Même si les changements sont très petits, déplacer le marqueur pour une animation fluide
                             if (shouldUpdate || forceUpdate || updatedShipment.status !== 'pending') {
-                                // Si les coordonnées ne changent pas mais qu'on force la mise à jour,
-                                // mettre à jour quand même pour rafraîchir les infos (mais pas le marqueur)
-                                if (!coordinateChanged && forceUpdate) {
-                                    console.log('🔄 Forcing map info update (coordinates unchanged but calculated)');
-                                    // Recalculer la distance même si les coordonnées sont identiques
-                                    const routeDistance = calculateRouteDistance(originCoords, newCoords, destCoords);
-                                    // Mettre à jour les infos mais pas le marqueur si les coordonnées sont identiques
-                                    updateMapInfo(updatedShipment, originCoords, destCoords, newCoords, routeDistance);
-                                    shipment = updatedShipment;
-                                    return; // Ne pas déplacer le marqueur si les coordonnées sont identiques
-                                }
+                                // TOUJOURS déplacer le marqueur si on calcule la progression côté client
+                                // Cela garantit une animation continue même avec de très petits changements
+                                if (forceUpdate || coordinateChanged) {
                                 console.log(`📍 Map updating:`, {
                                     city: newCity,
                                     coords: newCoords,
