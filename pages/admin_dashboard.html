@@ -2443,6 +2443,93 @@
             } else {
                 console.error('❌ view-live-chats-btn element not found');
             }
+            
+            // Fullscreen chat functionality
+            const fullscreenBtn = document.getElementById('chat-fullscreen-btn');
+            const chatContainer = document.getElementById('chat-container');
+            const header = document.querySelector('header');
+            const footer = document.querySelector('footer');
+            let isFullscreen = false;
+            
+            if (fullscreenBtn && chatContainer) {
+                fullscreenBtn.addEventListener('click', () => {
+                    isFullscreen = !isFullscreen;
+                    
+                    if (isFullscreen) {
+                        // Enter fullscreen mode
+                        document.body.classList.add('chat-fullscreen');
+                        if (header) header.classList.add('hidden');
+                        if (footer) footer.classList.add('hidden');
+                        
+                        // Hide tabs and other content
+                        const tabsContainer = document.querySelector('.flex.space-x-8.border-b');
+                        if (tabsContainer) tabsContainer.classList.add('hidden');
+                        
+                        const contentShipments = document.getElementById('content-shipments');
+                        const contentReviews = document.getElementById('content-reviews');
+                        if (contentShipments) contentShipments.classList.add('hidden');
+                        if (contentReviews) contentReviews.classList.add('hidden');
+                        
+                        chatContainer.classList.add('fixed', 'inset-0', 'z-50', 'bg-background', 'p-6');
+                        chatContainer.style.margin = '0';
+                        chatContainer.style.height = '100vh';
+                        chatContainer.style.overflow = 'hidden';
+                        
+                        // Update button
+                        fullscreenBtn.innerHTML = `
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                            <span>Quitter Plein Écran</span>
+                        `;
+                        
+                        // Add exit button
+                        const exitBtn = document.createElement('button');
+                        exitBtn.id = 'chat-exit-fullscreen';
+                        exitBtn.className = 'fixed top-4 right-4 z-[60] bg-error text-white p-3 rounded-full shadow-lg hover:bg-error-600 transition-colors';
+                        exitBtn.innerHTML = `
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        `;
+                        exitBtn.addEventListener('click', () => {
+                            isFullscreen = false;
+                            exitFullscreen();
+                        });
+                        document.body.appendChild(exitBtn);
+                        
+                    } else {
+                        exitFullscreen();
+                    }
+                    
+                    function exitFullscreen() {
+                        document.body.classList.remove('chat-fullscreen');
+                        if (header) header.classList.remove('hidden');
+                        if (footer) footer.classList.remove('hidden');
+                        
+                        // Show tabs and other content
+                        const tabsContainer = document.querySelector('.flex.space-x-8.border-b');
+                        if (tabsContainer) tabsContainer.classList.remove('hidden');
+                        
+                        chatContainer.classList.remove('fixed', 'inset-0', 'z-50', 'bg-background', 'p-6');
+                        chatContainer.style.margin = '';
+                        chatContainer.style.height = '';
+                        chatContainer.style.overflow = '';
+                        
+                        // Update button
+                        fullscreenBtn.innerHTML = `
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                            </svg>
+                            <span>Mode Plein Écran</span>
+                        `;
+                        
+                        // Remove exit button
+                        const exitBtn = document.getElementById('chat-exit-fullscreen');
+                        if (exitBtn) exitBtn.remove();
+                    }
+                });
+            }
 
             document.getElementById('upload-receipt-btn')?.addEventListener('click', async () => {
                 if (!currentReceiptTrackingId) {
