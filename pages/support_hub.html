@@ -629,13 +629,14 @@
             scrollbar-width: thin;
             scrollbar-color: #cbd5e0 #f7fafc;
             min-height: 0 !important;
+            max-height: 100% !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
-            flex: 1 1 0 !important;
-            display: flex !important;
-            flex-direction: column !important;
+            flex: 1 1 0% !important;
+            display: block !important;
+            position: relative !important;
         }
         
         #chat-messages::-webkit-scrollbar {
@@ -664,16 +665,32 @@
             min-width: 0 !important;
             width: 100% !important;
             box-sizing: border-box !important;
+            display: block !important;
+            margin-bottom: 0.75rem !important;
         }
         
         #chat-messages > div > div {
-            max-width: 100% !important;
+            max-width: 85% !important;
             width: auto !important;
+            min-width: 0 !important;
             word-wrap: break-word !important;
             overflow-wrap: break-word !important;
             hyphens: auto;
             box-sizing: border-box !important;
             overflow: hidden !important;
+            display: inline-block !important;
+        }
+        
+        /* For client messages aligned right */
+        #chat-messages > div.justify-end > div {
+            margin-left: auto !important;
+            margin-right: 0 !important;
+        }
+        
+        /* For admin messages aligned left */
+        #chat-messages > div.justify-start > div {
+            margin-left: 0 !important;
+            margin-right: auto !important;
         }
         
         #chat-start-form {
@@ -972,14 +989,16 @@
             const safeText = message.text ? message.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
             const safeName = message.senderName ? message.senderName.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
             
-            // Calculate max width based on container
+            // Calculate max width based on container - use percentage for better responsiveness
             const containerWidth = messagesContainer.offsetWidth || 384; // default to 384px (w-96)
-            const maxMsgWidth = Math.min(containerWidth * 0.8, 320); // 80% of container or max 320px
+            const padding = 32; // 16px padding on each side (p-4)
+            const availableWidth = containerWidth - padding;
+            const maxMsgWidth = Math.min(availableWidth * 0.85, 320); // 85% of available width or max 320px
             
             messageDiv.innerHTML = `
-                <div class="${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3" style="max-width: ${maxMsgWidth}px; width: auto; word-wrap: break-word !important; overflow-wrap: break-word !important; hyphens: auto; box-sizing: border-box !important; overflow: hidden !important;">
-                    <div class="${isClient ? 'text-xs' : 'text-sm'} font-semibold mb-1" style="word-wrap: break-word; overflow-wrap: break-word;">${safeName}</div>
-                    ${safeText ? `<div class="${isClient ? 'text-sm' : 'text-base'} mb-2" style="word-wrap: break-word !important; overflow-wrap: break-word !important; white-space: pre-wrap; overflow: hidden;">${safeText}</div>` : ''}
+                <div class="${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3" style="max-width: ${maxMsgWidth}px !important; width: auto !important; min-width: 0 !important; word-wrap: break-word !important; overflow-wrap: break-word !important; hyphens: auto; box-sizing: border-box !important; overflow: hidden !important; display: inline-block !important;">
+                    <div class="${isClient ? 'text-xs' : 'text-sm'} font-semibold mb-1" style="word-wrap: break-word !important; overflow-wrap: break-word !important; overflow: hidden;">${safeName}</div>
+                    ${safeText ? `<div class="${isClient ? 'text-sm' : 'text-base'} mb-2" style="word-wrap: break-word !important; overflow-wrap: break-word !important; white-space: pre-wrap !important; overflow: hidden !important; max-width: 100% !important;">${safeText}</div>` : ''}
                     <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
                 </div>
             `;
