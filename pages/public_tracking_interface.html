@@ -2098,6 +2098,10 @@
                                            ? updatedShipment.events[updatedShipment.events.length - 1].location 
                                            : 'In Transit');
                             
+                            // Toujours mettre à jour pour une progression continue
+                            // Forcer la mise à jour même si les changements sont minimes pour une animation fluide
+                            const forceUpdate = !useServerCoords; // Toujours mettre à jour si on calcule côté client
+                            
                             // Toujours considérer que la ville change si on force la mise à jour (calcul côté client)
                             // Cela permet de toujours mettre à jour le marqueur même si la ville n'a pas changé textuellement
                             const cityChanged = forceUpdate || (newCity && newCity !== currentCityInPopup && newCity !== 'In Transit');
@@ -2108,10 +2112,6 @@
                             // Pour la progression continue : toujours mettre à jour pour une animation fluide
                             // Même avec de petits changements, mettre à jour pour une progression continue
                             const shouldUpdate = coordinateChanged || cityChanged || statusChanged || !useServerCoords;
-                            
-                            // Toujours mettre à jour pour une progression continue
-                            // Forcer la mise à jour même si les changements sont minimes pour une animation fluide
-                            const forceUpdate = !useServerCoords; // Toujours mettre à jour si on calcule côté client
                             
                             // Pour une progression continue, TOUJOURS mettre à jour le marqueur
                             // Même si les changements sont très petits, déplacer le marqueur pour une animation fluide
