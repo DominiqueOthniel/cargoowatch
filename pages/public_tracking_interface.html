@@ -2076,16 +2076,27 @@
                         };
                         console.log('🔍 Progression calculation:', debugInfo);
                         
+                        // Vérifier que toutes les conditions sont remplies avant de mettre à jour
                         if (currentMarker && map && newCoords && Array.isArray(newCoords) && newCoords.length === 2) {
+                            // Valider les coordonnées
+                            const lat = newCoords[0];
+                            const lng = newCoords[1];
+                            
+                            if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                                console.warn('⚠️ Invalid coordinates detected, skipping update:', { lat, lng, newCoords });
+                                return;
+                            }
+                            
+                            try {
                                 const oldCoords = currentMarker.getLatLng();
-                            
-                            // Calculer la différence
-                            const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
-                            const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
-                            
-                            // Pour une progression continue, accepter même les plus petits changements
-                            // Seuil très bas pour détecter tout mouvement, même minime
-                            const coordinateChanged = latDiff > 0.000001 || lngDiff > 0.000001;
+                                
+                                // Calculer la différence
+                                const latDiff = Math.abs(oldCoords.lat - newCoords[0]);
+                                const lngDiff = Math.abs(oldCoords.lng - newCoords[1]);
+                                
+                                // Pour une progression continue, accepter même les plus petits changements
+                                // Seuil très bas pour détecter tout mouvement, même minime
+                                const coordinateChanged = latDiff > 0.000001 || lngDiff > 0.000001;
                             
                             // Log pour voir si les coordonnées changent vraiment
                             if (!coordinateChanged && !useServerCoords) {
