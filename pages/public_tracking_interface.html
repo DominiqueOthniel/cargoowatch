@@ -1916,11 +1916,21 @@
                             
                             if (updatedShipment.estimatedDelivery) {
                                 estimatedDelivery = new Date(updatedShipment.estimatedDelivery);
-                            } else if (updatedShipment.sender?.address?.lat && updatedShipment.recipient?.address?.lat) {
+                            } else {
                                 // Calculer une estimation de livraison si absente
-                                const distance = calculateDistance(originCoords, destCoords);
-                                const hours = (distance / 50) + 8; // 50 mph moyenne + 8h buffer
-                                estimatedDelivery = new Date(now.getTime() + hours * 60 * 60 * 1000);
+                                // Utiliser originCoords et destCoords qui sont toujours disponibles
+                                if (originCoords && destCoords && Array.isArray(originCoords) && Array.isArray(destCoords)) {
+                                    const distance = calculateDistance(originCoords, destCoords);
+                                    const hours = (distance / 50) + 8; // 50 mph moyenne + 8h buffer
+                                    estimatedDelivery = new Date(now.getTime() + hours * 60 * 60 * 1000);
+                                    console.log('📅 Auto-generated estimatedDelivery:', {
+                                        distance: distance.toFixed(2) + ' miles',
+                                        hours: hours.toFixed(2),
+                                        estimatedDelivery: estimatedDelivery.toISOString()
+                                    });
+                                } else {
+                                    console.warn('⚠️ Cannot generate estimatedDelivery - missing coordinates');
+                                }
                             }
                             
                             // Utiliser autoProgress si disponible, sinon utiliser createdAt
@@ -1935,7 +1945,8 @@
                             }
                             
                             // Calculer la progression si on a les données nécessaires
-                            if (startedAt && estimatedDelivery && updatedShipment.sender?.address?.lat) {
+                            // On n'a plus besoin de sender?.address?.lat car on utilise originCoords
+                            if (startedAt && estimatedDelivery && originCoords && destCoords) {
                                 const totalTime = estimatedDelivery - startedAt;
                                 let pausedDuration = updatedShipment.autoProgress?.pausedDuration || 0;
                                 
