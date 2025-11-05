@@ -595,7 +595,7 @@
                 <div id="chat-header-info" class="px-4 py-2 bg-surface border-b border-border flex-shrink-0">
                     <p class="text-sm text-text-secondary" id="chat-subject-display"></p>
                 </div>
-                <div id="chat-messages" class="flex-1 overflow-y-auto overflow-x-hidden p-4 space-y-4" style="scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc;">
+                <div id="chat-messages" class="flex-1 overflow-y-auto overflow-x-hidden p-4" style="scrollbar-width: thin; scrollbar-color: #cbd5e0 #f7fafc; min-height: 0; max-height: 100%; word-wrap: break-word; overflow-wrap: break-word;">
                     <!-- Messages will be inserted here -->
                 </div>
                 <div class="border-t border-border p-4 flex-shrink-0">
@@ -919,12 +919,16 @@
             const isClient = message.senderType === 'client';
             
             const messageDiv = document.createElement('div');
-            messageDiv.className = `flex ${isClient ? 'justify-end' : 'justify-start'}`;
+            messageDiv.className = `flex ${isClient ? 'justify-end' : 'justify-start'} mb-3`;
+            
+            // Escape HTML to prevent XSS and ensure proper text wrapping
+            const safeText = message.text ? message.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+            const safeName = message.senderName ? message.senderName.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
             
             messageDiv.innerHTML = `
-                <div class="max-w-xs lg:max-w-sm ${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3 overflow-hidden">
-                    <div class="${isClient ? 'text-xs' : 'text-sm'} font-semibold mb-1">${message.senderName}</div>
-                    ${message.text ? `<div class="${isClient ? 'text-sm' : 'text-base'} mb-2 break-words">${message.text}</div>` : ''}
+                <div class="max-w-[80%] sm:max-w-xs lg:max-w-sm ${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3" style="word-wrap: break-word; overflow-wrap: break-word; hyphens: auto;">
+                    <div class="${isClient ? 'text-xs' : 'text-sm'} font-semibold mb-1">${safeName}</div>
+                    ${safeText ? `<div class="${isClient ? 'text-sm' : 'text-base'} mb-2" style="word-wrap: break-word; overflow-wrap: break-word; white-space: pre-wrap;">${safeText}</div>` : ''}
                     <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
                 </div>
             `;
