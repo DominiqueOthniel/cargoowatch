@@ -621,7 +621,9 @@
             flex-direction: column !important;
             overflow: hidden !important;
             min-height: 0 !important;
-            flex: 1 1 0 !important;
+            flex: 1 1 0% !important;
+            max-height: 100% !important;
+            height: 0 !important; /* Force flex to respect constraints */
         }
         
         /* Chat Messages - Scrollable area */
@@ -630,6 +632,7 @@
             scrollbar-color: #cbd5e0 #f7fafc;
             min-height: 0 !important;
             max-height: 100% !important;
+            height: 100% !important; /* Take full height of parent */
             overflow-y: auto !important;
             overflow-x: hidden !important;
             word-wrap: break-word !important;
@@ -946,6 +949,11 @@
                 document.getElementById('chat-messages-container').classList.remove('hidden');
                 document.getElementById('chat-subject-display').textContent = chat.subject;
 
+                // Enforce height constraints when showing messages
+                setTimeout(() => {
+                    enforceChatHeight();
+                }, 100);
+
                 // Load existing messages
                 loadChatMessages(currentChatId);
             } catch (error) {
@@ -968,12 +976,43 @@
                     addMessageToChat(msg);
                 });
 
-                scrollToBottom();
+                setTimeout(() => {
+                    enforceChatHeight();
+                    scrollToBottom();
+                }, 100);
             } catch (error) {
                 console.error('Error loading messages:', error);
             }
         }
 
+        // Force chat messages container to respect height constraints
+        function enforceChatHeight() {
+            const chatWidget = document.getElementById('chat-widget-container');
+            const chatMessagesContainer = document.getElementById('chat-messages-container');
+            const chatMessages = document.getElementById('chat-messages');
+            
+            if (!chatWidget || !chatMessagesContainer || !chatMessages) return;
+            
+            // Only enforce if messages container is visible
+            if (chatMessagesContainer.classList.contains('hidden')) return;
+            
+            // Get widget height
+            const widgetHeight = chatWidget.offsetHeight;
+            const headerHeight = chatWidget.querySelector('.bg-primary')?.offsetHeight || 64;
+            const headerInfoHeight = document.getElementById('chat-header-info')?.offsetHeight || 0;
+            const inputAreaHeight = chatMessagesContainer.querySelector('.border-t')?.offsetHeight || 80;
+            
+            // Calculate available height for messages
+            const availableHeight = widgetHeight - headerHeight - headerInfoHeight - inputAreaHeight;
+            
+            // Force the messages container and messages area to respect this height
+            if (availableHeight > 0) {
+                chatMessagesContainer.style.maxHeight = `${availableHeight + headerInfoHeight + inputAreaHeight}px`;
+                chatMessages.style.maxHeight = `${availableHeight}px`;
+                chatMessages.style.height = `${availableHeight}px`;
+            }
+        }
+        
         // Add message to chat UI
         function addMessageToChat(message) {
             const messagesContainer = document.getElementById('chat-messages');
@@ -1004,7 +1043,12 @@
             `;
             
             messagesContainer.appendChild(messageDiv);
-            scrollToBottom();
+            
+            // Enforce height constraints after adding message
+            setTimeout(() => {
+                enforceChatHeight();
+                scrollToBottom();
+            }, 10);
         }
 
         // Send message
@@ -1054,6 +1098,37 @@
                 setTimeout(() => {
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }, 100);
+            }
+        }
+
+        // Add resize listener to enforce height when window resizes
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                enforceChatHeight();
+            }, 150);
+        });
+
+        // Use ResizeObserver to watch for chat widget size changes
+        if (typeof ResizeObserver !== 'undefined') {
+            const chatWidgetObserver = new ResizeObserver(() => {
+                enforceChatHeight();
+            });
+            
+            // Observe chat widget when it becomes visible
+            const observeChatWidget = () => {
+                const chatWidget = document.getElementById('chat-widget-container');
+                if (chatWidget && !chatWidget.classList.contains('hidden')) {
+                    chatWidgetObserver.observe(chatWidget);
+                }
+            };
+            
+            // Start observing when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', observeChatWidget);
+            } else {
+                observeChatWidget();
             }
         }
 
