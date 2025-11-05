@@ -2192,15 +2192,31 @@
                                         
                                         // Ajouter le popup
                                         currentMarker.bindPopup(`<strong>🚚 Current Location</strong><br>${newCity}`);
-                                        currentMarker.openPopup();
+                                        
+                                        // Mettre à jour la polyline pour montrer le mouvement
+                                        if (routePolyline) {
+                                            map.removeLayer(routePolyline);
+                                        }
+                                        
+                                        // Recréer la polyline avec les nouvelles coordonnées
+                                        routePolyline = L.polyline([originCoords, newCoords, destCoords], {
+                                            color: '#3b82f6',
+                                            weight: 5,
+                                            opacity: 0.8,
+                                            dashArray: '10, 10'
+                                        }).addTo(map);
                                         
                                         console.log('✅ Marker recreated at new position:', newLatLng);
+                                        console.log('✅ Route polyline updated with new coordinates');
                                     } else {
                                         currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${newCity}`);
                                     }
                                     
                                     // Forcer la mise à jour de la carte
                                     map.invalidateSize();
+                                    
+                                    // Forcer le redraw de la carte pour afficher les changements
+                                    map._renderer._update();
                                 }
                                     
                                 // Calculer la distance directe (garantit que remaining diminue toujours)
