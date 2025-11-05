@@ -2146,22 +2146,60 @@
                                     // Créer une nouvelle position L.LatLng pour forcer la mise à jour
                                     const newLatLng = L.latLng(newCoords[0], newCoords[1]);
                                     
-                                    // Déplacer avec animation si Leaflet supporte
-                                    if (currentMarker.setLatLng) {
-                                        currentMarker.setLatLng(newLatLng);
-                                        
-                                        // Forcer le rafraîchissement visuel du marqueur
-                                        // Retirer et réajouter le marqueur si nécessaire pour forcer le rendu
-                                        const markerElement = currentMarker.getElement();
-                                        if (markerElement) {
-                                            // Forcer le navigateur à recalculer le style
-                                            markerElement.style.transition = 'transform 0.3s ease-out';
-                                        }
+                                    // Méthode 1: Déplacer le marqueur normalement
+                                    currentMarker.setLatLng(newLatLng);
+                                    
+                                    // Méthode 2: Forcer la mise à jour du marqueur
+                                    // Utiliser update() pour forcer le redraw
+                                    if (currentMarker.update) {
+                                        currentMarker.update();
                                     }
                                     
-                                    currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${newCity}`);
+                                    // Méthode 3: Forcer le redraw du marqueur via l'élément DOM
+                                    const markerElement = currentMarker.getElement();
+                                    if (markerElement) {
+                                        // Forcer le navigateur à recalculer le style avec une animation
+                                        markerElement.style.transition = 'transform 0.5s ease-out';
+                                        // Forcer un reflow pour déclencher la transition
+                                        void markerElement.offsetWidth;
+                                    }
                                     
-                                    // Forcer la mise à jour de la carte pour afficher le nouveau marqueur
+                                    // Méthode 4: TOUJOURS retirer et réajouter le marqueur pour forcer le mouvement
+                                    // Cela garantit que le marqueur bouge visuellement même avec de petits changements
+                                    const currentPos = currentMarker.getLatLng();
+                                    const posChanged = Math.abs(currentPos.lat - newCoords[0]) > 0.000001 || 
+                                                      Math.abs(currentPos.lng - newCoords[1]) > 0.000001;
+                                    
+                                    // Toujours retirer et réajouter si les coordonnées ont changé
+                                    // OU si on force la mise à jour (calcul côté client)
+                                    if (posChanged || forceUpdate) {
+                                        // Sauvegarder l'icône actuelle
+                                        const currentIcon = currentMarker.options.icon || 
+                                            L.divIcon({
+                                                className: 'custom-marker current-marker',
+                                                html: '<div style="width: 28px; height: 28px; background-color: #3b82f6; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.4); position: relative;"><div style="position: absolute; inset: -6px; background-color: #3b82f6; border-radius: 50%; opacity: 0.5; animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;"></div></div>',
+                                                iconSize: [28, 28],
+                                                iconAnchor: [14, 14]
+                                            });
+                                        
+                                        // Retirer l'ancien marqueur
+                                        map.removeLayer(currentMarker);
+                                        
+                                        // Créer un nouveau marqueur à la nouvelle position
+                                        currentMarker = L.marker(newLatLng, { 
+                                            icon: currentIcon
+                                        }).addTo(map);
+                                        
+                                        // Ajouter le popup
+                                        currentMarker.bindPopup(`<strong>🚚 Current Location</strong><br>${newCity}`);
+                                        currentMarker.openPopup();
+                                        
+                                        console.log('✅ Marker recreated at new position:', newLatLng);
+                                    } else {
+                                        currentMarker.setPopupContent(`<strong>🚚 Current Location</strong><br>${newCity}`);
+                                    }
+                                    
+                                    // Forcer la mise à jour de la carte
                                     map.invalidateSize();
                                 }
                                     
