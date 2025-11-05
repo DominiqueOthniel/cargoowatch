@@ -2007,6 +2007,12 @@
                                     return [adjustedLat, adjustedLng];
                                 }
                                 
+                                // Vérifier que les coordonnées calculées sont valides
+                                if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+                                    console.warn('⚠️ Invalid coordinates calculated, using origin:', { lat, lng, progress });
+                                    return originCoords;
+                                }
+                                
                                 console.log('📊 Continuous progression calculated:', {
                                     progress: (progress * 100).toFixed(2) + '%',
                                     elapsedTime: (elapsedTime / 1000 / 60).toFixed(2) + ' min',
@@ -2016,7 +2022,8 @@
                                     now: now.toISOString(),
                                     coords: [lat, lng],
                                     originCoords,
-                                    destCoords
+                                    destCoords,
+                                    status: updatedShipment.status
                                 });
                                 
                                 return [lat, lng];
