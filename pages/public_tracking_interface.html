@@ -2135,7 +2135,8 @@
                             
                             // Pour une progression continue, TOUJOURS mettre à jour le marqueur
                             // Même si les changements sont très petits, déplacer le marqueur pour une animation fluide
-                            if (shouldUpdate || forceUpdate || updatedShipment.status !== 'pending') {
+                            // MAIS ne pas mettre à jour si le statut est "pending" (le colis n'a pas encore bougé)
+                            if ((shouldUpdate || forceUpdate) && updatedShipment.status !== 'pending') {
                                 // TOUJOURS déplacer le marqueur pour progression continue
                                 // Même si les changements sont minimes, déplacer pour animation fluide
                                 console.log(`📍 Map updating:`, {
