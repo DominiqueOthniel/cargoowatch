@@ -370,6 +370,7 @@
                                 </div>
                                 <div class="flex items-center justify-between mt-2">
                                     <span>Distance Remaining:</span>
+                                    <span class="font-semibold" id="map-distance-traveled">0.0 miles</span>
                                     <span class="font-semibold" id="map-distance-remaining">Calculating...</span>
                                 </div>
                                 <div class="flex items-center justify-between mt-2">
@@ -1821,17 +1822,41 @@
             
             document.getElementById('map-current-location').textContent = currentCity;
             
-            // Calculate distance remaining using route distance if available
-            let distance;
+            // Calculate distances
+            let distanceTraveled = 0;
+            let distanceRemaining = 0;
+            
             if (routeDistance) {
-                distance = routeDistance.remaining;
+                // Utiliser la distance directe pour garantir que remaining diminue toujours
+                const directRemaining = calculateDistance(currentCoords, destCoords);
+                const directTraveled = calculateDistance(originCoords, currentCoords);
+                
+                // Utiliser la distance directe si elle est plus petite que routeDistance.remaining
+                // Cela garantit que remaining diminue toujours
+                if (directRemaining < routeDistance.remaining) {
+                    distanceRemaining = directRemaining;
+                    distanceTraveled = directTraveled;
+                } else {
+                    // Utiliser routeDistance mais s'assurer que remaining ne peut que diminuer
+                    distanceRemaining = Math.min(routeDistance.remaining, directRemaining);
+                    distanceTraveled = routeDistance.traveled;
+                }
             } else {
-                distance = calculateDistance(currentCoords, destCoords);
+                distanceRemaining = calculateDistance(currentCoords, destCoords);
+                distanceTraveled = calculateDistance(originCoords, currentCoords);
             }
-            document.getElementById('map-distance-remaining').textContent = `${distance.toFixed(1)} miles`;
+            
+            // Afficher la distance restante (qui doit toujours diminuer)
+            document.getElementById('map-distance-remaining').textContent = `${distanceRemaining.toFixed(1)} miles`;
+            
+            // Afficher la distance parcourue si l'élément existe
+            const distanceTraveledElement = document.getElementById('map-distance-traveled');
+            if (distanceTraveledElement) {
+                distanceTraveledElement.textContent = `${distanceTraveled.toFixed(1)} miles`;
+            }
             
             // Calculate ETA
-            const eta = calculateETA(shipment, distance);
+            const eta = calculateETA(shipment, distanceRemaining);
             document.getElementById('map-eta').textContent = eta;
         }
         
@@ -2061,7 +2086,7 @@
                                     currentCityInPopup = cityMatch ? cityMatch[1].replace(/🚚 Current Location|In Transit/g, '').trim() : '';
                                 } catch (e) {
                                 currentCityInPopup = updatedShipment.currentLocation?.city || '';
-                            }
+                                }
                             
                             const newCity = updatedShipment.currentLocation?.city || 
                                           (updatedShipment.events && updatedShipment.events.length > 0 
@@ -2148,7 +2173,7 @@
                                 const progressBar = document.getElementById('progress-bar');
                                 if (progressBar) {
                                     progressBar.style.width = progress + '%';
-                                }
+                                    }
                                 } else {
                                 // Mettre à jour les infos même si la position n'a pas changé
                                     updateMapInfo(updatedShipment, originCoords, destCoords, newCoords);
