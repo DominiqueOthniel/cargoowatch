@@ -700,6 +700,57 @@
             50% { transform: scale(1.3); opacity: 0.1; }
             100% { transform: scale(1.5); opacity: 0; }
         }
+        
+        /* Chat Messages Container - Prevent overflow */
+        #chat-messages-container {
+            display: flex !important;
+            flex-direction: column !important;
+            overflow: hidden !important;
+            min-height: 0 !important;
+            flex: 1 1 0% !important;
+        }
+        
+        /* Chat Messages - Scrollable area with proper overflow handling */
+        #chat-messages {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            min-height: 0 !important;
+        }
+        
+        /* Ensure messages don't overflow - CRITICAL */
+        #chat-messages > div {
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            max-width: 100% !important;
+            min-width: 0 !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+            display: block !important;
+        }
+        
+        #chat-messages > div > div {
+            max-width: 85% !important;
+            width: fit-content !important;
+            min-width: 0 !important;
+            word-wrap: break-word !important;
+            overflow-wrap: break-word !important;
+            box-sizing: border-box !important;
+            overflow: visible !important;
+            display: inline-block !important;
+        }
+        
+        /* For client messages aligned right */
+        #chat-messages > div.justify-end > div {
+            margin-left: auto !important;
+            margin-right: 0 !important;
+        }
+        
+        /* For admin messages aligned left */
+        #chat-messages > div.justify-start > div {
+            margin-left: 0 !important;
+            margin-right: auto !important;
+        }
+        
         /* Responsive adjustments */
         @media (max-width: 640px) {
             #chat-bubble-widget {
@@ -880,13 +931,18 @@
             const messagesContainer = document.getElementById('chat-messages');
             const isClient = message.senderType === 'client';
             
+            // Escape HTML to prevent XSS
+            const safeText = message.text ? message.text.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+            const safeName = message.senderName ? message.senderName.replace(/</g, '&lt;').replace(/>/g, '&gt;') : '';
+            
             const messageDiv = document.createElement('div');
-            messageDiv.className = `flex ${isClient ? 'justify-end' : 'justify-start'}`;
+            messageDiv.className = `flex ${isClient ? 'justify-end' : 'justify-start'} mb-3`;
+            messageDiv.style.cssText = 'width: 100%; max-width: 100%; min-width: 0; box-sizing: border-box;';
             
             messageDiv.innerHTML = `
-                <div class="max-w-xs lg:max-w-sm ${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3 overflow-hidden">
-                    <div class="text-xs font-semibold mb-1">${message.senderName}</div>
-                    ${message.text ? `<div class="mb-2 break-words">${message.text}</div>` : ''}
+                <div class="${isClient ? 'bg-primary text-white' : 'bg-surface text-text-primary'} rounded-lg p-3" style="max-width: 85% !important; width: fit-content !important; min-width: 0 !important; word-wrap: break-word !important; overflow-wrap: break-word !important; box-sizing: border-box !important; overflow: visible !important; display: inline-block !important;">
+                    <div class="text-xs font-semibold mb-1" style="word-wrap: break-word !important; overflow-wrap: break-word !important; overflow: visible !important;">${safeName}</div>
+                    ${safeText ? `<div class="mb-2 break-words" style="word-wrap: break-word !important; overflow-wrap: break-word !important; white-space: pre-wrap !important; overflow: visible !important; max-width: 100% !important;">${safeText}</div>` : ''}
                     <div class="text-xs opacity-75 mt-1">${new Date(message.timestamp).toLocaleTimeString()}</div>
                 </div>
             `;
