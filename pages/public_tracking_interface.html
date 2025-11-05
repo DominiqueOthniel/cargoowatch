@@ -1983,6 +1983,13 @@
                                 
                                 let progress = Math.min(1, Math.max(0, elapsedTime / totalTime));
                                 
+                                // Pour garantir un mouvement visible même avec un progress très faible,
+                                // ajouter un incrément basé sur le temps actuel (millisecondes) pour créer un mouvement continu
+                                // Utiliser le timestamp actuel pour créer un mouvement fluide même si progress est identique
+                                const nowMs = now.getTime();
+                                const microProgress = (nowMs % 10000) / totalTime * 0.0001; // Cycle de 10 secondes, très petit incrément
+                                progress = Math.min(1, progress + microProgress);
+                                
                                 // Interpoler entre origine et destination pour une progression continue
                                 const lat = originCoords[0] + (destCoords[0] - originCoords[0]) * progress;
                                 const lng = originCoords[1] + (destCoords[1] - originCoords[1]) * progress;
