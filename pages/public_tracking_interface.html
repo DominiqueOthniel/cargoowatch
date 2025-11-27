@@ -1988,7 +1988,14 @@
                                 }
                                 
                                 // Calculer le progress basé sur le temps réel écoulé
-                                let progress = Math.min(1, Math.max(0, elapsedTime / totalTime));
+                                const MIN_MILES_PER_MINUTE = 1;
+                                const elapsedMinutes = Math.max(0, elapsedTime / (1000 * 60));
+                                const totalDistanceMiles = calculateDistance(originCoords, destCoords);
+                                const defaultProgress = Math.min(1, Math.max(0, elapsedTime / totalTime));
+                                const minProgressFromSpeed = totalDistanceMiles > 0
+                                    ? Math.min(1, (elapsedMinutes * MIN_MILES_PER_MINUTE) / totalDistanceMiles)
+                                    : 0;
+                                let progress = Math.min(1, Math.max(defaultProgress, minProgressFromSpeed));
                                 
                                 // Interpoler entre origine et destination pour une progression continue
                                 // La progression est proportionnelle à la distance réelle
@@ -1998,7 +2005,7 @@
                                 // Pour garantir un mouvement visible même avec un progress très faible,
                                 // ajouter un micro-incrément basé sur le temps actuel pour créer un mouvement continu
                                 // Mais seulement si le progress est > 0 (le colis a commencé à bouger)
-                                if (progress > 0) {
+                                if (progress > 0 && progress < 1) {
                                     const nowMs = now.getTime();
                                     // Utiliser un cycle plus court (3 secondes) pour un mouvement plus fluide
                                     const microProgress = (nowMs % 3000) / totalTime * 0.00005; // Cycle de 3 secondes, très petit incrément

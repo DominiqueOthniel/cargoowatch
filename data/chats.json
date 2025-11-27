@@ -36,10 +36,20 @@
     "clientEmail": "merciel2006@icloud.com",
     "subject": "General Inquiry",
     "trackingId": null,
-    "status": "open",
+    "status": "active",
     "createdAt": "2025-11-03T15:07:31.694Z",
-    "updatedAt": "2025-11-03T15:07:31.694Z",
-    "messages": [],
+    "updatedAt": "2025-11-10T15:04:18.667Z",
+    "messages": [
+      {
+        "id": "351bf476-4583-481a-b53b-602608ed5af3",
+        "text": "yo",
+        "image": null,
+        "senderType": "client",
+        "senderName": "Dau",
+        "timestamp": "2025-11-10T15:04:18.667Z",
+        "read": false
+      }
+    ],
     "assignedTo": null
   },
   {

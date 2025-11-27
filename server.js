@@ -13,9 +13,24 @@ const http = require('http');
 const { Server } = require('socket.io');
 const multer = require('multer');
 const PDFDocument = require('pdfkit');
+const zipcodes = require('zipcodes');
 
-// Database: Using JSON file storage
-console.log('📄 Using JSON file storage');
+// Database: Try to use Supabase if configured, otherwise fallback to JSON
+const USE_SUPABASE = process.env.USE_SUPABASE === 'true' || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
+let db;
+
+if (USE_SUPABASE) {
+    try {
+        db = require('./supabase-db');
+        console.log('✅ Using Supabase database');
+    } catch (error) {
+        console.error('❌ Error loading Supabase:', error.message);
+        console.log('📄 Falling back to JSON file storage');
+        db = null;
+    }
+} else {
+    console.log('📄 Using JSON file storage');
+}
 
 const app = express();
 const server = http.createServer(app);
@@ -34,6 +49,76 @@ const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const CHATS_FILE = path.join(DATA_DIR, 'chats.json');
 const RECEIPTS_DIR = path.join(__dirname, 'public', 'receipts');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'cargowatch-secret-key-change-in-production';
+
+const US_STATE_NAME_TO_CODE = {
+    'alabama': 'AL',
+    'alaska': 'AK',
+    'arizona': 'AZ',
+    'arkansas': 'AR',
+    'california': 'CA',
+    'colorado': 'CO',
+    'connecticut': 'CT',
+    'delaware': 'DE',
+    'florida': 'FL',
+    'georgia': 'GA',
+    'hawaii': 'HI',
+    'idaho': 'ID',
+    'illinois': 'IL',
+    'indiana': 'IN',
+    'iowa': 'IA',
+    'kansas': 'KS',
+    'kentucky': 'KY',
+    'louisiana': 'LA',
+    'maine': 'ME',
+    'maryland': 'MD',
+    'massachusetts': 'MA',
+    'michigan': 'MI',
+    'minnesota': 'MN',
+    'mississippi': 'MS',
+    'missouri': 'MO',
+    'montana': 'MT',
+    'nebraska': 'NE',
+    'nevada': 'NV',
+    'new hampshire': 'NH',
+    'new jersey': 'NJ',
+    'new mexico': 'NM',
+    'new york': 'NY',
+    'north carolina': 'NC',
+    'north dakota': 'ND',
+    'ohio': 'OH',
+    'oklahoma': 'OK',
+    'oregon': 'OR',
+    'pennsylvania': 'PA',
+    'rhode island': 'RI',
+    'south carolina': 'SC',
+    'south dakota': 'SD',
+    'tennessee': 'TN',
+    'texas': 'TX',
+    'utah': 'UT',
+    'vermont': 'VT',
+    'virginia': 'VA',
+    'washington': 'WA',
+    'west virginia': 'WV',
+    'wisconsin': 'WI',
+    'wyoming': 'WY',
+    'district of columbia': 'DC',
+    'washington dc': 'DC',
+    'd.c.': 'DC',
+    'dc': 'DC',
+    'puerto rico': 'PR',
+    'guam': 'GU',
+    'american samoa': 'AS',
+    'u.s. virgin islands': 'VI',
+    'northern mariana islands': 'MP'
+};
+
+const CITY_COORDINATE_CACHE = new Map();
+const NEAREST_CITY_CACHE = new Map();
+
+const TRUCK_SPEED_MPH = 55;
+const MIN_MILES_PER_MINUTE = 1;
+const DAILY_DRIVING_HOURS = 11;
+const HANDLING_DELAY_HOURS = 4;
 
 // Configure multer for receipt uploads
 const storage = multer.diskStorage({
@@ -150,6 +235,17 @@ async function findUserByEmail(email) {
 }
 
 async function readShipments() {
+    // Use Supabase if available, otherwise fallback to JSON files
+    if (db && db.readShipments) {
+        try {
+            return await db.readShipments();
+        } catch (error) {
+            console.error('❌ Error reading shipments from Supabase:', error);
+            return [];
+        }
+    }
+    
+    // Fallback to JSON files
     try {
         const data = await fs.readFile(SHIPMENTS_FILE, 'utf8');
         const shipments = JSON.parse(data);
@@ -226,10 +322,134 @@ function generateTrackingId() {
     return `${prefix}${year}${month}${day}${random}`;
 }
 
-// Fonction pour obtenir les coordonnées des villes (version simplifiée - US + internationales)
-function getCityCoordinates(cityName) {
-    if (!cityName) return null;
-    const cityCoords = {
+function toStateCode(value) {
+    if (!value) return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (trimmed.length === 2 && /^[A-Za-z]{2}$/.test(trimmed)) {
+        return trimmed.toUpperCase();
+    }
+    const normalized = trimmed.toLowerCase();
+    return US_STATE_NAME_TO_CODE[normalized] || null;
+}
+
+function parseLocationInput(location) {
+    if (!location) {
+        return { city: '', state: '', country: '', zipCode: '' };
+    }
+
+    if (typeof location === 'object') {
+        return {
+            city: location.city || '',
+            state: location.state || '',
+            country: location.country || '',
+            zipCode: location.zipCode || location.postalCode || location.zip || ''
+        };
+    }
+
+    const trimmed = location.trim();
+    if (!trimmed) {
+        return { city: '', state: '', country: '', zipCode: '' };
+    }
+
+    const result = { city: '', state: '', country: '', zipCode: '' };
+
+    const parts = trimmed.split(',').map(part => part.trim()).filter(Boolean);
+    if (parts.length >= 3) {
+        result.city = parts[0];
+        result.state = parts[1];
+        result.country = parts[2];
+    } else if (parts.length === 2) {
+        result.city = parts[0];
+        result.state = parts[1];
+    } else if (parts.length === 1) {
+        result.city = parts[0];
+    }
+
+    if (!result.country && /usa|united states|^us$/i.test(trimmed)) {
+        result.country = 'US';
+    }
+
+    const stateSegments = result.state.split(/\s+/).filter(Boolean);
+    if (stateSegments.length > 1) {
+        const lastSegment = stateSegments[stateSegments.length - 1];
+        if (/^\d{5}(?:-\d{4})?$/.test(lastSegment)) {
+            result.zipCode = lastSegment;
+            stateSegments.pop();
+            result.state = stateSegments.join(' ');
+        }
+    }
+
+    if (!result.zipCode) {
+        const zipMatch = trimmed.match(/\b\d{5}(?:-\d{4})?\b/);
+        if (zipMatch) {
+            result.zipCode = zipMatch[0];
+        }
+    }
+
+    return result;
+}
+
+// Fonction pour obtenir les coordonnées des villes avec couverture US complète
+function getCityCoordinates(location) {
+    if (!location) return null;
+
+    const { city, state, country, zipCode } = parseLocationInput(location);
+    const originalInput = typeof location === 'string'
+        ? location
+        : [city, state, country].filter(Boolean).join(', ');
+
+    if (!city && !originalInput) {
+        return null;
+    }
+
+    const isUS = !country || /^(us|usa|united states)$/i.test(country.trim());
+
+    if (isUS) {
+        const usableZip = zipCode ? String(zipCode).trim().slice(0, 5) : '';
+        if (usableZip && /^\d{5}$/.test(usableZip)) {
+            const zipRecord = zipcodes.lookup(usableZip);
+            if (zipRecord?.latitude && zipRecord?.longitude) {
+                const coords = {
+                    lat: Number(zipRecord.latitude),
+                    lng: Number(zipRecord.longitude)
+                };
+                if (!Number.isNaN(coords.lat) && !Number.isNaN(coords.lng)) {
+                    const cacheKey = `${zipRecord.city.toLowerCase()},${zipRecord.state}`;
+                    CITY_COORDINATE_CACHE.set(cacheKey, coords);
+                    return coords;
+                }
+            }
+        }
+
+        const stateCode = toStateCode(state);
+        if (stateCode && city) {
+            const cacheKey = `${city.toLowerCase()},${stateCode}`;
+            if (CITY_COORDINATE_CACHE.has(cacheKey)) {
+                return CITY_COORDINATE_CACHE.get(cacheKey);
+            }
+            try {
+                const matches = zipcodes.lookupByName(city, stateCode) || [];
+                if (matches.length > 0) {
+                    const match = matches[0];
+                    if (match?.latitude && match?.longitude) {
+                        const coords = {
+                            lat: Number(match.latitude),
+                            lng: Number(match.longitude)
+                        };
+                        if (!Number.isNaN(coords.lat) && !Number.isNaN(coords.lng)) {
+                            CITY_COORDINATE_CACHE.set(cacheKey, coords);
+                            return coords;
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn(`Warning: unable to resolve coordinates for ${city}, ${stateCode}:`, error.message);
+            }
+        }
+    }
+
+    const fallbackCityCoords = {
         // US Cities
         'New York': { lat: 40.7128, lng: -74.0060 },
         'Los Angeles': { lat: 34.0522, lng: -118.2437 },
@@ -321,21 +541,33 @@ function getCityCoordinates(cityName) {
         'Bogota': { lat: 4.7110, lng: -74.0721 },
         'Lima': { lat: -12.0464, lng: -77.0428 }
     };
-    const normalized = cityName.trim();
-    if (normalized.includes(',')) {
-        const parts = normalized.split(',').map(p => p.trim());
-        const city = parts[0];
-        for (const [key, coords] of Object.entries(cityCoords)) {
-            if (city.toLowerCase() === key.toLowerCase()) {
+
+    const normalizedInput = originalInput ? originalInput.trim() : '';
+
+    if (normalizedInput.includes(',')) {
+        const [firstPart] = normalizedInput.split(',').map(part => part.trim()).filter(Boolean);
+        if (firstPart) {
+            for (const [key, coords] of Object.entries(fallbackCityCoords)) {
+                if (firstPart.toLowerCase() === key.toLowerCase()) {
+                    return coords;
+                }
+            }
+        }
+    }
+
+    const compareValues = [
+        normalizedInput,
+        city
+    ].filter(Boolean);
+
+    for (const value of compareValues) {
+        for (const [key, coords] of Object.entries(fallbackCityCoords)) {
+            if (value.trim().toLowerCase() === key.toLowerCase()) {
                 return coords;
             }
         }
     }
-    for (const [key, coords] of Object.entries(cityCoords)) {
-        if (normalized.toLowerCase() === key.toLowerCase()) {
-            return coords;
-        }
-    }
+
     return null;
 }
 
@@ -351,26 +583,17 @@ function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
 }
 
 function findNearestCity(lat, lng) {
-    const cities = [
-        { name: 'New York', lat: 40.7128, lng: -74.0060 },
-        { name: 'Los Angeles', lat: 34.0522, lng: -118.2437 },
-        { name: 'Chicago', lat: 41.8781, lng: -87.6298 },
-        { name: 'Boston', lat: 42.3601, lng: -71.0589 },
-        { name: 'San Francisco', lat: 37.7749, lng: -122.4194 },
-        { name: 'Oakland', lat: 37.8044, lng: -122.2711 },
-        { name: 'San Jose', lat: 37.3382, lng: -121.8863 },
-        { name: 'Seattle', lat: 47.6062, lng: -122.3321 }
-    ];
-    let nearestCity = 'In Transit';
-    let minDistance = Infinity;
-    for (const city of cities) {
-        const distance = calculateHaversineDistance(lat, lng, city.lat, city.lng);
-        if (distance < minDistance) {
-            minDistance = distance;
-            nearestCity = city.name;
-        }
+    if (lat == null || lng == null) return 'In Transit';
+    const cacheKey = `${lat.toFixed(3)},${lng.toFixed(3)}`;
+    if (NEAREST_CITY_CACHE.has(cacheKey)) {
+        return NEAREST_CITY_CACHE.get(cacheKey);
     }
-    if (minDistance < 50) return nearestCity;
+    const match = zipcodes.lookupByCoords(lat, lng);
+    if (match?.city && match?.state) {
+        const label = `${match.city}, ${match.state}`;
+        NEAREST_CITY_CACHE.set(cacheKey, label);
+        return label;
+    }
     return 'In Transit';
 }
 
@@ -378,48 +601,83 @@ function calculateAutomaticProgression(shipment) {
     if (!shipment.autoProgress?.enabled || shipment.status === 'delivered') {
         return null;
     }
-    // Permettre le calcul même pour "pending" si autoProgress est activé
     if (!shipment.sender?.address?.lat || !shipment.recipient?.address?.lat) {
         return null;
     }
-    if (!shipment.estimatedDelivery) return null;
 
     const originLat = shipment.sender.address.lat;
     const originLng = shipment.sender.address.lng;
     const destLat = shipment.recipient.address.lat;
     const destLng = shipment.recipient.address.lng;
 
-    let startedAt = shipment.autoProgress.startedAt 
+    let startedAt = shipment.autoProgress.startedAt
         ? new Date(shipment.autoProgress.startedAt)
-        : shipment.createdAt 
+        : shipment.createdAt
         ? new Date(shipment.createdAt)
         : null;
 
-    if ((shipment.status !== 'pending' && shipment.status !== 'delivered') && !shipment.autoProgress.startedAt) {
-        const firstActiveEvent = shipment.events?.find(e => e.status !== 'pending');
-        startedAt = firstActiveEvent ? new Date(firstActiveEvent.timestamp) : new Date(shipment.createdAt);
+    if (!startedAt && shipment.events?.length) {
+        const firstActiveEvent = shipment.events.find(e => e.status && e.status !== 'pending');
+        if (firstActiveEvent?.timestamp) {
+            startedAt = new Date(firstActiveEvent.timestamp);
+        }
     }
 
-    if (!startedAt) return null;
+    if (!startedAt) {
+        return null;
+    }
 
     const now = new Date();
-    const estimatedDelivery = new Date(shipment.estimatedDelivery);
-    const totalTime = estimatedDelivery - startedAt;
-    let pausedDuration = shipment.autoProgress.pausedDuration || 0;
+    let elapsedHours = (now - startedAt) / (1000 * 60 * 60);
 
-    if (shipment.autoProgress.paused && shipment.autoProgress.pausedAt) {
-        const pauseStart = new Date(shipment.autoProgress.pausedAt);
-        pausedDuration += (now - pauseStart);
+    if (elapsedHours < 0) {
+        return null;
     }
 
-    const elapsedTime = (now - startedAt) - pausedDuration;
-    let progress = Math.min(1, Math.max(0, elapsedTime / totalTime));
+    let pausedDurationHours = (shipment.autoProgress.pausedDuration || 0) / (1000 * 60 * 60);
+    if (shipment.autoProgress.paused && shipment.autoProgress.pausedAt) {
+        const pauseStart = new Date(shipment.autoProgress.pausedAt);
+        pausedDurationHours += Math.max(0, (now - pauseStart) / (1000 * 60 * 60));
+    }
 
-    if (progress >= 1 || shipment.status === 'delivered') {
+    const effectiveElapsedHours = Math.max(0, elapsedHours - pausedDurationHours);
+    if (effectiveElapsedHours <= HANDLING_DELAY_HOURS) {
+        const nearestCity = findNearestCity(originLat, originLng);
+        return {
+            lat: originLat,
+            lng: originLng,
+            city: nearestCity,
+            progress: 0
+        };
+    }
+
+    const drivingWindowHours = effectiveElapsedHours - HANDLING_DELAY_HOURS;
+    const fullDays = Math.floor(drivingWindowHours / 24);
+    const remainderHours = drivingWindowHours - fullDays * 24;
+    const drivingHours = fullDays * DAILY_DRIVING_HOURS + Math.min(DAILY_DRIVING_HOURS, remainderHours);
+
+    const totalDistanceMiles = calculateHaversineDistance(originLat, originLng, destLat, destLng);
+    if (!totalDistanceMiles || Number.isNaN(totalDistanceMiles)) {
+        return null;
+    }
+
+    const drivingHoursRequired = totalDistanceMiles / TRUCK_SPEED_MPH;
+    if (!drivingHoursRequired || Number.isNaN(drivingHoursRequired)) {
+        return null;
+    }
+
+    const defaultProgress = Math.min(1, Math.max(0, drivingHours / drivingHoursRequired));
+    const elapsedMinutesSinceStart = Math.max(0, drivingWindowHours * 60);
+    const minProgressFromSpeed = totalDistanceMiles > 0
+        ? Math.min(1, (elapsedMinutesSinceStart * MIN_MILES_PER_MINUTE) / totalDistanceMiles)
+        : 0;
+    const progress = Math.min(1, Math.max(defaultProgress, minProgressFromSpeed));
+
+    if (progress >= 1) {
         return {
             lat: destLat,
             lng: destLng,
-            city: shipment.recipient?.address?.city || '',
+            city: shipment.recipient?.address?.city || 'Destination',
             progress: 1
         };
     }
@@ -836,8 +1094,14 @@ app.post('/api/shipments', async (req, res) => {
         const senderCity = req.body.sender?.address?.city || '';
         const senderState = req.body.sender?.address?.state || '';
         const senderCountry = req.body.sender?.address?.country || 'US';
+        const senderZip = req.body.sender?.address?.zipCode || '';
         const senderLocation = senderCity + (senderState ? ', ' + senderState : '') + (senderCountry ? ', ' + senderCountry : '');
-        const senderCoords = getCityCoordinates(senderLocation);
+        const senderCoords = getCityCoordinates({
+            city: senderCity,
+            state: senderState,
+            country: senderCountry,
+            zipCode: senderZip
+        });
         if (senderCoords) {
             newShipment.sender.address.lat = senderCoords.lat;
             newShipment.sender.address.lng = senderCoords.lng;
@@ -847,8 +1111,14 @@ app.post('/api/shipments', async (req, res) => {
         const recipientCity = req.body.recipient?.address?.city || '';
         const recipientState = req.body.recipient?.address?.state || '';
         const recipientCountry = req.body.recipient?.address?.country || 'US';
+        const recipientZip = req.body.recipient?.address?.zipCode || '';
         const recipientLocation = recipientCity + (recipientState ? ', ' + recipientState : '') + (recipientCountry ? ', ' + recipientCountry : '');
-        const recipientCoords = getCityCoordinates(recipientLocation);
+        const recipientCoords = getCityCoordinates({
+            city: recipientCity,
+            state: recipientState,
+            country: recipientCountry,
+            zipCode: recipientZip
+        });
         if (recipientCoords) {
             newShipment.recipient.address.lat = recipientCoords.lat;
             newShipment.recipient.address.lng = recipientCoords.lng;
@@ -874,22 +1144,33 @@ app.post('/api/shipments', async (req, res) => {
             newShipment.estimatedDelivery = deliveryDate.toISOString();
         }
 
-        // Save to database (JSON files)
+        // Save to database (Supabase or JSON files)
         let savedShipment;
-        const shipments = await readShipments();
-        shipments.push(newShipment);
-        const writeSuccess = await writeShipments(shipments);
-        if (!writeSuccess) {
-            throw new Error('Failed to save shipment to database');
-        }
         
-        // Verify the shipment was written
-        const verifyShipments = await readShipments();
-        savedShipment = verifyShipments.find(s => s.trackingId === newShipment.trackingId);
-        if (!savedShipment) {
-            console.error('⚠️ Warning: Shipment was not found after write!');
+        if (db && db.createShipment) {
+            // Use Supabase
+            savedShipment = await db.createShipment(newShipment);
+            if (!savedShipment) {
+                throw new Error('Failed to create shipment in Supabase');
+            }
+            console.log(`✅ Shipment created in Supabase: ${newShipment.trackingId}`);
         } else {
-            console.log(`✅ Shipment created and verified: ${newShipment.trackingId} (Total shipments: ${verifyShipments.length})`);
+            // Fallback to JSON files
+            const shipments = await readShipments();
+            shipments.push(newShipment);
+            const writeSuccess = await writeShipments(shipments);
+            if (!writeSuccess) {
+                throw new Error('Failed to save shipment to database');
+            }
+            
+            // Verify the shipment was written
+            const verifyShipments = await readShipments();
+            savedShipment = verifyShipments.find(s => s.trackingId === newShipment.trackingId);
+            if (!savedShipment) {
+                console.error('⚠️ Warning: Shipment was not found after write!');
+            } else {
+                console.log(`✅ Shipment created and verified: ${newShipment.trackingId} (Total shipments: ${verifyShipments.length})`);
+            }
         }
         
         res.status(201).json(savedShipment || newShipment);
@@ -962,7 +1243,7 @@ app.put('/api/shipments/:trackingId/status', requireAuth, requireAdmin, async (r
             const destCity = shipment.recipient?.address?.city || location || '';
             const destCoords = shipment.recipient?.address?.lat && shipment.recipient?.address?.lng
                 ? { lat: shipment.recipient.address.lat, lng: shipment.recipient.address.lng }
-                : getCityCoordinates(destCity);
+                : getCityCoordinates(shipment.recipient?.address || destCity);
             shipment.currentLocation = {
                 lat: destCoords?.lat || shipment.recipient?.address?.lat || null,
                 lng: destCoords?.lng || shipment.recipient?.address?.lng || null,
@@ -972,7 +1253,7 @@ app.put('/api/shipments/:trackingId/status', requireAuth, requireAdmin, async (r
             const originCity = shipment.sender?.address?.city || location || '';
             const originCoords = shipment.sender?.address?.lat && shipment.sender?.address?.lng
                 ? { lat: shipment.sender.address.lat, lng: shipment.sender.address.lng }
-                : getCityCoordinates(originCity);
+                : getCityCoordinates(shipment.sender?.address || originCity);
             shipment.currentLocation = {
                 lat: originCoords?.lat || shipment.sender?.address?.lat || null,
                 lng: originCoords?.lng || shipment.sender?.address?.lng || null,

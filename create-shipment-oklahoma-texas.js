@@ -2,9 +2,15 @@
  * Script pour créer un shipment de l'Oklahoma vers Fort Worth, Texas
  * Destinataire: Djana Campbell
  * Usage: node create-shipment-oklahoma-texas.js
+ * 
+ * Pour utiliser avec Render, définissez la variable d'environnement:
+ * RENDER_URL=https://votre-app.onrender.com node create-shipment-oklahoma-texas.js
  */
 
+require('dotenv').config();
+const https = require('https');
 const http = require('http');
+const { URL } = require('url');
 
 const shipmentData = {
     sender: {
@@ -60,10 +66,17 @@ function createShipment() {
     return new Promise((resolve, reject) => {
         const postData = JSON.stringify(shipmentData);
         
+        // Use RENDER_URL from environment or default to localhost
+        const serverUrl = process.env.RENDER_URL || 'http://localhost:3000';
+        const url = new URL(`${serverUrl}/api/shipments`);
+        
+        const isHttps = url.protocol === 'https:';
+        const client = isHttps ? https : http;
+        
         const options = {
-            hostname: 'localhost',
-            port: 3000,
-            path: '/api/shipments',
+            hostname: url.hostname,
+            port: url.port || (isHttps ? 443 : 80),
+            path: url.pathname,
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -72,11 +85,12 @@ function createShipment() {
         };
 
         console.log('📦 Création d\'un nouveau shipment...');
+        console.log(`🌐 Serveur: ${serverUrl}`);
         console.log('De: Oklahoma → Vers: Fort Worth, Texas');
         console.log('Destinataire: Djana Campbell');
         console.log('Données:', JSON.stringify(shipmentData, null, 2));
 
-        const req = http.request(options, (res) => {
+        const req = client.request(options, (res) => {
             let data = '';
 
             res.on('data', (chunk) => {
@@ -99,7 +113,8 @@ function createShipment() {
                         if (shipment.estimatedDelivery) {
                             console.log(`   Livraison estimée: ${new Date(shipment.estimatedDelivery).toLocaleString()}`);
                         }
-                        console.log(`\n🔗 URL de suivi: http://localhost:3000/pages/public_tracking_interface.html?track=${shipment.trackingId}`);
+                        const trackingUrl = `${serverUrl}/pages/public_tracking_interface.html?track=${shipment.trackingId}`;
+                        console.log(`\n🔗 URL de suivi: ${trackingUrl}`);
                         resolve(shipment);
                     } else {
                         const error = JSON.parse(data);
@@ -114,8 +129,9 @@ function createShipment() {
         req.on('error', (error) => {
             console.error('❌ Erreur lors de la création du shipment:', error.message);
             if (error.code === 'ECONNREFUSED') {
-                console.error('⚠️  Assurez-vous que le serveur est démarré sur http://localhost:3000');
-                console.error('   Démarrez le serveur avec: npm start');
+                console.error(`⚠️  Assurez-vous que le serveur est démarré sur ${serverUrl}`);
+                console.error('   Pour localhost: npm start');
+                console.error('   Pour Render: Vérifiez que votre application est déployée et active');
             }
             reject(error);
         });
