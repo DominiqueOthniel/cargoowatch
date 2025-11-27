@@ -642,12 +642,16 @@ function calculateAutomaticProgression(shipment) {
 
     const effectiveElapsedHours = Math.max(0, elapsedHours - pausedDurationHours);
     if (effectiveElapsedHours <= HANDLING_DELAY_HOURS) {
-        const nearestCity = findNearestCity(originLat, originLng);
+        // Au lieu de retourner progress: 0, calculer une progression minimale basée sur le temps
+        const minProgress = Math.min(0.05, effectiveElapsedHours / HANDLING_DELAY_HOURS * 0.05);
+        const lat = originLat + (destLat - originLat) * minProgress;
+        const lng = originLng + (destLng - originLng) * minProgress;
+        const nearestCity = findNearestCity(lat, lng);
         return {
-            lat: originLat,
-            lng: originLng,
+            lat,
+            lng,
             city: nearestCity,
-            progress: 0
+            progress: minProgress
         };
     }
 
@@ -951,8 +955,16 @@ app.get('/api/shipments/my', requireAuth, async (req, res) => {
 app.get('/api/shipments/:trackingId', async (req, res) => {
     try {
         const { trackingId } = req.params;
-        const shipments = await readShipments();
-        const shipment = shipments.find(s => s.trackingId === trackingId.toUpperCase());
+        let shipment;
+        
+        // Use Supabase if available
+        if (db && db.getShipmentByTrackingId) {
+            shipment = await db.getShipmentByTrackingId(trackingId.toUpperCase());
+        } else {
+            const shipments = await readShipments();
+            shipment = shipments.find(s => s.trackingId === trackingId.toUpperCase());
+        }
+        
         if (!shipment) {
             return res.status(404).json({ error: 'Shipment not found', message: `No shipment found with tracking ID: ${trackingId}` });
         }
