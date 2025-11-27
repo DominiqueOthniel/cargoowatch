@@ -1,16 +1,81 @@
 /**
  * Script pour créer un shipment de l'Oklahoma vers Fort Worth, Texas
  * Destinataire: Djana Campbell
- * Usage: node create-shipment-oklahoma-texas.js
  * 
- * Pour utiliser avec Render, définissez la variable d'environnement:
- * RENDER_URL=https://votre-app.onrender.com node create-shipment-oklahoma-texas.js
+ * Usage:
+ *   node create-shipment-oklahoma-texas.js
+ *   node create-shipment-oklahoma-texas.js "2024-12-15T10:00:00Z"
+ *   node create-shipment-oklahoma-texas.js "2024-12-15"
+ * 
+ * Variables d'environnement:
+ *   RENDER_URL=https://votre-app.onrender.com
+ *   DELIVERY_DATE=2024-12-15T10:00:00Z
+ * 
+ * Formats de date acceptés:
+ *   - ISO 8601: "2024-12-15T10:00:00Z"
+ *   - Date simple: "2024-12-15" (sera convertie en minuit UTC)
+ *   - Timestamp: "1734264000000"
  */
 
 require('dotenv').config();
 const https = require('https');
 const http = require('http');
 const { URL } = require('url');
+
+/**
+ * Parse une date depuis différents formats
+ */
+function parseDeliveryDate(dateString) {
+    if (!dateString) return null;
+    
+    try {
+        // Si c'est un timestamp numérique
+        if (/^\d+$/.test(dateString)) {
+            return new Date(parseInt(dateString)).toISOString();
+        }
+        
+        // Si c'est une date simple (YYYY-MM-DD), ajouter l'heure
+        if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+            return new Date(dateString + 'T12:00:00Z').toISOString();
+        }
+        
+        // Sinon, essayer de parser directement
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            throw new Error('Date invalide');
+        }
+        return date.toISOString();
+    } catch (error) {
+        console.error(`⚠️  Erreur lors du parsing de la date "${dateString}": ${error.message}`);
+        return null;
+    }
+}
+
+/**
+ * Récupère la date de livraison depuis les arguments ou l'environnement
+ */
+function getDeliveryDate() {
+    // 1. Vérifier les arguments de ligne de commande
+    const args = process.argv.slice(2);
+    if (args.length > 0) {
+        const dateFromArgs = parseDeliveryDate(args[0]);
+        if (dateFromArgs) {
+            return dateFromArgs;
+        }
+    }
+    
+    // 2. Vérifier la variable d'environnement
+    if (process.env.DELIVERY_DATE) {
+        const dateFromEnv = parseDeliveryDate(process.env.DELIVERY_DATE);
+        if (dateFromEnv) {
+            return dateFromEnv;
+        }
+    }
+    
+    return null;
+}
+
+const deliveryDate = getDeliveryDate();
 
 const shipmentData = {
     sender: {
@@ -62,6 +127,11 @@ const shipmentData = {
     }
 };
 
+// Ajouter la date de livraison si fournie
+if (deliveryDate) {
+    shipmentData.estimatedDelivery = deliveryDate;
+}
+
 function createShipment() {
     return new Promise((resolve, reject) => {
         const postData = JSON.stringify(shipmentData);
@@ -88,6 +158,11 @@ function createShipment() {
         console.log(`🌐 Serveur: ${serverUrl}`);
         console.log('De: Oklahoma → Vers: Fort Worth, Texas');
         console.log('Destinataire: Djana Campbell');
+        if (deliveryDate) {
+            console.log(`📅 Date de livraison spécifiée: ${new Date(deliveryDate).toLocaleString('fr-FR', { timeZone: 'UTC' })} UTC`);
+        } else {
+            console.log('📅 Date de livraison: sera calculée automatiquement par le serveur');
+        }
         console.log('Données:', JSON.stringify(shipmentData, null, 2));
 
         const req = client.request(options, (res) => {

@@ -22,9 +22,23 @@ Assurez-vous que les variables d'environnement suivantes sont configurées sur R
 
 2. Exécutez le script avec l'URL de Render :
 
+**Sans date personnalisée (date calculée automatiquement) :**
 ```bash
 cd Tracking
 RENDER_URL=https://votre-app.onrender.com node create-shipment-oklahoma-texas.js
+```
+
+**Avec date de livraison personnalisée :**
+```bash
+cd Tracking
+# Format ISO 8601
+RENDER_URL=https://votre-app.onrender.com node create-shipment-oklahoma-texas.js "2024-12-15T10:00:00Z"
+
+# Format date simple (sera convertie en 12:00 UTC)
+RENDER_URL=https://votre-app.onrender.com node create-shipment-oklahoma-texas.js "2024-12-15"
+
+# Via variable d'environnement
+RENDER_URL=https://votre-app.onrender.com DELIVERY_DATE="2024-12-15T10:00:00Z" node create-shipment-oklahoma-texas.js
 ```
 
 #### Option B : Depuis le serveur Render (via SSH ou console)
@@ -33,10 +47,24 @@ Si vous avez accès au serveur Render, vous pouvez exécuter le script directeme
 
 ```bash
 cd Tracking
+# Sans date
 node create-shipment-oklahoma-texas.js
+
+# Avec date
+node create-shipment-oklahoma-texas.js "2024-12-15T10:00:00Z"
 ```
 
 (Le script utilisera automatiquement l'URL locale du serveur)
+
+### 3. Formats de date acceptés
+
+Le script accepte plusieurs formats de date :
+
+- **ISO 8601** : `"2024-12-15T10:00:00Z"` (recommandé)
+- **Date simple** : `"2024-12-15"` (sera convertie en 12:00 UTC)
+- **Timestamp** : `"1734264000000"` (millisecondes depuis l'époque Unix)
+
+Si aucune date n'est fournie, le serveur calculera automatiquement la date d'arrivée estimée en fonction de la distance entre l'expéditeur et le destinataire.
 
 ## Vérification
 
