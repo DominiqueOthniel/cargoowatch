@@ -987,9 +987,18 @@ app.get('/api/shipments/:trackingId', async (req, res) => {
                 shipment.currentLocation = { lat: autoPos.lat, lng: autoPos.lng, city: autoPos.city };
                 shipment.autoProgress.lastUpdate = new Date().toISOString();
                 if (oldCity !== autoPos.city) {
-                    console.log(`ðŸ“ ${trackingId}: Position updated - ${oldCity} â†’ ${autoPos.city} (Progress: ${(autoPos.progress * 100).toFixed(1)}%)`);
+                    console.log(`📍 ${trackingId}: Position updated - ${oldCity} → ${autoPos.city} (Progress: ${(autoPos.progress * 100).toFixed(1)}%)`);
                 }
-                await writeShipments(shipments);
+                shipment.updatedAt = new Date().toISOString();
+
+                if (db && db.updateShipment) {
+                    const persistedShipment = await db.updateShipment(trackingId.toUpperCase(), shipment);
+                    if (persistedShipment) {
+                        Object.assign(shipment, persistedShipment);
+                    }
+                } else {
+                    await writeShipments(shipments);
+                }
             }
         }
         res.json(shipment);
