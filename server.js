@@ -1285,9 +1285,22 @@ app.put('/api/shipments/:trackingId/status', requireAuth, requireAdmin, async (r
             shipment.deliveredAt = new Date().toISOString();
         }
         
-        // Update in database
-        await writeShipments(shipments);
-        res.json(shipment);
+        // Update in database (Supabase or JSON files)
+        let updatedShipment;
+        if (db && db.updateShipment) {
+            // Use Supabase
+            updatedShipment = await db.updateShipment(trackingId.toUpperCase(), shipment);
+            if (!updatedShipment) {
+                throw new Error('Failed to update shipment in Supabase');
+            }
+            console.log(`✅ Shipment status updated in Supabase: ${trackingId} → ${status}`);
+        } else {
+            // Fallback to JSON files
+            await writeShipments(shipments);
+            updatedShipment = shipment;
+        }
+        
+        res.json(updatedShipment);
     } catch (error) {
         console.error('Error updating shipment status:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -1360,8 +1373,23 @@ app.put('/api/shipments/:trackingId/pause', requireAuth, requireAdmin, async (re
             }
         }
         shipment.updatedAt = new Date().toISOString();
-        await writeShipments(shipments);
-        res.json(shipment);
+        
+        // Update in database (Supabase or JSON files)
+        let updatedShipment;
+        if (db && db.updateShipment) {
+            // Use Supabase
+            updatedShipment = await db.updateShipment(trackingId.toUpperCase(), shipment);
+            if (!updatedShipment) {
+                throw new Error('Failed to update shipment in Supabase');
+            }
+            console.log(`✅ Shipment pause/resume updated in Supabase: ${trackingId}`);
+        } else {
+            // Fallback to JSON files
+            await writeShipments(shipments);
+            updatedShipment = shipment;
+        }
+        
+        res.json(updatedShipment);
     } catch (error) {
         console.error('Error pausing/resuming shipment:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -1407,11 +1435,23 @@ app.post('/api/shipments/:trackingId/receipt/generate', requireAuth, requireAdmi
         shipment.receiptUploadedAt = new Date().toISOString();
         shipment.updatedAt = new Date().toISOString();
 
-        // Update in database (reuse shipments array from above)
-        shipments[shipmentIndex] = shipment;
-        await writeShipments(shipments);
-        console.log(`✅ Receipt PDF generated for shipment ${trackingId}`);
-        res.json({ success: true, receipt: receiptUrl, shipment });
+        // Update in database (Supabase or JSON files)
+        let updatedShipment;
+        if (db && db.updateShipment) {
+            // Use Supabase
+            updatedShipment = await db.updateShipment(trackingId.toUpperCase(), shipment);
+            if (!updatedShipment) {
+                throw new Error('Failed to update shipment receipt in Supabase');
+            }
+            console.log(`✅ Receipt PDF generated and updated in Supabase for shipment ${trackingId}`);
+        } else {
+            // Fallback to JSON files
+            shipments[shipmentIndex] = shipment;
+            await writeShipments(shipments);
+            updatedShipment = shipment;
+        }
+        
+        res.json({ success: true, receipt: receiptUrl, shipment: updatedShipment });
     } catch (error) {
         console.error('Error generating receipt:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -3257,7 +3297,7 @@ async function startServer() {
         setInterval(async () => {
             try {
                 const shipments = await readShipments();
-                let updated = 0;
+                const updatedShipments = [];
                 for (const shipment of shipments) {
                     if (shipment.autoProgress?.enabled && !shipment.autoProgress?.paused && 
                         shipment.status !== 'delivered' && shipment.status !== 'pending' &&
@@ -3272,16 +3312,27 @@ async function startServer() {
                                 city: autoPos.city
                             };
                             shipment.autoProgress.lastUpdate = new Date().toISOString();
+                            shipment.updatedAt = new Date().toISOString();
                             if (oldCity !== autoPos.city) {
-                                console.log(`ðŸ”„ ${shipment.trackingId}: ${oldCity} â†’ ${autoPos.city} (${(autoPos.progress * 100).toFixed(1)}%)`);
+                                console.log(`📍 ${shipment.trackingId}: ${oldCity} → ${autoPos.city} (${(autoPos.progress * 100).toFixed(1)}%)`);
                             }
-                            updated++;
+                            updatedShipments.push(shipment);
                         }
                     }
                 }
-                if (updated > 0) {
-                    await writeShipments(shipments);
-                    console.log(`ðŸ“ Updated ${updated} shipment positions automatically`);
+                if (updatedShipments.length > 0) {
+                    // Update in database (Supabase or JSON files)
+                    if (db && db.updateShipment) {
+                        // Use Supabase - update each shipment individually
+                        for (const shipment of updatedShipments) {
+                            await db.updateShipment(shipment.trackingId, shipment);
+                        }
+                        console.log(`✅ Updated ${updatedShipments.length} shipment positions automatically in Supabase`);
+                    } else {
+                        // Fallback to JSON files
+                        await writeShipments(shipments);
+                        console.log(`📍 Updated ${updatedShipments.length} shipment positions automatically`);
+                    }
                 }
             } catch (error) {
                 console.error('Error in automatic position update:', error);
@@ -3291,3 +3342,4 @@ async function startServer() {
 }
 
 startServer().catch(console.error);
+
