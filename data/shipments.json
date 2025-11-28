@@ -200,7 +200,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-02T19:30:00.000Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "receipt": "/receipts/receipt-CW20251102ANYCAR7X-1762118486876.pdf",
     "receiptUploadedAt": "2025-11-02T21:21:27.274Z"
@@ -641,7 +641,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-02T22:55:59.268Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     }
   },
   {
@@ -746,7 +746,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T10:55:55.120Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     }
   },
   {
@@ -841,7 +841,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T10:55:44.999Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "receipt": "/receipts/receipt-CW202511037Q6WFRLM-1762128555156.pdf",
     "receiptUploadedAt": "2025-11-03T00:09:15.595Z"
@@ -938,7 +938,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T10:55:36.777Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "receipt": "/receipts/receipt-CW20251103BIR3XRG4-1762129590699.pdf",
     "receiptUploadedAt": "2025-11-03T00:26:30.905Z"
@@ -1035,7 +1035,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T10:55:29.549Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     }
   },
   {
@@ -1130,7 +1130,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T01:01:17.175Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "receipt": "/receipts/receipt-CW202511036VZKE68H-1762130625356.pdf",
     "receiptUploadedAt": "2025-11-03T00:43:45.889Z"
@@ -1247,7 +1247,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T01:17:31.531Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "receipt": "/receipts/receipt-CW20251103S7CPCP9K-1762132657023.pdf",
     "receiptUploadedAt": "2025-11-03T01:17:37.266Z"
@@ -1452,7 +1452,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": null,
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "deliveredAt": "2025-11-03T01:25:13.984Z",
     "receipt": "/receipts/receipt-CW20251103SS4AGCXR-1762133118933.pdf",
@@ -1590,7 +1590,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T01:37:12.659Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "receipt": "/receipts/receipt-CW20251103BNXGD7T1-1762133863423.pdf",
     "receiptUploadedAt": "2025-11-03T01:37:43.679Z"
@@ -1727,7 +1727,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T01:49:56.540Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "deliveredAt": "2025-11-03T01:49:04.923Z",
     "receipt": "/receipts/receipt-CW20251103ZTQAGU1U-1762134548902.pdf",
@@ -1845,7 +1845,7 @@
       "pauseReason": "Maintenance",
       "pausedDuration": 0,
       "startedAt": "2025-11-03T10:57:09.084Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "receipt": "/receipts/receipt-CW20251103G1TVNR8Y-1762134665114.pdf",
     "receiptUploadedAt": "2025-11-03T01:51:05.218Z"
@@ -1952,7 +1952,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T10:54:01.124Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "receipt": "/receipts/receipt-CW202511035M0BP4UC-1762167213103.pdf",
     "receiptUploadedAt": "2025-11-03T10:53:33.354Z"
@@ -2540,7 +2540,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T22:43:39.916Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "receipt": "/receipts/receipt-CW20251103D1HJU0ST-1762209784414.pdf",
     "receiptUploadedAt": "2025-11-03T22:43:04.488Z"
@@ -3091,7 +3091,7 @@
       "pauseReason": null,
       "pausedDuration": 0,
       "startedAt": "2025-11-03T23:35:02.123Z",
-      "lastUpdate": "2025-11-09T20:32:03.633Z"
+      "lastUpdate": "2025-11-27T22:13:13.331Z"
     },
     "receipt": "/receipts/receipt-CW20251104EDRT9UC4-1762212476479.pdf",
     "receiptUploadedAt": "2025-11-03T23:27:56.628Z"

@@ -710,7 +710,7 @@ app.get('/api', (req, res) => {
             },
             authenticated: {
                 'GET /api/auth/me': 'Get current user info',
-                'POST /api/auth/login': 'Login',
+                'POST /api/auth/login': 'Admin Login',
                 'POST /api/auth/logout': 'Logout'
             },
             admin: {
@@ -723,7 +723,7 @@ app.get('/api', (req, res) => {
     });
 });
 
-// Auth routes
+// Admin auth routes only (user login removed)
 app.post('/api/auth/login', async (req, res) => {
     try {
         const { username, password } = req.body;
@@ -733,6 +733,10 @@ app.post('/api/auth/login', async (req, res) => {
         const user = await findUserByUsername(username);
         if (!user) {
             return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        // Only allow admin login
+        if (user.role !== 'admin') {
+            return res.status(403).json({ error: 'Admin access only' });
         }
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (!isValidPassword) {
@@ -759,7 +763,7 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 app.get('/api/auth/me', (req, res) => {
-    if (req.session && req.session.userId) {
+    if (req.session && req.session.userId && req.session.role === 'admin') {
         res.json({
             user: {
                 id: req.session.userId,
@@ -771,82 +775,10 @@ app.get('/api/auth/me', (req, res) => {
             }
         });
     } else {
-        // Return 200 with null user instead of 401 to avoid console errors
         res.json({ user: null });
     }
 });
 
-// User registration route
-app.post('/api/auth/register', async (req, res) => {
-    try {
-        const { username, email, password, firstName, lastName } = req.body;
-        
-        if (!username || !email || !password) {
-            return res.status(400).json({ error: 'Username, email, and password are required' });
-        }
-
-        // Validate email format
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(email)) {
-            return res.status(400).json({ error: 'Invalid email format' });
-        }
-
-        // Validate password strength
-        if (password.length < 6) {
-            return res.status(400).json({ error: 'Password must be at least 6 characters long' });
-        }
-
-        // Check if username or email already exists
-        const existingUser = await findUserByUsername(username);
-        if (existingUser) {
-            return res.status(400).json({ error: 'Username already exists' });
-        }
-
-        const existingEmail = await findUserByEmail(email);
-        if (existingEmail) {
-            return res.status(400).json({ error: 'Email already registered' });
-        }
-
-        // Create new user
-        const hashedPassword = await bcrypt.hash(password, 10);
-        const newUser = {
-            id: uuidv4(),
-            username,
-            email,
-            password: hashedPassword,
-            firstName: firstName || '',
-            lastName: lastName || '',
-            role: 'client',
-            createdAt: new Date().toISOString()
-        };
-
-        // Save to database
-        const users = await readUsers();
-        users.push(newUser);
-        await writeUsers(users);
-
-        // Auto-login after registration
-        req.session.userId = newUser.id;
-        req.session.username = newUser.username;
-        req.session.role = newUser.role;
-        req.session.email = newUser.email;
-
-        res.json({ 
-            success: true, 
-            user: { 
-                id: newUser.id, 
-                username: newUser.username, 
-                email: newUser.email, 
-                role: newUser.role,
-                firstName: newUser.firstName,
-                lastName: newUser.lastName
-            } 
-        });
-    } catch (error) {
-        console.error('Error during registration:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
 
 // Stats route
 app.get('/api/stats', async (req, res) => {
@@ -930,27 +862,6 @@ app.get('/api/shipments/recent', async (req, res) => {
 });
 
 // Shipment routes
-// IMPORTANT: /api/shipments/my must come BEFORE /api/shipments/:trackingId to avoid route conflicts
-app.get('/api/shipments/my', requireAuth, async (req, res) => {
-    try {
-        if (!req.session || !req.session.email) {
-            return res.status(401).json({ error: 'Not authenticated' });
-        }
-        const shipments = await readShipments();
-        const userEmail = req.session.email;
-        // Filter shipments where user is sender or recipient
-        const userShipments = shipments.filter(s => 
-            s.sender?.email?.toLowerCase() === userEmail.toLowerCase() || 
-            s.recipient?.email?.toLowerCase() === userEmail.toLowerCase()
-        );
-        // Sort by creation date (newest first)
-        userShipments.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        res.json(userShipments);
-    } catch (error) {
-        console.error('Error fetching user shipments:', error);
-        res.status(500).json({ error: 'Internal server error' });
-    }
-});
 
 app.get('/api/shipments/:trackingId', async (req, res) => {
     try {
@@ -3247,7 +3158,7 @@ io.on('connection', (socket) => {
 });
 
 // Pages publiques qui ne nécessitent pas d'authentification
-const publicPages = ['user_login', 'user_register', 'admin_login', 'public_tracking_interface'];
+const publicPages = ['admin_login', 'public_tracking_interface', 'homepage', 'shipment_creation_portal', 'support_hub'];
 
 // Middleware pour vérifier l'authentification sur les pages principales
 function requirePageAuth(req, res, next) {
@@ -3259,15 +3170,17 @@ function requirePageAuth(req, res, next) {
         return next();
     }
     
-    // Vérifier si l'utilisateur est authentifié
-    if (req.session && req.session.userId) {
-        return next();
+    // Pour les pages admin, vérifier l'authentification admin
+    if (pageName.includes('admin')) {
+        if (req.session && req.session.userId && req.session.role === 'admin') {
+            return next();
+        }
+        res.redirect('/pages/admin_login.html');
+        return;
     }
     
-    // Rediriger vers la page de login appropriée
-    // Les admins vers admin_login, les autres vers user_login
-    const loginPage = pageName.includes('admin') ? 'admin_login.html' : 'user_login.html';
-    res.redirect(`/pages/${loginPage}`);
+    // Pour les autres pages, laisser passer (pas d'authentification requise)
+    return next();
 }
 
 // Routes pour servir les pages avec authentification obligatoire
@@ -3284,12 +3197,8 @@ app.get('/pages/:page', requirePageAuth, (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    // Rediriger vers la page de login si non authentifié, sinon vers homepage
-    if (req.session && req.session.userId) {
-        res.redirect('/pages/homepage.html');
-    } else {
-        res.redirect('/pages/user_login.html');
-    }
+    // Rediriger vers la page publique de tracking
+    res.redirect('/pages/public_tracking_interface.html');
 });
 
 // Serve receipts directory with proper PDF Content-Type
