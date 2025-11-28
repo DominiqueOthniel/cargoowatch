@@ -178,11 +178,6 @@
                         </button>
                     </div>
                     
-                    <!-- Quick Suggestions - Chargées dynamiquement depuis l'API -->
-                    <div id="recent-shipments" class="mt-4 text-sm text-text-muted">
-                        <span data-i18n="track.recentShipmentsLabel">Recent shipments: </span>
-                        <span id="recent-shipments-list" class="text-text-secondary" data-i18n="track.loading">Loading...</span>
-                    </div>
                 </div>
             </div>
         </section>
@@ -476,18 +471,6 @@
             </div>
         </section>
 
-        <!-- Recent Shipments -->
-        <section class="py-12 bg-surface">
-            <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-                <h2 class="text-2xl font-bold text-text-primary mb-8 text-center" data-i18n="track.recentShipments">Recent Shipments</h2>
-                <div id="recent-shipments-grid" class="grid md:grid-cols-3 gap-6">
-                    <!-- Les shipments récents seront chargés dynamiquement ici -->
-                    <div class="col-span-full text-center text-text-muted py-8" data-i18n="track.loadingRecentShipments">
-                        Loading recent shipments...
-                        </div>
-                </div>
-            </div>
-        </section>
 
         <!-- Client Reviews Section -->
         <section class="py-16 bg-white">
@@ -1249,8 +1232,6 @@
             }
 
             // Charger les suggestions de shipments récents
-            loadRecentShipments();
-            loadRecentShipmentsGrid();
             
             // Cleanup tracking on page unload
             window.addEventListener('beforeunload', () => {
@@ -1280,34 +1261,6 @@
             }, 30000);
         });
 
-        // Charger les shipments récents pour les suggestions (petites suggestions en haut)
-        async function loadRecentShipments() {
-            try {
-                const response = await fetch('/api/shipments/recent?limit=3');
-                if (response.ok) {
-                    const recentShipments = await response.json();
-                    const listElement = document.getElementById('recent-shipments-list');
-                    
-                    if (recentShipments.length > 0) {
-                        listElement.innerHTML = recentShipments.map(s => 
-                            `<button class="text-primary hover:underline mx-2" onclick="fillTrackingId('${s.trackingId}')">${s.trackingId}</button>`
-                        ).join('');
-                    } else {
-                        if (window.i18n) {
-                            listElement.textContent = window.i18n.t('track.noShipments');
-                    } else {
-                        listElement.textContent = 'No recent shipments';
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error('Error loading recent shipments:', error);
-                document.getElementById('recent-shipments-list').textContent = 'Unable to load';
-            }
-        }
-
-        // Charger les shipments récents pour la section "Recent Shipments"
-        async function loadRecentShipmentsGrid() {
             try {
                 const response = await fetch('/api/shipments/recent?limit=3');
                 if (response.ok) {
