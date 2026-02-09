@@ -95,9 +95,18 @@
                         const id = card?.dataset?.reviewId;
                         const author = card?.dataset?.reviewAuthor || '';
                         if (!id) return;
-                        const name = prompt('Entrez votre nom pour confirmer la suppression :', author);
-                        if (name === null) return;
-                        window.CargoWatchReviews.delete(id, name.trim()).then(() => {
+                        const isAdmin = containerId === 'reviews-grid-admin';
+                        const confirmMsg = isAdmin ? 'Supprimer cet avis ?' : 'Entrez votre nom pour confirmer la suppression :';
+                        let nameToSend = '';
+                        if (isAdmin) {
+                            if (!confirm(confirmMsg)) return;
+                            nameToSend = '';
+                        } else {
+                            const name = prompt(confirmMsg, author);
+                            if (name === null) return;
+                            nameToSend = name.trim();
+                        }
+                        window.CargoWatchReviews.delete(id, nameToSend).then(() => {
                             window.CargoWatchReviews.load(containerId, limit);
                         }).catch(err => {
                             alert(err.message || 'Erreur lors de la suppression.');
