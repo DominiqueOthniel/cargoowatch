@@ -40,16 +40,24 @@
         return AVATARS[i % AVATARS.length];
     }
 
-    function renderReviewCard(review, index) {
+    function renderReviewCard(review, index, containerId) {
         const avatar = avatarForIndex(index);
         const starHtml = '<span class="text-yellow-400">' + stars(review.rating) + '</span>';
+        const reviewId = escapeHtml(review.id || '');
+        const authorName = escapeHtml(review.author || '');
         return `
-            <div class="card">
+            <div class="card relative" data-review-id="${reviewId}" data-review-author="${authorName}">
+                <button type="button" class="review-delete-btn absolute top-3 right-3 p-1.5 text-gray-400 hover:text-error hover:bg-error/10 rounded-full transition-colors" 
+                        title="Supprimer cet avis" aria-label="Supprimer">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                </button>
                 <div class="flex items-center mb-4">
-                    <img src="${avatar}" alt="${escapeHtml(review.author)}" class="w-12 h-12 rounded-full object-cover mr-4"
+                    <img src="${avatar}" alt="${authorName}" class="w-12 h-12 rounded-full object-cover mr-4"
                          onerror="this.src='${AVATAR_FALLBACK}'; this.onerror=null;">
                     <div>
-                        <div class="font-semibold text-text-primary">${escapeHtml(review.author)}</div>
+                        <div class="font-semibold text-text-primary">${authorName}</div>
                         <div class="text-sm text-text-muted">Client CargoWatch</div>
                     </div>
                 </div>
@@ -80,7 +88,22 @@
                     el.innerHTML = '<p class="text-text-muted text-center py-8">Aucun avis pour le moment. Soyez le premier à nous laisser un avis !</p>';
                     return;
                 }
-                el.innerHTML = reviews.map((r, i) => renderReviewCard(r, i)).join('');
+                el.innerHTML = reviews.map((r, i) => renderReviewCard(r, i, containerId)).join('');
+                el.querySelectorAll('.review-delete-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const card = this.closest('[data-review-id]');
+                        const id = card?.dataset?.reviewId;
+                        const author = card?.dataset?.reviewAuthor || '';
+                        if (!id) return;
+                        const name = prompt('Entrez votre nom pour confirmer la suppression :', author);
+                        if (name === null) return;
+                        window.CargoWatchReviews.delete(id, name.trim()).then(() => {
+                            window.CargoWatchReviews.load(containerId, limit);
+                        }).catch(err => {
+                            alert(err.message || 'Erreur lors de la suppression.');
+                        });
+                    });
+                });
             } catch (err) {
                 console.error('Erreur chargement reviews:', err);
                 el.innerHTML = '<p class="text-text-muted text-center py-8">Impossible de charger les avis.</p>';
@@ -95,6 +118,18 @@
             });
             const data = await res.json();
             if (!res.ok) throw new Error(data.error || 'Erreur lors de l\'envoi');
+            return data;
+        },
+
+        delete: async function(id, author) {
+            const res = await fetch('/api/reviews/' + encodeURIComponent(id), {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ author: author || '' })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) throw new Error(data.error || data.message || 'Erreur lors de la suppression');
             return data;
         }
     };

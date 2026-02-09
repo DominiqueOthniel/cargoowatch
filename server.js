@@ -1132,6 +1132,46 @@ app.post('/api/reviews', async (req, res) => {
     }
 });
 
+app.delete('/api/reviews/all', requireAuth, requireAdmin, async (req, res) => {
+    try {
+        await writeReviews([]);
+        console.log('🗑️ All reviews cleared by admin');
+        res.json({ success: true, message: 'Tous les avis ont été supprimés' });
+    } catch (error) {
+        console.error('Error clearing reviews:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.delete('/api/reviews/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { author } = req.body || {};
+        const isAdmin = req.session && req.session.role === 'admin';
+        const reviews = await readReviews();
+        const index = reviews.findIndex(r => r.id === id);
+        if (index === -1) {
+            return res.status(404).json({ error: 'Review not found' });
+        }
+        const review = reviews[index];
+        const authorMatch = author && typeof author === 'string' &&
+            review.author.toLowerCase().trim() === author.toLowerCase().trim();
+        if (!isAdmin && !authorMatch) {
+            return res.status(403).json({
+                error: 'Forbidden',
+                message: 'Seul l\'auteur (nom exact) ou un admin peut supprimer cet avis.'
+            });
+        }
+        reviews.splice(index, 1);
+        await writeReviews(reviews);
+        console.log(`🗑️ Review ${id} deleted by ${isAdmin ? 'admin' : review.author}`);
+        res.json({ success: true, message: 'Avis supprimé' });
+    } catch (error) {
+        console.error('Error deleting review:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
 // Stats route
 app.get('/api/stats', async (req, res) => {
     try {

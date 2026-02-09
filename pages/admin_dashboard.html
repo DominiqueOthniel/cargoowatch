@@ -527,9 +527,14 @@
 
         <!-- Reviews Tab Content -->
         <div id="content-reviews" class="hidden">
-            <div class="mb-6">
-                <h2 class="text-2xl font-bold text-text-primary mb-2">Client Reviews</h2>
-                <p class="text-text-secondary">See what our clients are saying about CargoWatch</p>
+            <div class="mb-6 flex items-center justify-between">
+                <div>
+                    <h2 class="text-2xl font-bold text-text-primary mb-2">Client Reviews</h2>
+                    <p class="text-text-secondary">See what our clients are saying about CargoWatch</p>
+                </div>
+                <button id="admin-clear-all-reviews" type="button" class="px-4 py-2 text-sm font-medium text-error bg-error/10 hover:bg-error/20 rounded-lg transition-colors">
+                    Supprimer tous les avis
+                </button>
             </div>
             <div id="reviews-grid-admin" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
         </div>
@@ -2206,6 +2211,18 @@
             document.getElementById('cancel-receipt-upload')?.addEventListener('click', () => {
                 console.log('Cancel receipt upload clicked');
                 closeReceiptModal();
+            });
+
+            document.getElementById('admin-clear-all-reviews')?.addEventListener('click', async function() {
+                if (!confirm('Supprimer tous les avis ? Cette action est irréversible.')) return;
+                try {
+                    const res = await fetch('/api/reviews/all', { method: 'DELETE', credentials: 'include' });
+                    const data = await res.json();
+                    if (!res.ok) throw new Error(data.error || 'Erreur');
+                    if (window.CargoWatchReviews) CargoWatchReviews.load('reviews-grid-admin');
+                } catch (e) {
+                    alert(e.message || 'Erreur lors de la suppression.');
+                }
             });
             
             // Ensure functions are available globally

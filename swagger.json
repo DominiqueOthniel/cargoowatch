@@ -104,6 +104,40 @@
         }
       }
     },
+    "/api/reviews/all": {
+      "delete": {
+        "tags": ["Reviews"],
+        "summary": "Supprimer tous les avis (Admin)",
+        "security": [{ "sessionAuth": [] }],
+        "responses": { "200": { "description": "Tous les avis supprimés" } }
+      }
+    },
+    "/api/reviews/{id}": {
+      "delete": {
+        "tags": ["Reviews"],
+        "summary": "Supprimer un avis (auteur ou admin)",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "author": { "type": "string", "description": "Nom de l'auteur (requis pour vérification, sauf admin)" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Avis supprimé" },
+          "403": { "description": "Seul l'auteur ou un admin peut supprimer" },
+          "404": { "description": "Avis non trouvé" }
+        }
+      }
+    },
     "/api/stats": {
       "get": {
         "tags": ["Stats"],
