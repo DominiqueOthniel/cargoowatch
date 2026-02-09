@@ -1,0 +1,332 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CargoWatch API",
+    "description": "API professionnelle de suivi d'expéditions. CargoWatch permet de créer, suivre et gérer des expéditions en temps réel.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "CargoWatch"
+    }
+  },
+  "servers": [
+    { "url": "http://localhost:3000", "description": "Serveur local" },
+    { "url": "/", "description": "URL relative" }
+  ],
+  "tags": [
+    { "name": "API Info", "description": "Informations générales" },
+    { "name": "Auth", "description": "Authentification admin" },
+    { "name": "Reviews", "description": "Avis clients" },
+    { "name": "Stats", "description": "Statistiques" },
+    { "name": "Shipments", "description": "Expéditions" },
+    { "name": "Chat", "description": "Support chat" },
+    { "name": "Receipts", "description": "Reçus" }
+  ],
+  "paths": {
+    "/api": {
+      "get": {
+        "tags": ["API Info"],
+        "summary": "Informations API",
+        "responses": { "200": { "description": "Liste des endpoints disponibles" } }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Connexion admin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["username", "password"],
+                "properties": {
+                  "username": { "type": "string" },
+                  "password": { "type": "string", "format": "password" }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Connexion réussie" },
+          "400": { "description": "Username et password requis" },
+          "401": { "description": "Identifiants invalides" },
+          "403": { "description": "Accès admin uniquement" }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Déconnexion",
+        "responses": { "200": { "description": "Déconnecté" } }
+      }
+    },
+    "/api/auth/me": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Utilisateur courant",
+        "responses": { "200": { "description": "Infos utilisateur ou null" } }
+      }
+    },
+    "/api/reviews": {
+      "get": {
+        "tags": ["Reviews"],
+        "summary": "Liste des avis",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } }
+        ],
+        "responses": { "200": { "description": "Liste des avis clients" } }
+      },
+      "post": {
+        "tags": ["Reviews"],
+        "summary": "Créer un avis",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["author", "rating"],
+                "properties": {
+                  "author": { "type": "string", "maxLength": 100 },
+                  "rating": { "type": "integer", "minimum": 1, "maximum": 5 },
+                  "comment": { "type": "string", "maxLength": 1000 }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Avis créé" },
+          "400": { "description": "Author requis, rating 1-5" }
+        }
+      }
+    },
+    "/api/stats": {
+      "get": {
+        "tags": ["Stats"],
+        "summary": "Statistiques globales",
+        "responses": { "200": { "description": "activeShipments, deliveredToday, countriesServed, etc." } }
+      }
+    },
+    "/api/shipments/recent": {
+      "get": {
+        "tags": ["Shipments"],
+        "summary": "Expéditions récentes",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 3 } }
+        ],
+        "responses": { "200": { "description": "Liste des expéditions récentes" } }
+      }
+    },
+    "/api/shipments/{trackingId}": {
+      "get": {
+        "tags": ["Shipments"],
+        "summary": "Détails d'une expédition",
+        "parameters": [
+          { "name": "trackingId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Détails complets de l'expédition" },
+          "404": { "description": "Expédition non trouvée" }
+        }
+      }
+    },
+    "/api/shipments": {
+      "get": {
+        "tags": ["Shipments"],
+        "summary": "Liste toutes les expéditions (Admin)",
+        "security": [{ "sessionAuth": [] }],
+        "responses": { "200": { "description": "Liste des expéditions" } }
+      },
+      "post": {
+        "tags": ["Shipments"],
+        "summary": "Créer une expédition",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["sender", "recipient", "package"],
+                "properties": {
+                  "sender": {
+                    "type": "object",
+                    "properties": {
+                      "name": { "type": "string" },
+                      "email": { "type": "string" },
+                      "phone": { "type": "string" },
+                      "address": {
+                        "type": "object",
+                        "properties": {
+                          "street": { "type": "string" },
+                          "city": { "type": "string" },
+                          "state": { "type": "string" },
+                          "zipCode": { "type": "string" },
+                          "country": { "type": "string" }
+                        }
+                      }
+                    }
+                  },
+                  "recipient": { "type": "object" },
+                  "package": {
+                    "type": "object",
+                    "properties": {
+                      "type": { "type": "string" },
+                      "weight": { "type": "number" },
+                      "dimensions": { "type": "object" },
+                      "description": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Expédition créée avec trackingId" },
+          "400": { "description": "Données invalides" }
+        }
+      }
+    },
+    "/api/shipments/{trackingId}/status": {
+      "put": {
+        "tags": ["Shipments"],
+        "summary": "Mettre à jour le statut (Admin)",
+        "security": [{ "sessionAuth": [] }],
+        "parameters": [
+          { "name": "trackingId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "status": { "type": "string", "enum": ["pending", "picked_up", "in_transit", "out_for_delivery", "delivered"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Statut mis à jour" } }
+      }
+    },
+    "/api/shipments/{trackingId}/pause": {
+      "put": {
+        "tags": ["Shipments"],
+        "summary": "Pause/Reprise auto-progression (Admin)",
+        "security": [{ "sessionAuth": [] }],
+        "parameters": [
+          { "name": "trackingId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Pause mise à jour" } }
+      }
+    },
+    "/api/shipments/{trackingId}/receipt/generate": {
+      "post": {
+        "tags": ["Shipments", "Receipts"],
+        "summary": "Générer un reçu PDF (Admin)",
+        "security": [{ "sessionAuth": [] }],
+        "parameters": [
+          { "name": "trackingId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "language": { "type": "string", "default": "en" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "URL du reçu généré" } }
+      }
+    },
+    "/api/receipts": {
+      "get": {
+        "tags": ["Receipts"],
+        "summary": "Liste des reçus (Admin)",
+        "security": [{ "sessionAuth": [] }],
+        "responses": { "200": { "description": "Liste des reçus" } }
+      }
+    },
+    "/api/chat/start": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Démarrer une conversation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "clientName": { "type": "string" },
+                  "clientEmail": { "type": "string" },
+                  "message": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Chat créé avec chatId" } }
+      }
+    },
+    "/api/chat/{chatId}": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Récupérer une conversation",
+        "parameters": [
+          { "name": "chatId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Détails du chat" } }
+      }
+    },
+    "/api/chat/{chatId}/message": {
+      "post": {
+        "tags": ["Chat"],
+        "summary": "Envoyer un message",
+        "parameters": [
+          { "name": "chatId", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "text": { "type": "string" },
+                  "senderType": { "type": "string", "enum": ["client", "admin"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": { "200": { "description": "Message envoyé" } }
+      }
+    },
+    "/api/chat": {
+      "get": {
+        "tags": ["Chat"],
+        "summary": "Liste des chats (Admin)",
+        "security": [{ "sessionAuth": [] }],
+        "responses": { "200": { "description": "Liste des conversations" } }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "sessionAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "connect.sid",
+        "description": "Session cookie (login requis pour routes admin)"
+      }
+    }
+  }
+}

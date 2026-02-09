@@ -1,116 +1,114 @@
 # Guide de Déploiement - CargoWatch sur Render
 
-Ce guide vous explique comment déployer votre application CargoWatch sur Render.
+Ce guide explique comment héberger **frontend + backend** CargoWatch sur Render.
+
+## 🏗️ Architecture
+
+CargoWatch est une **application monolithique** : un seul service Node.js/Express sert à la fois :
+- **Backend** : API REST (`/api/*`), sessions, MongoDB
+- **Frontend** : pages HTML, CSS, JS (`/pages/*`, `/`)
+
+**Un seul déploiement Render** suffit pour tout héberger.
+
+### En résumé
+
+1. **1 service Web** sur Render (pas de séparation front/back)
+2. **MongoDB Atlas** pour les données
+3. Variables : `MONGODB_URI`, `SESSION_SECRET`, `NODE_ENV`
+4. Build : `npm install && npm run build:css`
+5. Start : `npm start`
 
 ## 📋 Prérequis
 
-- ✅ Un compte GitHub avec votre projet CargoWatch
-- ✅ Un projet Supabase configuré
-- ✅ Les tables Supabase créées (voir `supabase-schema-complete.sql`)
-- ✅ Un compte Render (gratuit disponible)
+- Compte GitHub avec le projet
+- Compte Render (gratuit)
+- **Base MongoDB Atlas** (obligatoire pour la production)
 
-## 🚀 Étape 1 : Préparer le projet
+## 🚀 Étape 1 : Pousser le code sur GitHub
 
-Assurez-vous que votre projet est prêt :
+```bash
+git add .
+git commit -m "Prepare for Render deployment"
+git push origin master
+```
 
-1. **Vérifiez que tous les fichiers sont commités** :
-   ```bash
-   git status
-   ```
+Repository : https://github.com/DominiqueOthniel/cargoowatch
 
-2. **Poussez vers GitHub** (si ce n'est pas déjà fait) :
-   ```bash
-   git add .
-   git commit -m "Prepare for Render deployment"
-   git push origin master
-   ```
+## 🚀 Étape 2 : Créer un Web Service sur Render
 
-## 🚀 Étape 2 : Créer un compte Render
+1. Allez sur [render.com](https://render.com) → **Dashboard**
+2. **New +** → **Web Service**
+3. Connectez votre compte GitHub si besoin
+4. Sélectionnez le repo `DominiqueOthniel/cargoowatch`
 
-1. Allez sur [render.com](https://render.com)
-2. Cliquez sur **"Get Started"** ou **"Sign Up"**
-3. Choisissez **"Sign up with GitHub"** (recommandé)
-4. Autorisez Render à accéder à vos repositories GitHub
+## 🚀 Étape 3 : Configurer le service
 
-## 🚀 Étape 3 : Créer un nouveau service Web
+| Paramètre | Valeur |
+|-----------|--------|
+| **Name** | `cargowatch` |
+| **Region** | Frankfurt ou plus proche |
+| **Branch** | `master` |
+| **Root Directory** | (vide) |
+| **Runtime** | `Node` |
+| **Build Command** | `npm install && npm run build:css` |
+| **Start Command** | `npm start` |
+| **Plan** | `Free` |
+| **Health Check Path** | `/api` |
 
-1. Dans le dashboard Render, cliquez sur **"New +"**
-2. Sélectionnez **"Web Service"**
-3. Cliquez sur **"Connect account"** si nécessaire
-4. Sélectionnez votre repository : `DominiqueOthniel/cargowatch`
+## 🚀 Étape 4 : Variables d'environnement (OBLIGATOIRE)
 
-## 🚀 Étape 4 : Configurer le service
+Dans **Environment** → **Add Environment Variable** :
 
-Configurez les paramètres suivants :
-
-### Informations de base
-- **Name** : `cargowatch` (ou votre nom préféré)
-- **Region** : Choisissez la région la plus proche de vos utilisateurs
-- **Branch** : `master` (ou votre branche principale)
-- **Root Directory** : `.` (laisser vide ou mettre `.`)
-
-### Build & Deploy
-- **Runtime** : `Node`
-- **Build Command** : `npm install && npm run build:css`
-- **Start Command** : `npm start`
-
-### Plan
-- **Plan** : `Free` (pour commencer, vous pouvez upgrader plus tard)
-
-### Advanced Settings (optionnel)
-- **Health Check Path** : `/` ou `/api` (pour vérifier que l'app fonctionne)
-
-## 🚀 Étape 5 : Configurer les variables d'environnement
-
-⚠️ **IMPORTANT** : Configurez ces variables AVANT le premier déploiement.
-
-Dans la section **"Environment Variables"** du service, ajoutez :
-
-| Variable | Valeur | Description |
+| Variable | Valeur | Obligatoire |
 |----------|--------|-------------|
-| `NODE_ENV` | `production` | Environnement de production |
-| `SUPABASE_URL` | `https://msdgzzjvkcsvdmqkgrxa.supabase.co` | URL de votre projet Supabase |
-| `SUPABASE_SERVICE_ROLE_KEY` | `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...` | Clé service role de Supabase |
-| `USE_SUPABASE` | `true` | Activer Supabase |
-| `SESSION_SECRET` | `u1OYQiOCy4zQsoPkJ1Y5tmitXoHxSQtHWIRirEQ0bxY=` | Secret pour les sessions |
-| `PORT` | (laissez vide) | Render définit automatiquement le PORT |
+| `NODE_ENV` | `production` | ✅ |
+| `SESSION_SECRET` | Chaîne aléatoire (ex: `openssl rand -base64 32`) | ✅ |
+| `MONGODB_URI` | `mongodb+srv://user:pass@cluster.mongodb.net/cargowatchAc?retryWrites=true&w=majority` | ✅ |
+| `MONGODB_DB_NAME` | `cargowatchAc` | Optionnel |
+| `PORT` | (laisser vide) | Render définit automatiquement |
 
-### Comment ajouter les variables
+⚠️ **MongoDB Atlas** : Dans Network Access, ajoutez `0.0.0.0/0` pour autoriser Render.
 
-1. Dans votre service Render, allez dans **"Environment"**
-2. Cliquez sur **"Add Environment Variable"**
-3. Ajoutez chaque variable une par une
-4. Cliquez sur **"Save Changes"**
+### Générer SESSION_SECRET
 
-⚠️ **Sécurité** : Ne partagez jamais vos clés Supabase ou secrets !
-
-## 🚀 Étape 6 : Déployer
-
-1. Une fois les variables d'environnement configurées, cliquez sur **"Create Web Service"**
-2. Render va :
-   - Cloner votre repository
-   - Installer les dépendances (`npm install`)
-   - Compiler le CSS (`npm run build:css`)
-   - Démarrer le serveur (`npm start`)
-3. Attendez que le déploiement se termine (2-5 minutes)
-
-## ✅ Étape 7 : Vérifier le déploiement
-
-1. Une fois le déploiement terminé, vous verrez une URL comme : `https://cargowatch.onrender.com`
-2. Cliquez sur l'URL pour tester votre application
-3. Vérifiez les logs dans **"Logs"** pour voir si tout fonctionne
-
-### Vérifier les logs
-
-Dans Render Dashboard > votre service > **"Logs"**, vous devriez voir :
-```
-✅ Using Supabase database
-🚀 CargoWatch Server running on http://localhost:XXXX
+```bash
+openssl rand -base64 32
 ```
 
-Si vous voyez `📄 Using JSON file storage`, vérifiez que :
-- `USE_SUPABASE=true` est défini
-- `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` sont corrects
+## 🔄 Étapes 6–7 : Déploiement automatique
+
+Après configuration, Render va automatiquement :
+- Cloner le repo
+- `npm install && npm run build:css`
+- `npm start`
+
+Chaque `git push origin master` déclenche un nouveau déploiement.
+
+## ✅ Étape 5 : Déployer et vérifier
+
+1. Cliquez sur **"Create Web Service"**
+2. Attendez le build (2–5 min)
+3. URL finale : `https://cargowatch-xxxx.onrender.com`
+
+### Logs attendus
+
+Dans **Logs** vous devriez voir :
+```
+✅ MongoDB connected: cargowatchAc
+📦 Using MongoDB
+🚀 CargoWatch Server running on...
+📡 API available at /api
+💬 Chat system enabled (Socket.io)
+```
+
+### URLs utiles après déploiement
+
+| URL | Description |
+|-----|-------------|
+| `https://votre-app.onrender.com/` | Page d'accueil / Tracking |
+| `https://votre-app.onrender.com/pages/admin_dashboard.html` | Dashboard admin |
+| `https://votre-app.onrender.com/api-docs` | Documentation Swagger |
+| `https://votre-app.onrender.com/api` | Info API |
 
 ## 🔄 Mises à jour futures
 
@@ -163,18 +161,9 @@ Le plan gratuit Render a quelques limitations :
 - Assurez-vous que toutes les variables d'environnement sont configurées
 - Vérifiez que `npm start` fonctionne localement
 
-### Problème : "Supabase credentials not found"
+### Problème : Les données disparaissent après redéploiement
 
-**Solution** :
-- Vérifiez que `SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY` sont bien configurées
-- Redéployez après avoir ajouté les variables
-
-### Problème : Erreur de connexion à Supabase
-
-**Solution** :
-- Vérifiez que les tables existent dans Supabase
-- Vérifiez que les politiques RLS permettent l'accès
-- Testez la connexion avec la Service Role Key
+**Solution** : Utilisez MongoDB Atlas. Les données sont stockées dans le cloud, pas sur le disque Render.
 
 ### Problème : L'application se met en sleep
 
@@ -187,8 +176,7 @@ Le plan gratuit Render a quelques limitations :
 
 - [Render Dashboard](https://dashboard.render.com)
 - [Documentation Render](https://render.com/docs)
-- [Guide Supabase](CONFIGURATION_SUPABASE.md)
-- [Votre projet Supabase](https://app.supabase.com/project/msdgzzjvkcsvdmqkgrxa)
+- [MongoDB Atlas](https://www.mongodb.com/cloud/atlas) (pour migration future)
 
 ## 📋 Checklist de déploiement
 
@@ -197,12 +185,10 @@ Avant de déployer, assurez-vous d'avoir :
 - [ ] Créé un compte Render
 - [ ] Connecté votre repository GitHub
 - [ ] Configuré toutes les variables d'environnement
-- [ ] Créé les tables Supabase
 - [ ] Testé l'application localement
 - [ ] Commité et poussé les changements vers GitHub
 - [ ] Déployé sur Render
 - [ ] Testé l'application déployée
-- [ ] Vérifié que Supabase fonctionne
 
 ## 💡 Conseils supplémentaires
 
@@ -223,17 +209,20 @@ Les fichiers dans `public/` seront servis automatiquement par Express.
 ⚠️ **Important** : Sur Render, les fichiers uploadés ne persistent pas entre les redéploiements.
 
 **Solutions** :
-- Utilisez Supabase Storage (recommandé)
+- Utilisez MongoDB GridFS (après migration)
 - Utilisez un service cloud (S3, Cloudinary, etc.)
 - Utilisez un volume persistant (plan payant)
 
 ### Pour Socket.io
 
-Socket.io fonctionne mieux sur Render qu sur Vercel car Render supporte les WebSockets.
+Socket.io fonctionne mieux sur Render que sur Vercel car Render supporte les WebSockets.
 
 **Note** : Avec le plan gratuit, il peut y avoir des limitations. Pour une meilleure expérience, considérez un upgrade.
+
+### MongoDB Atlas
+
+La base `cargowatchAc` stocke : users, shipments, chats, reviews. Les données persistent entre les redéploiements.
 
 ---
 
 **Bon déploiement ! 🚀**
-

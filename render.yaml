@@ -1,3 +1,4 @@
+# CargoWatch - Frontend + Backend sur Render (1 service)
 services:
   - type: web
     name: cargowatch
@@ -6,16 +7,11 @@ services:
     rootDir: .
     buildCommand: npm install && npm run build:css
     startCommand: npm start
-    healthCheckPath: /
+    healthCheckPath: /api
     envVars:
       - key: NODE_ENV
         value: production
-      # Note: Les autres variables d'environnement doivent être configurées
-      # dans l'interface Render Dashboard > Settings > Environment Variables
-      # Variables requises:
-      # - SUPABASE_URL
-      # - SUPABASE_SERVICE_ROLE_KEY (ou SUPABASE_ANON_KEY)
-      # - USE_SUPABASE=true
-      # - SESSION_SECRET
-      # - PORT (optionnel, Render définit automatiquement)
+      # À configurer dans Dashboard > Environment :
+      # - MONGODB_URI (obligatoire)
+      # - SESSION_SECRET (obligatoire)
 

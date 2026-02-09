@@ -28,6 +28,7 @@
     <script src="/socket.io/socket.io.js"></script>
     <script src="/public/i18n.js"></script>
     <script src="/public/init-i18n.js"></script>
+    <script src="/public/reviews.js"></script>
     <style>
         /* Leaflet map styles */
         #tracking-map {
@@ -472,128 +473,39 @@
         </section>
 
 
-        <!-- Client Reviews Section -->
+        <!-- Client Reviews Section (chargés dynamiquement) -->
         <section class="py-16 bg-white">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="text-center mb-12">
                     <h2 class="text-3xl font-bold text-text-primary mb-4">What Our Clients Say</h2>
                     <p class="text-lg text-text-secondary">Trusted by businesses worldwide</p>
                 </div>
-
-                <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- French Review -->
-                    <div class="card">
-                        <div class="flex items-center mb-4">
-                            <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330" 
-                                 alt="Sophie Martin" 
-                                 class="w-12 h-12 rounded-full object-cover mr-4"
-                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                            <div>
-                                <div class="font-semibold text-text-primary">Sophie Martin</div>
-                                <div class="text-sm text-text-muted">Paris, France 🇫🇷</div>
-                            </div>
+                <div id="reviews-grid-tracking" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+                <!-- Formulaire pour écrire un avis -->
+                <div class="card max-w-2xl mx-auto mt-12 p-6">
+                    <h3 class="text-xl font-bold text-text-primary mb-4">Laisser un avis</h3>
+                    <form id="review-form-tracking" class="space-y-4">
+                        <div>
+                            <label for="review-author-tracking" class="block text-sm font-medium text-text-primary mb-1">Votre nom</label>
+                            <input type="text" id="review-author-tracking" name="author" required maxlength="100" class="input-field w-full" placeholder="Votre nom ou pseudo">
                         </div>
-                        <div class="flex mb-2">
-                            <span class="text-yellow-400">★★★★★</span>
+                        <div>
+                            <label for="review-rating-tracking" class="block text-sm font-medium text-text-primary mb-1">Note (1-5 étoiles)</label>
+                            <select id="review-rating-tracking" name="rating" required class="input-field w-full">
+                                <option value="5">★★★★★ Excellent</option>
+                                <option value="4">★★★★☆ Très bien</option>
+                                <option value="3">★★★☆☆ Bien</option>
+                                <option value="2">★★☆☆☆ Moyen</option>
+                                <option value="1">★☆☆☆☆ Décevant</option>
+                            </select>
                         </div>
-                        <p class="text-text-secondary text-sm">"CargoWatch a révolutionné notre gestion logistique. Le suivi en temps réel et les livraisons mondiales nous ont permis d'étendre nos services à l'international avec une confiance totale. Excellent service!"</p>
-                        <div class="mt-3 text-xs text-text-muted">Il y a 3 jours</div>
-                    </div>
-
-                    <!-- German Review -->
-                    <div class="card">
-                        <div class="flex items-center mb-4">
-                            <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d" 
-                                 alt="Klaus Weber" 
-                                 class="w-12 h-12 rounded-full object-cover mr-4"
-                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                            <div>
-                                <div class="font-semibold text-text-primary">Klaus Weber</div>
-                                <div class="text-sm text-text-muted">Berlin, Deutschland 🇩🇪</div>
-                            </div>
+                        <div>
+                            <label for="review-comment-tracking" class="block text-sm font-medium text-text-primary mb-1">Votre avis (optionnel)</label>
+                            <textarea id="review-comment-tracking" name="comment" rows="3" maxlength="1000" class="input-field w-full" placeholder="Partagez votre expérience..."></textarea>
                         </div>
-                        <div class="flex mb-2">
-                            <span class="text-yellow-400">★★★★★</span>
-                        </div>
-                        <p class="text-text-secondary text-sm">"Die Echtzeitverfolgung ist fantastisch! Wir nutzen CargoWatch seit 6 Monaten und unsere Kundenzufriedenheit ist um 75% gestiegen. Sehr zuverlässig und professionell."</p>
-                        <div class="mt-3 text-xs text-text-muted">Il y a 5 jours</div>
-                    </div>
-
-                    <!-- Spanish Review -->
-                    <div class="card">
-                        <div class="flex items-center mb-4">
-                            <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e" 
-                                 alt="María González" 
-                                 class="w-12 h-12 rounded-full object-cover mr-4"
-                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                            <div>
-                                <div class="font-semibold text-text-primary">María González</div>
-                                <div class="text-sm text-text-muted">Madrid, España 🇪🇸</div>
-                            </div>
-                        </div>
-                        <div class="flex mb-2">
-                            <span class="text-yellow-400">★★★★★</span>
-                        </div>
-                        <p class="text-text-secondary text-sm">"Increíble plataforma de seguimiento. Los envíos internacionales ahora son tan fáciles como los nacionales. Nuestros clientes están encantados con la transparencia total. ¡Muy recomendable!"</p>
-                        <div class="mt-3 text-xs text-text-muted">Il y a 1 semaine</div>
-                    </div>
-
-                    <!-- Japanese Review -->
-                    <div class="card">
-                        <div class="flex items-center mb-4">
-                            <img src="https://images.unsplash.com/photo-1568602471122-7832951cc4c5" 
-                                 alt="Hiroshi Tanaka" 
-                                 class="w-12 h-12 rounded-full object-cover mr-4"
-                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                            <div>
-                                <div class="font-semibold text-text-primary">田中 浩 (Hiroshi Tanaka)</div>
-                                <div class="text-sm text-text-muted">Tokyo, Japan 🇯🇵</div>
-                            </div>
-                        </div>
-                        <div class="flex mb-2">
-                            <span class="text-yellow-400">★★★★★</span>
-                        </div>
-                        <p class="text-text-secondary text-sm">"素晴らしいサービスです！リアルタイム追跡機能が非常に正確で、国際配送も簡単に管理できます。顧客満足度が大幅に向上しました。最高の物流プラットフォームです。"</p>
-                        <div class="mt-3 text-xs text-text-muted">Il y a 4 jours</div>
-                    </div>
-
-                    <!-- Chinese Review -->
-                    <div class="card">
-                        <div class="flex items-center mb-4">
-                            <img src="https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e" 
-                                 alt="Li Wei" 
-                                 class="w-12 h-12 rounded-full object-cover mr-4"
-                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                            <div>
-                                <div class="font-semibold text-text-primary">李伟 (Li Wei)</div>
-                                <div class="text-sm text-text-muted">Shanghai, China 🇨🇳</div>
-                            </div>
-                        </div>
-                        <div class="flex mb-2">
-                            <span class="text-yellow-400">★★★★★</span>
-                        </div>
-                        <p class="text-text-secondary text-sm">"非常出色的物流追踪系统！实时定位功能非常准确，全球配送管理变得简单高效。客户满意度显著提升。强烈推荐给所有需要国际物流服务的公司！"</p>
-                        <div class="mt-3 text-xs text-text-muted">Il y a 2 jours</div>
-                    </div>
-
-                    <!-- British Review -->
-                    <div class="card">
-                        <div class="flex items-center mb-4">
-                            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb" 
-                                 alt="James Thompson" 
-                                 class="w-12 h-12 rounded-full object-cover mr-4"
-                                 onerror="this.src='https://images.unsplash.com/photo-1584824486509-112e4181ff6b?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D'; this.onerror=null;">
-                            <div>
-                                <div class="font-semibold text-text-primary">James Thompson</div>
-                                <div class="text-sm text-text-muted">London, United Kingdom 🇬🇧</div>
-                            </div>
-                        </div>
-                        <div class="flex mb-2">
-                            <span class="text-yellow-400">★★★★★</span>
-                        </div>
-                        <p class="text-text-secondary text-sm">"Outstanding logistics platform! The real-time tracking is incredibly accurate and worldwide delivery support makes international shipping seamless. Customer complaints dropped by 65%. Top-notch service!"</p>
-                        <div class="mt-3 text-xs text-text-muted">Il y a 2 jours</div>
-                    </div>
+                        <button type="submit" class="btn-primary">Envoyer mon avis</button>
+                        <p id="review-msg-tracking" class="text-sm hidden"></p>
+                    </form>
                 </div>
             </div>
         </section>
@@ -839,7 +751,7 @@
             document.getElementById('expected-delivery').textContent = expectedDelivery;
             
             // Calculer le pourcentage de progression
-            const progress = calculateProgress(shipment.events || [], shipment.status);
+            const progress = calculateProgress(shipment.events || [], shipment.status, shipment);
             document.getElementById('progress-bar').style.width = progress + '%';
 
             // Update status class
@@ -880,10 +792,31 @@
         }
 
         // Calculer le pourcentage de progression basé sur les événements et le statut
-        function calculateProgress(events, status) {
+        function calculateProgress(events, status, shipment = null) {
             // Si le shipment est livré, la barre doit être à 100%
             if (status === 'delivered') {
                 return 100;
+            }
+            
+            // Si le shipment a autoProgress avec une progression calculée, l'utiliser
+            if (shipment?.autoProgress?.enabled && shipment?.currentLocation?.lat && shipment?.sender?.address?.lat && shipment?.recipient?.address?.lat) {
+                // Calculer la progression basée sur la position actuelle (utilise la formule Haversine pour plus de précision)
+                const originLat = shipment.sender.address.lat;
+                const originLng = shipment.sender.address.lng;
+                const destLat = shipment.recipient.address.lat;
+                const destLng = shipment.recipient.address.lng;
+                const currentLat = shipment.currentLocation.lat;
+                const currentLng = shipment.currentLocation.lng;
+                
+                // Utiliser la fonction calculateDistance pour plus de précision
+                const totalDistance = calculateDistance([originLat, originLng], [destLat, destLng]);
+                const traveledDistance = calculateDistance([originLat, originLng], [currentLat, currentLng]);
+                
+                if (totalDistance > 0) {
+                    const progress = Math.min(100, Math.max(0, (traveledDistance / totalDistance) * 100));
+                    console.log(`📊 Progress calculated from position: ${progress.toFixed(1)}% (traveled: ${traveledDistance.toFixed(1)}km / total: ${totalDistance.toFixed(1)}km)`);
+                    return progress;
+                }
             }
             
             if (!events || events.length === 0) return 0;
@@ -1231,7 +1164,32 @@
                 fillTrackingId(trackParam);
             }
 
-            // Charger les suggestions de shipments récents
+            // Charger les reviews
+            if (window.CargoWatchReviews) CargoWatchReviews.load('reviews-grid-tracking');
+
+            // Formulaire d'avis
+            const reviewForm = document.getElementById('review-form-tracking');
+            if (reviewForm) {
+                reviewForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const author = document.getElementById('review-author-tracking')?.value?.trim();
+                    const rating = parseInt(document.getElementById('review-rating-tracking')?.value || 5);
+                    const comment = document.getElementById('review-comment-tracking')?.value?.trim() || '';
+                    const msgEl = document.getElementById('review-msg-tracking');
+                    if (!author) {
+                        if (msgEl) { msgEl.textContent = 'Veuillez entrer votre nom.'; msgEl.classList.remove('hidden'); msgEl.className = 'text-sm text-error'; }
+                        return;
+                    }
+                    try {
+                        await window.CargoWatchReviews.submit(author, rating, comment);
+                        if (msgEl) { msgEl.textContent = 'Merci ! Votre avis a été enregistré.'; msgEl.classList.remove('hidden'); msgEl.className = 'text-sm text-success'; }
+                        reviewForm.reset();
+                        CargoWatchReviews.load('reviews-grid-tracking');
+                    } catch (err) {
+                        if (msgEl) { msgEl.textContent = err.message || 'Erreur lors de l\'envoi.'; msgEl.classList.remove('hidden'); msgEl.className = 'text-sm text-error'; }
+                    }
+                });
+            }
             
             // Cleanup tracking on page unload
             window.addEventListener('beforeunload', () => {
@@ -1334,12 +1292,16 @@
                 
                 // Use actual GPS coordinates if available, otherwise calculate based on status
                 let currentCoords;
+                // Toujours utiliser currentLocation du serveur s'il est disponible (même pour pending)
+                // Le serveur calcule maintenant la progression automatique même pour pending
                 if (shipment.currentLocation?.lat && shipment.currentLocation?.lng) {
-                    // Use actual coordinates set by admin
+                    // Use actual coordinates from server (includes auto-progression)
                     currentCoords = [shipment.currentLocation.lat, shipment.currentLocation.lng];
+                    console.log('📍 Using server currentLocation:', currentCoords, 'city:', shipment.currentLocation.city);
                 } else {
                     // Fallback: calculate position based on status
                     currentCoords = calculateCurrentPosition(originCoords, destCoords, shipment.status, shipment.events);
+                    console.log('📍 Using calculated position:', currentCoords);
                 }
                 
                 console.log('📍 Coordinates:', { origin: originCoords, current: currentCoords, dest: destCoords });
@@ -1409,23 +1371,44 @@
                 
                 console.log('✅ Current location marker added at:', currentCoords);
                 
-                // Draw route polyline connecting origin -> current -> destination
+                // Draw route polyline - utiliser la route réelle du serveur si disponible
                 if (routePolyline) {
                     map.removeLayer(routePolyline);
+                }
+                
+                // Utiliser la route réelle du serveur si disponible
+                let routePoints = [originCoords, currentCoords, destCoords];
+                if (shipment.routeGeometry && shipment.routeGeometry.length > 0) {
+                    // Utiliser la route réelle du serveur
+                    routePoints = shipment.routeGeometry.map(coord => {
+                        // S'assurer que coord est un tableau [lat, lng]
+                        if (Array.isArray(coord) && coord.length >= 2) {
+                            return [coord[0], coord[1]];
+                        }
+                        return coord;
+                    });
+                    console.log('✅ Using server route geometry:', routePoints.length, 'points');
+                    console.log('📍 First point:', routePoints[0], 'Last point:', routePoints[routePoints.length - 1]);
+                } else {
+                    console.log('⚠️ No route geometry from server, using direct line');
+                    console.log('📍 Shipment data:', {
+                        hasRouteGeometry: !!shipment.routeGeometry,
+                        routeGeometryLength: shipment.routeGeometry?.length || 0
+                    });
                 }
                 
                 // Calculate route distance
                 const routeDistance = calculateRouteDistance(originCoords, currentCoords, destCoords);
                 
-                // Create polyline connecting all three points
-                routePolyline = L.polyline([originCoords, currentCoords, destCoords], {
+                // Create polyline avec la route réelle ou la ligne directe
+                routePolyline = L.polyline(routePoints, {
                     color: '#3b82f6',
                     weight: 5,
                     opacity: 0.8,
-                    dashArray: '10, 10'
+                    dashArray: routePoints.length > 3 ? '0' : '10, 10' // Pas de tirets si route réelle
                 }).addTo(map);
                 
-                console.log('✅ Route polyline added');
+                console.log('✅ Route polyline added with', routePoints.length, 'points');
                 
                 // Fit map to show all markers with padding
                 const group = new L.featureGroup([originMarker, currentMarker, destinationMarker]);
@@ -1624,24 +1607,157 @@
             }
         });
         
-        // Get city coordinates (simplified - would use geocoding API in production)
+        // Get city coordinates (Complete list of Cameroon cities)
         function getCityCoordinates(city) {
             const cityCoords = {
-                'New York': [40.7128, -74.0060],
-                'Los Angeles': [34.0522, -118.2437],
-                'Chicago': [41.8781, -87.6298],
-                'Houston': [29.7604, -95.3698],
-                'Philadelphia': [39.9526, -75.1652],
-                'Phoenix': [33.4484, -112.0740],
-                'San Antonio': [29.4241, -98.4936],
-                'San Diego': [32.7157, -117.1611],
-                'Dallas': [32.7767, -96.7970],
-                'San Jose': [37.3382, -121.8863],
-                'Washington': [38.9072, -77.0369],
-                'Boston': [42.3601, -71.0589],
-                'Detroit': [42.3314, -83.0458],
-                'Miami': [25.7617, -80.1918],
-                'Atlanta': [33.7490, -84.3880]
+                // Principales villes (plus de 100 000 habitants)
+                'Yaoundé': [3.8480, 11.5021],
+                'Yaounde': [3.8480, 11.5021],
+                'Douala': [4.0511, 9.7679],
+                'Garoua': [9.3000, 13.4000],
+                'Bamenda': [6.1167, 10.1667],
+                'Bafoussam': [5.4776, 10.4176],
+                'Maroua': [10.5956, 14.3247],
+                'Nkongsamba': [4.9500, 9.9333],
+                'Ngaoundéré': [7.3167, 13.5833],
+                'Ngaoundere': [7.3167, 13.5833],
+                'Bertoua': [4.5833, 14.0833],
+                'Edéa': [3.8000, 10.1333],
+                'Edea': [3.8000, 10.1333],
+                'Loum': [4.7167, 9.7333],
+                'Kumba': [4.6333, 9.4500],
+                'Kumbo': [6.2000, 10.6667],
+                'Foumban': [5.7167, 10.9167],
+                'Mbouda': [5.6333, 10.2500],
+                'Dschang': [5.4500, 10.0667],
+                'Limbé': [4.0242, 9.2068],
+                'Limbe': [4.0242, 9.2068],
+                'Ebolowa': [2.9333, 11.1500],
+                'Kousséri': [12.0833, 15.0333],
+                'Kousseri': [12.0833, 15.0333],
+                'Guider': [9.9333, 13.9500],
+                'Meiganga': [6.5167, 14.3000],
+                'Yagoua': [10.3500, 15.2333],
+                'Mbalmayo': [3.5167, 11.5000],
+                'Bafang': [5.1500, 10.1833],
+                'Tiko': [4.0833, 9.3667],
+                'Bafia': [4.7500, 11.2333],
+                'Wum': [6.3833, 10.0667],
+                'Kribi': [2.9373, 9.9077],
+                'Buea': [4.1534, 9.2426],
+                'Sangmélima': [2.9333, 11.9833],
+                'Sangmelima': [2.9333, 11.9833],
+                'Foumbot': [5.5000, 10.6333],
+                'Bangangté': [5.1500, 10.5167],
+                'Bangangte': [5.1500, 10.5167],
+                'Batouri': [4.4333, 14.3667],
+                'Banyo': [6.7500, 11.8167],
+                'Nkambé': [6.6167, 10.8333],
+                'Nkambe': [6.6167, 10.8333],
+                'Bali': [5.8833, 10.0167],
+                'Mbanga': [4.5000, 9.5667],
+                'Mokolo': [10.7333, 13.8000],
+                'Melong': [5.1167, 9.9500],
+                'Manjo': [4.8333, 9.8167],
+                'Garoua-Boulaï': [5.8833, 14.5500],
+                'Garoua-Boulai': [5.8833, 14.5500],
+                'Mora': [11.0500, 14.1333],
+                'Kaélé': [10.1000, 14.4500],
+                'Kaele': [10.1000, 14.4500],
+                'Tibati': [6.4667, 12.6333],
+                'Ndop': [6.2000, 10.4833],
+                'Akonolinga': [3.7667, 12.2500],
+                'Eséka': [3.6500, 10.7667],
+                'Eseka': [3.6500, 10.7667],
+                'Mamfé': [5.7500, 9.2833],
+                'Mamfe': [5.7500, 9.2833],
+                'Obala': [4.1667, 11.5333],
+                'Muyuka': [4.2833, 9.4167],
+                'Nanga-Eboko': [4.6833, 12.3667],
+                'Nanga Eboko': [4.6833, 12.3667],
+                'Abong-Mbang': [3.9833, 13.1833],
+                'Abong Mbang': [3.9833, 13.1833],
+                'Fundong': [6.2500, 10.2667],
+                'Nkoteng': [4.5167, 12.0333],
+                'Fontem': [5.4667, 9.8833],
+                'Mbandjock': [4.4500, 11.9000],
+                'Touboro': [7.7833, 15.3667],
+                'Ngaoundal': [6.4500, 13.7667],
+                'Yokadouma': [3.5167, 15.0500],
+                'Pitoa': [9.3833, 13.5333],
+                'Tombel': [4.5833, 9.6667],
+                'Kékem': [5.5500, 10.1167],
+                'Kekem': [5.5500, 10.1167],
+                'Magba': [5.9167, 10.6167],
+                'Bélabo': [4.9333, 13.3000],
+                'Belabo': [4.9333, 13.3000],
+                'Tonga': [4.9667, 10.7000],
+                'Maga': [10.8500, 14.9333],
+                'Koutaba': [5.6500, 10.7500],
+                'Blangoua': [12.2333, 14.5167],
+                'Guidiguis': [9.9333, 13.9500],
+                'Bogo': [10.7333, 14.6167],
+                'Batibo': [6.0833, 10.0167],
+                'Yabassi': [4.4500, 9.9667],
+                'Figuil': [9.7667, 13.9667],
+                'Makénéné': [4.8333, 11.2167],
+                'Makenene': [4.8333, 11.2167],
+                'Gazawa': [10.5833, 14.2000],
+                'Tcholliré': [8.4000, 14.1667],
+                'Tchollire': [8.4000, 14.1667],
+                // Autres villes importantes
+                'Buea Town': [4.1534, 9.2426],
+                'Bamessing': [6.0333, 10.1500],
+                'Bamunka': [5.9167, 10.5833],
+                'Bana': [5.1500, 10.2667],
+                'Bandjoun': [5.3500, 10.4167],
+                'Bangang': [5.1333, 10.5167],
+                'Bansoa': [5.4500, 10.3167],
+                'Bazou': [5.0667, 10.4667],
+                'Bekondo': [4.6833, 9.3167],
+                'Bonabéri': [4.0833, 9.6833],
+                'Bonaberi': [4.0833, 9.6833],
+                'Buéa': [4.1534, 9.2426],
+                'Campo': [2.3667, 9.8167],
+                'Dibombari': [4.1833, 9.6500],
+                'Dizangué': [3.7667, 9.9833],
+                'Dizangue': [3.7667, 9.9833],
+                'Djohong': [6.8333, 14.7000],
+                'Doumé': [4.2333, 13.4500],
+                'Doume': [4.2333, 13.4500],
+                'Fang': [5.7000, 10.8833],
+                'Fokoué': [5.5833, 10.6000],
+                'Fokoue': [5.5833, 10.6000],
+                'Galim': [6.4000, 11.4167],
+                'Gashiga': [10.5167, 13.9833],
+                'Goulfey': [12.0833, 14.9833],
+                'Idabato': [4.9000, 8.9000],
+                'Idenau': [4.2500, 8.9833],
+                'Kontcha': [7.9833, 12.2333],
+                'Lagdo': [9.0500, 13.6667],
+                'Lolodorf': [3.2333, 10.7333],
+                'Mbankomo': [3.7833, 11.3833],
+                'Mfou': [3.8667, 11.6333],
+                'Mindif': [10.4000, 14.4333],
+                'Minta': [4.5833, 12.8000],
+                'Mundemba': [4.9500, 8.8667],
+                'Mutengene': [4.1000, 9.3167],
+                'Ndelele': [4.0333, 14.9333],
+                'Ndikiniméki': [4.7667, 10.8333],
+                'Ndikinimeki': [4.7667, 10.8333],
+                'Ndom': [4.5000, 9.8167],
+                'Ngambe': [4.2333, 10.6167],
+                'Ngomedzap': [3.2500, 11.2167],
+                'Ngou': [5.2000, 10.3833],
+                'Nguti': [5.3167, 9.4167],
+                'Ntui': [4.4500, 11.6333],
+                'Nyambaka': [7.2000, 13.5833],
+                'Oku': [6.2000, 10.4667],
+                'Poli': [8.4833, 13.2500],
+                'Pouma': [3.5167, 10.1667],
+                'Rey Bouba': [8.6667, 14.1833],
+                'Saa': [4.3667, 11.4500],
+                'Zou': [4.8167, 11.1333]
             };
             
             // Try to find exact match first
@@ -1651,8 +1767,8 @@
                 }
             }
             
-            // Default to center of US
-            return [39.8283, -98.5795];
+            // Default to center of Cameroon (Yaoundé)
+            return [3.8480, 11.5021];
         }
         
         // Calculate current position based on status and progress
@@ -1664,8 +1780,8 @@
                 return origin;
             }
             
-            // Calculate progress based on events
-            const progress = calculateProgress(events || [], status) / 100;
+            // Calculate progress based on events (pass shipment if available for auto-progression)
+            const progress = calculateProgress(events || [], status, null) / 100;
             
             // Interpolate between origin and destination
             const lat = origin[0] + (dest[0] - origin[0]) * progress;
@@ -1897,26 +2013,17 @@
                             return calculateCurrentPosition(originCoords, destCoords, updatedShipment.status, updatedShipment.events);
                         };
                         
-                        // Toujours calculer la progression continue pour une animation fluide
-                        // Utiliser les coordonnées du serveur seulement si elles sont très récentes (< 2 secondes)
+                        // Toujours utiliser currentLocation du serveur s'il est disponible
+                        // Le serveur calcule maintenant la progression automatique même pour pending
                         if (updatedShipment.currentLocation?.lat && updatedShipment.currentLocation?.lng) {
-                            const serverCoords = [updatedShipment.currentLocation.lat, updatedShipment.currentLocation.lng];
-                            const lastUpdate = updatedShipment.autoProgress?.lastUpdate 
-                                ? new Date(updatedShipment.autoProgress.lastUpdate) 
-                                : null;
-                            const now = new Date();
-                            
-                            // Utiliser les coordonnées du serveur seulement si elles sont très récentes
-                            if (lastUpdate && (now - lastUpdate) < 2000) {
-                                newCoords = serverCoords;
-                                useServerCoords = true;
-                            } else {
-                                // Calculer la progression continue côté client
-                                newCoords = calculateContinuousProgression();
-                            }
+                            // Utiliser les coordonnées du serveur (elles sont toujours à jour grâce à autoProgress)
+                            newCoords = [updatedShipment.currentLocation.lat, updatedShipment.currentLocation.lng];
+                            useServerCoords = true;
+                            console.log('📍 Using server coordinates:', newCoords, 'city:', updatedShipment.currentLocation.city);
                         } else {
-                            // Pas de coordonnées serveur, calculer la progression continue
+                            // Pas de coordonnées serveur, calculer la progression continue côté client
                             newCoords = calculateContinuousProgression();
+                            console.log('📍 Using calculated progression:', newCoords);
                         }
                         
                         // Log pour déboguer
@@ -2011,7 +2118,7 @@
                                     statusChanged,
                                     useServerCoords,
                                     forceUpdate,
-                                    progress: calculateProgress(updatedShipment.events || [], updatedShipment.status),
+                                    progress: calculateProgress(updatedShipment.events || [], updatedShipment.status, updatedShipment),
                                     oldCoords: [oldCoords.lat, oldCoords.lng],
                                     latDiff,
                                     lngDiff
@@ -2083,14 +2190,48 @@
                                         // Mettre à jour la polyline pour montrer le mouvement
                                         if (routePolyline) {
                                         map.removeLayer(routePolyline);
+                                        
+                                        // Utiliser la route réelle du serveur si disponible
+                                        let routePoints = [originCoords, newCoords, destCoords];
+                                        if (updatedShipment.routeGeometry && updatedShipment.routeGeometry.length > 0) {
+                                            routePoints = updatedShipment.routeGeometry.map(coord => {
+                                                // S'assurer que coord est un tableau [lat, lng]
+                                                if (Array.isArray(coord) && coord.length >= 2) {
+                                                    return [coord[0], coord[1]];
+                                                }
+                                                return coord;
+                                            });
+                                            console.log('✅ Using updated route geometry:', routePoints.length, 'points');
                                         }
                                         
-                                        // Recréer la polyline avec les nouvelles coordonnées
-                                        routePolyline = L.polyline([originCoords, newCoords, destCoords], {
+                                        // Recréer la polyline avec la route réelle
+                                        routePolyline = L.polyline(routePoints, {
                                             color: '#3b82f6',
                                             weight: 5,
                                             opacity: 0.8,
-                                            dashArray: '10, 10'
+                                            dashArray: routePoints.length > 3 ? '0' : '10, 10'
+                                        }).addTo(map);
+                                        }
+                                        
+                                        // Utiliser la route réelle du serveur si disponible
+                                        let routePoints = [originCoords, newCoords, destCoords];
+                                        if (updatedShipment.routeGeometry && updatedShipment.routeGeometry.length > 0) {
+                                            routePoints = updatedShipment.routeGeometry.map(coord => {
+                                                // S'assurer que coord est un tableau [lat, lng]
+                                                if (Array.isArray(coord) && coord.length >= 2) {
+                                                    return [coord[0], coord[1]];
+                                                }
+                                                return coord;
+                                            });
+                                            console.log('✅ Using updated route geometry:', routePoints.length, 'points');
+                                        }
+                                        
+                                        // Recréer la polyline avec la route réelle ou la ligne directe
+                                        routePolyline = L.polyline(routePoints, {
+                                            color: '#3b82f6',
+                                            weight: 5,
+                                            opacity: 0.8,
+                                            dashArray: routePoints.length > 3 ? '0' : '10, 10'
                                         }).addTo(map);
                                         
                                         // Forcer la carte à se centrer légèrement sur le nouveau marqueur
@@ -2166,7 +2307,7 @@
                                     }
                                 
                                 // Mettre à jour la barre de progression
-                                const progress = calculateProgress(updatedShipment.events || [], updatedShipment.status);
+                                const progress = calculateProgress(updatedShipment.events || [], updatedShipment.status, updatedShipment);
                                 const progressBar = document.getElementById('progress-bar');
                                 if (progressBar) {
                                     progressBar.style.width = progress + '%';

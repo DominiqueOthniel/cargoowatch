@@ -1,22 +1,12 @@
 # Instructions : Créer un shipment sur Render
 
-## Problème résolu
+## Configuration actuelle
 
-Le serveur a été modifié pour utiliser Supabase au lieu des fichiers JSON. Les shipments créés seront maintenant sauvegardés dans Supabase et seront visibles sur Render.
+Le serveur utilise actuellement les fichiers JSON pour stocker les données. Une migration vers MongoDB est prévue.
 
-## Configuration requise
+## Créer le shipment
 
-### 1. Variables d'environnement sur Render
-
-Assurez-vous que les variables d'environnement suivantes sont configurées sur Render :
-
-- `SUPABASE_URL` : L'URL de votre projet Supabase
-- `SUPABASE_SERVICE_ROLE_KEY` : La clé service role de Supabase
-- `USE_SUPABASE=true` : Active l'utilisation de Supabase
-
-### 2. Créer le shipment
-
-#### Option A : Depuis votre machine locale (recommandé)
+### Option A : Depuis votre machine locale (recommandé)
 
 1. Obtenez l'URL de votre application Render (ex: `https://cargowatch.onrender.com`)
 
@@ -41,7 +31,7 @@ RENDER_URL=https://votre-app.onrender.com node create-shipment-oklahoma-texas.js
 RENDER_URL=https://votre-app.onrender.com DELIVERY_DATE="2024-12-15T10:00:00Z" node create-shipment-oklahoma-texas.js
 ```
 
-#### Option B : Depuis le serveur Render (via SSH ou console)
+### Option B : Depuis le serveur Render (via SSH ou console)
 
 Si vous avez accès au serveur Render, vous pouvez exécuter le script directement :
 
@@ -74,16 +64,15 @@ Après avoir créé le shipment, vous devriez voir :
 2. 📋 Les détails du shipment (expéditeur, destinataire, coût)
 3. 🔗 L'URL de suivi
 
-Le shipment sera maintenant visible dans votre base de données Supabase et sur l'interface Render.
+Le shipment sera maintenant visible dans votre base de données et sur l'interface Render.
 
 ## Dépannage
 
-### Le shipment n'apparaît pas dans Supabase
+### Le shipment n'apparaît pas
 
-1. Vérifiez que `USE_SUPABASE=true` est défini sur Render
-2. Vérifiez que les clés Supabase sont correctes
-3. Vérifiez les logs du serveur Render pour voir s'il y a des erreurs
-4. Vérifiez que les tables Supabase existent (exécutez `supabase-schema-complete.sql`)
+1. Vérifiez les logs du serveur Render pour voir s'il y a des erreurs
+2. Vérifiez que les fichiers JSON sont bien sauvegardés dans le dossier `data/`
+3. Vérifiez que l'application Render est active (pas en veille)
 
 ### Erreur de connexion
 
@@ -100,4 +89,3 @@ Si vous obtenez une erreur `ECONNREFUSED` :
 - **Type** : Boîte moyenne
 - **Poids** : 5.5 kg
 - **Coût total** : 65.00 USD
-

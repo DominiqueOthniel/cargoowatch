@@ -1,6 +1,7 @@
-﻿// Load environment variables
+// Load environment variables
 require('dotenv').config();
 
+const dbModule = require('./db');
 const express = require('express');
 const path = require('path');
 const fs = require('fs').promises;
@@ -10,27 +11,16 @@ const session = require('express-session');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 const http = require('http');
+const https = require('https');
 const { Server } = require('socket.io');
 const multer = require('multer');
 const PDFDocument = require('pdfkit');
 const zipcodes = require('zipcodes');
+const swaggerUi = require('swagger-ui-express');
+const swaggerDocument = require('./swagger.json');
 
-// Database: Try to use Supabase if configured, otherwise fallback to JSON
-const USE_SUPABASE = process.env.USE_SUPABASE === 'true' || process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
-let db;
-
-if (USE_SUPABASE) {
-    try {
-        db = require('./supabase-db');
-        console.log('✅ Using Supabase database');
-    } catch (error) {
-        console.error('❌ Error loading Supabase:', error.message);
-        console.log('📄 Falling back to JSON file storage');
-        db = null;
-    }
-} else {
-    console.log('📄 Using JSON file storage');
-}
+// Database: JSON ou MongoDB selon MONGODB_URI
+let USE_MONGO = false;
 
 const app = express();
 const server = http.createServer(app);
@@ -47,6 +37,7 @@ const DATA_DIR = path.join(__dirname, 'data');
 const SHIPMENTS_FILE = path.join(DATA_DIR, 'shipments.json');
 const USERS_FILE = path.join(DATA_DIR, 'users.json');
 const CHATS_FILE = path.join(DATA_DIR, 'chats.json');
+const REVIEWS_FILE = path.join(DATA_DIR, 'reviews.json');
 const RECEIPTS_DIR = path.join(__dirname, 'public', 'receipts');
 const SESSION_SECRET = process.env.SESSION_SECRET || 'cargowatch-secret-key-change-in-production';
 
@@ -202,8 +193,15 @@ async function ensureDataDir() {
     }
 }
 
-// Fonctions utilitaires
+// Fonctions utilitaires - JSON ou MongoDB
 async function readUsers() {
+    if (USE_MONGO) {
+        try {
+            const col = dbModule.getCollection('users');
+            const list = await col.find({}).toArray();
+            return list.map(doc => { const { _id, ...rest } = doc; return rest; });
+        } catch (e) { console.error('Error reading users (Mongo):', e); return []; }
+    }
     try {
         const data = await fs.readFile(USERS_FILE, 'utf8');
         return JSON.parse(data);
@@ -214,7 +212,14 @@ async function readUsers() {
 }
 
 async function writeUsers(users) {
-    // Note: Supabase doesn't have a writeUsers function, so we keep JSON fallback
+    if (USE_MONGO) {
+        try {
+            const col = dbModule.getCollection('users');
+            await col.deleteMany({});
+            if (users.length) await col.insertMany(users);
+            return true;
+        } catch (e) { console.error('Error writing users (Mongo):', e); return false; }
+    }
     try {
         await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2));
         return true;
@@ -235,17 +240,13 @@ async function findUserByEmail(email) {
 }
 
 async function readShipments() {
-    // Use Supabase if available, otherwise fallback to JSON files
-    if (db && db.readShipments) {
+    if (USE_MONGO) {
         try {
-            return await db.readShipments();
-        } catch (error) {
-            console.error('❌ Error reading shipments from Supabase:', error);
-            return [];
-        }
+            const col = dbModule.getCollection('shipments');
+            const list = await col.find({}).toArray();
+            return list.map(doc => { const { _id, ...rest } = doc; return rest; });
+        } catch (e) { console.error('Error reading shipments (Mongo):', e); return []; }
     }
-    
-    // Fallback to JSON files
     try {
         const data = await fs.readFile(SHIPMENTS_FILE, 'utf8');
         const shipments = JSON.parse(data);
@@ -266,6 +267,14 @@ async function readShipments() {
 }
 
 async function writeShipments(shipments) {
+    if (USE_MONGO) {
+        try {
+            const col = dbModule.getCollection('shipments');
+            await col.deleteMany({});
+            if (shipments.length) await col.insertMany(shipments);
+            return true;
+        } catch (e) { console.error('Error writing shipments (Mongo):', e); return false; }
+    }
     try {
         await fs.writeFile(SHIPMENTS_FILE, JSON.stringify(shipments, null, 2));
         console.log(`💾 Written ${shipments.length} shipment(s) to ${SHIPMENTS_FILE}`);
@@ -278,6 +287,13 @@ async function writeShipments(shipments) {
 }
 
 async function readChats() {
+    if (USE_MONGO) {
+        try {
+            const col = dbModule.getCollection('chats');
+            const list = await col.find({}).toArray();
+            return list.map(doc => { const { _id, ...rest } = doc; return rest; });
+        } catch (e) { console.error('Error reading chats (Mongo):', e); return []; }
+    }
     try {
         const data = await fs.readFile(CHATS_FILE, 'utf8');
         return JSON.parse(data);
@@ -288,11 +304,57 @@ async function readChats() {
 }
 
 async function writeChats(chats) {
+    if (USE_MONGO) {
+        try {
+            const col = dbModule.getCollection('chats');
+            await col.deleteMany({});
+            if (chats.length) await col.insertMany(chats);
+            return true;
+        } catch (e) { console.error('Error writing chats (Mongo):', e); return false; }
+    }
     try {
         await fs.writeFile(CHATS_FILE, JSON.stringify(chats, null, 2));
         return true;
     } catch (error) {
         console.error('Error writing chats:', error);
+        return false;
+    }
+}
+
+async function readReviews() {
+    if (USE_MONGO) {
+        try {
+            const col = dbModule.getCollection('reviews');
+            const list = await col.find({}).toArray();
+            return list.map(doc => { const { _id, ...rest } = doc; return rest; });
+        } catch (e) { console.error('Error reading reviews (Mongo):', e); return []; }
+    }
+    try {
+        const data = await fs.readFile(REVIEWS_FILE, 'utf8');
+        const reviews = JSON.parse(data);
+        if (!Array.isArray(reviews)) return [];
+        return reviews;
+    } catch (error) {
+        console.error('Error reading reviews:', error);
+        return [];
+    }
+}
+
+async function writeReviews(reviews) {
+    if (USE_MONGO) {
+        try {
+            const col = dbModule.getCollection('reviews');
+            await col.deleteMany({});
+            if (reviews.length) await col.insertMany(reviews);
+            return true;
+        } catch (e) { console.error('Error writing reviews (Mongo):', e); return false; }
+    }
+    try {
+        await fs.writeFile(REVIEWS_FILE, JSON.stringify(reviews, null, 2));
+        console.log(`💾 Written ${reviews.length} review(s) to ${REVIEWS_FILE}`);
+        return true;
+    } catch (error) {
+        console.error('Error writing reviews:', error);
         return false;
     }
 }
@@ -366,8 +428,9 @@ function parseLocationInput(location) {
         result.city = parts[0];
     }
 
-    if (!result.country && /usa|united states|^us$/i.test(trimmed)) {
-        result.country = 'US';
+    // Force Cameroon as default
+    if (!result.country) {
+        result.country = 'CM';
     }
 
     const stateSegments = result.state.split(/\s+/).filter(Boolean);
@@ -403,7 +466,9 @@ function getCityCoordinates(location) {
         return null;
     }
 
-    const isUS = !country || /^(us|usa|united states)$/i.test(country.trim());
+    // Force Cameroon only
+    const isCM = !country || /^(cm|cameroon|cameroun)$/i.test(country.trim());
+    const isUS = false; // Disabled - Cameroon only
 
     if (isUS) {
         const usableZip = zipCode ? String(zipCode).trim().slice(0, 5) : '';
@@ -450,96 +515,187 @@ function getCityCoordinates(location) {
     }
 
     const fallbackCityCoords = {
-        // US Cities
-        'New York': { lat: 40.7128, lng: -74.0060 },
-        'Los Angeles': { lat: 34.0522, lng: -118.2437 },
-        'Chicago': { lat: 41.8781, lng: -87.6298 },
-        'Houston': { lat: 29.7604, lng: -95.3698 },
-        'Miami': { lat: 25.7617, lng: -80.1918 },
-        'Boston': { lat: 42.3601, lng: -71.0589 },
-        'San Francisco': { lat: 37.7749, lng: -122.4194 },
-        'Seattle': { lat: 47.6062, lng: -122.3321 },
-        'Washington': { lat: 38.9072, lng: -77.0369 },
-        'Oakland': { lat: 37.8044, lng: -122.2711 },
-        'San Jose': { lat: 37.3382, lng: -121.8863 },
-        'Dallas': { lat: 32.7767, lng: -96.7970 },
-        'Austin': { lat: 30.2672, lng: -97.7431 },
-        'Atlanta': { lat: 33.7490, lng: -84.3880 },
-        'Oklahoma City': { lat: 35.4676, lng: -97.5164 },
-        'Oklahoma': { lat: 35.4676, lng: -97.5164 },
-        'Michigan': { lat: 42.7335, lng: -84.5467 }, // Lansing, MI
-        // European Cities
-        'Paris': { lat: 48.8566, lng: 2.3522 },
-        'Lyon': { lat: 45.7640, lng: 4.8357 },
-        'London': { lat: 51.5074, lng: -0.1278 },
-        'Berlin': { lat: 52.5200, lng: 13.4050 },
-        'Munich': { lat: 48.1351, lng: 11.5820 },
-        'München': { lat: 48.1351, lng: 11.5820 }, // German name
-        'Madrid': { lat: 40.4168, lng: -3.7038 },
-        'Rome': { lat: 41.9028, lng: 12.4964 },
-        'Amsterdam': { lat: 52.3676, lng: 4.9041 },
-        'Brussels': { lat: 50.8503, lng: 4.3517 },
-        'Vienna': { lat: 48.2082, lng: 16.3738 },
-        'Zurich': { lat: 47.3769, lng: 8.5417 },
-        'Stockholm': { lat: 59.3293, lng: 18.0686 },
-        'Oslo': { lat: 59.9139, lng: 10.7522 },
-        'Copenhagen': { lat: 55.6761, lng: 12.5683 },
-        'Helsinki': { lat: 60.1699, lng: 24.9384 },
-        'Dublin': { lat: 53.3498, lng: -6.2603 },
-        'Lisbon': { lat: 38.7223, lng: -9.1393 },
-        'Athens': { lat: 37.9838, lng: 23.7275 },
-        'Warsaw': { lat: 52.2297, lng: 21.0122 },
-        'Prague': { lat: 50.0755, lng: 14.4378 },
-        'Budapest': { lat: 47.4979, lng: 19.0402 },
-        'Bucharest': { lat: 44.4268, lng: 26.1025 },
-        'Sofia': { lat: 42.6977, lng: 23.3219 },
-        'Zagreb': { lat: 45.8150, lng: 15.9819 },
-        'Moscow': { lat: 55.7558, lng: 37.6173 },
-        // Asian Cities
-        'Tokyo': { lat: 35.6762, lng: 139.6503 },
-        'Seoul': { lat: 37.5665, lng: 126.9780 },
-        'Beijing': { lat: 39.9042, lng: 116.4074 },
-        'Shanghai': { lat: 31.2304, lng: 121.4737 },
-        'Mumbai': { lat: 19.0760, lng: 72.8777 },
-        'Delhi': { lat: 28.6139, lng: 77.2090 },
-        'Bangkok': { lat: 13.7563, lng: 100.5018 },
-        'Singapore': { lat: 1.3521, lng: 103.8198 },
-        'Kuala Lumpur': { lat: 3.1390, lng: 101.6869 },
-        'Jakarta': { lat: -6.2088, lng: 106.8456 },
-        'Manila': { lat: 14.5995, lng: 120.9842 },
-        'Ho Chi Minh City': { lat: 10.8231, lng: 106.6297 },
-        'Taipei': { lat: 25.0330, lng: 121.5654 },
-        'Hong Kong': { lat: 22.3193, lng: 114.1694 },
-        // Middle East & Africa
-        'Dubai': { lat: 25.2048, lng: 55.2708 },
-        'Riyadh': { lat: 24.7136, lng: 46.6753 },
-        'Tel Aviv': { lat: 32.0853, lng: 34.7818 },
-        'Istanbul': { lat: 41.0082, lng: 28.9784 },
-        'Karachi': { lat: 24.8607, lng: 67.0011 },
-        'Dhaka': { lat: 23.8103, lng: 90.4125 },
-        'Colombo': { lat: 6.9271, lng: 79.8612 },
-        'Lagos': { lat: 6.5244, lng: 3.3792 },
-        'Cairo': { lat: 30.0444, lng: 31.2357 },
-        'Nairobi': { lat: -1.2921, lng: 36.8219 },
-        'Johannesburg': { lat: -26.2041, lng: 28.0473 },
-        'Douala': { lat: 4.0511, lng: 9.7679 },
+        // Cameroonian Cities / Villes Camerounaises - Liste complète
+        // Principales villes (plus de 100 000 habitants)
         'Yaoundé': { lat: 3.8480, lng: 11.5021 },
         'Yaounde': { lat: 3.8480, lng: 11.5021 }, // Without accent
-        // Oceania
-        'Sydney': { lat: -33.8688, lng: 151.2093 },
-        'Melbourne': { lat: -37.8136, lng: 144.9631 },
-        'Auckland': { lat: -36.8485, lng: 174.7633 },
-        // Americas
-        'Toronto': { lat: 43.6532, lng: -79.3832 },
-        'Montreal': { lat: 45.5017, lng: -73.5673 },
-        'Vancouver': { lat: 49.2827, lng: -123.1207 },
-        'Mexico City': { lat: 19.4326, lng: -99.1332 },
-        'Sao Paulo': { lat: -23.5505, lng: -46.6333 },
-        'Rio de Janeiro': { lat: -22.9068, lng: -43.1729 },
-        'Buenos Aires': { lat: -34.6118, lng: -58.3960 },
-        'Santiago': { lat: -33.4489, lng: -70.6693 },
-        'Bogota': { lat: 4.7110, lng: -74.0721 },
-        'Lima': { lat: -12.0464, lng: -77.0428 }
+        'Douala': { lat: 4.0511, lng: 9.7679 },
+        'Garoua': { lat: 9.3000, lng: 13.4000 },
+        'Bamenda': { lat: 6.1167, lng: 10.1667 },
+        'Bafoussam': { lat: 5.4776, lng: 10.4176 },
+        'Maroua': { lat: 10.5956, lng: 14.3247 },
+        'Nkongsamba': { lat: 4.9500, lng: 9.9333 },
+        'Ngaoundéré': { lat: 7.3167, lng: 13.5833 },
+        'Ngaoundere': { lat: 7.3167, lng: 13.5833 },
+        'Bertoua': { lat: 4.5833, lng: 14.0833 },
+        'Edéa': { lat: 3.8000, lng: 10.1333 },
+        'Edea': { lat: 3.8000, lng: 10.1333 },
+        'Loum': { lat: 4.7167, lng: 9.7333 },
+        'Kumba': { lat: 4.6333, lng: 9.4500 },
+        'Kumbo': { lat: 6.2000, lng: 10.6667 },
+        'Foumban': { lat: 5.7167, lng: 10.9167 },
+        'Mbouda': { lat: 5.6333, lng: 10.2500 },
+        'Dschang': { lat: 5.4500, lng: 10.0667 },
+        'Limbé': { lat: 4.0242, lng: 9.2068 },
+        'Limbe': { lat: 4.0242, lng: 9.2068 },
+        'Ebolowa': { lat: 2.9333, lng: 11.1500 },
+        'Kousséri': { lat: 12.0833, lng: 15.0333 },
+        'Kousseri': { lat: 12.0833, lng: 15.0333 },
+        'Guider': { lat: 9.9333, lng: 13.9500 },
+        'Meiganga': { lat: 6.5167, lng: 14.3000 },
+        'Yagoua': { lat: 10.3500, lng: 15.2333 },
+        'Mbalmayo': { lat: 3.5167, lng: 11.5000 },
+        'Bafang': { lat: 5.1500, lng: 10.1833 },
+        'Tiko': { lat: 4.0833, lng: 9.3667 },
+        'Bafia': { lat: 4.7500, lng: 11.2333 },
+        'Wum': { lat: 6.3833, lng: 10.0667 },
+        'Kribi': { lat: 2.9373, lng: 9.9077 },
+        'Buea': { lat: 4.1534, lng: 9.2426 },
+        'Sangmélima': { lat: 2.9333, lng: 11.9833 },
+        'Sangmelima': { lat: 2.9333, lng: 11.9833 },
+        'Foumbot': { lat: 5.5000, lng: 10.6333 },
+        'Bangangté': { lat: 5.1500, lng: 10.5167 },
+        'Bangangte': { lat: 5.1500, lng: 10.5167 },
+        'Batouri': { lat: 4.4333, lng: 14.3667 },
+        'Banyo': { lat: 6.7500, lng: 11.8167 },
+        'Nkambé': { lat: 6.6167, lng: 10.8333 },
+        'Nkambe': { lat: 6.6167, lng: 10.8333 },
+        'Bali': { lat: 5.8833, lng: 10.0167 },
+        'Mbanga': { lat: 4.5000, lng: 9.5667 },
+        'Mokolo': { lat: 10.7333, lng: 13.8000 },
+        'Melong': { lat: 5.1167, lng: 9.9500 },
+        'Manjo': { lat: 4.8333, lng: 9.8167 },
+        'Garoua-Boulaï': { lat: 5.8833, lng: 14.5500 },
+        'Garoua-Boulai': { lat: 5.8833, lng: 14.5500 },
+        'Mora': { lat: 11.0500, lng: 14.1333 },
+        'Kaélé': { lat: 10.1000, lng: 14.4500 },
+        'Kaele': { lat: 10.1000, lng: 14.4500 },
+        'Tibati': { lat: 6.4667, lng: 12.6333 },
+        'Ndop': { lat: 6.2000, lng: 10.4833 },
+        'Akonolinga': { lat: 3.7667, lng: 12.2500 },
+        'Eséka': { lat: 3.6500, lng: 10.7667 },
+        'Eseka': { lat: 3.6500, lng: 10.7667 },
+        'Mamfé': { lat: 5.7500, lng: 9.2833 },
+        'Mamfe': { lat: 5.7500, lng: 9.2833 },
+        'Obala': { lat: 4.1667, lng: 11.5333 },
+        'Muyuka': { lat: 4.2833, lng: 9.4167 },
+        'Nanga-Eboko': { lat: 4.6833, lng: 12.3667 },
+        'Nanga Eboko': { lat: 4.6833, lng: 12.3667 },
+        'Abong-Mbang': { lat: 3.9833, lng: 13.1833 },
+        'Abong Mbang': { lat: 3.9833, lng: 13.1833 },
+        'Fundong': { lat: 6.2500, lng: 10.2667 },
+        'Nkoteng': { lat: 4.5167, lng: 12.0333 },
+        'Fontem': { lat: 5.4667, lng: 9.8833 },
+        'Mbandjock': { lat: 4.4500, lng: 11.9000 },
+        'Touboro': { lat: 7.7833, lng: 15.3667 },
+        'Ngaoundal': { lat: 6.4500, lng: 13.7667 },
+        'Yokadouma': { lat: 3.5167, lng: 15.0500 },
+        'Pitoa': { lat: 9.3833, lng: 13.5333 },
+        'Tombel': { lat: 4.5833, lng: 9.6667 },
+        'Kékem': { lat: 5.5500, lng: 10.1167 },
+        'Kekem': { lat: 5.5500, lng: 10.1167 },
+        'Magba': { lat: 5.9167, lng: 10.6167 },
+        'Bélabo': { lat: 4.9333, lng: 13.3000 },
+        'Belabo': { lat: 4.9333, lng: 13.3000 },
+        'Tonga': { lat: 4.9667, lng: 10.7000 },
+        'Maga': { lat: 10.8500, lng: 14.9333 },
+        'Koutaba': { lat: 5.6500, lng: 10.7500 },
+        'Blangoua': { lat: 12.2333, lng: 14.5167 },
+        'Guidiguis': { lat: 9.9333, lng: 13.9500 },
+        'Bogo': { lat: 10.7333, lng: 14.6167 },
+        'Batibo': { lat: 6.0833, lng: 10.0167 },
+        'Yabassi': { lat: 4.4500, lng: 9.9667 },
+        'Figuil': { lat: 9.7667, lng: 13.9667 },
+        'Makénéné': { lat: 4.8333, lng: 11.2167 },
+        'Makenene': { lat: 4.8333, lng: 11.2167 },
+        'Gazawa': { lat: 10.5833, lng: 14.2000 },
+        'Tcholliré': { lat: 8.4000, lng: 14.1667 },
+        'Tchollire': { lat: 8.4000, lng: 14.1667 },
+        // Autres villes importantes
+        'Buea Town': { lat: 4.1534, lng: 9.2426 },
+        'Bamessing': { lat: 6.0333, lng: 10.1500 },
+        'Bamessing': { lat: 6.0333, lng: 10.1500 },
+        'Bamunka': { lat: 5.9167, lng: 10.5833 },
+        'Bana': { lat: 5.1500, lng: 10.2667 },
+        'Bandjoun': { lat: 5.3500, lng: 10.4167 },
+        'Bangang': { lat: 5.1333, lng: 10.5167 },
+        'Bansoa': { lat: 5.4500, lng: 10.3167 },
+        'Bazou': { lat: 5.0667, lng: 10.4667 },
+        'Bekondo': { lat: 4.6833, lng: 9.3167 },
+        'Bonabéri': { lat: 4.0833, lng: 9.6833 },
+        'Bonaberi': { lat: 4.0833, lng: 9.6833 },
+        'Buéa': { lat: 4.1534, lng: 9.2426 },
+        'Campo': { lat: 2.3667, lng: 9.8167 },
+        'Dibombari': { lat: 4.1833, lng: 9.6500 },
+        'Dizangué': { lat: 3.7667, lng: 9.9833 },
+        'Dizangue': { lat: 3.7667, lng: 9.9833 },
+        'Djohong': { lat: 6.8333, lng: 14.7000 },
+        'Doumé': { lat: 4.2333, lng: 13.4500 },
+        'Doume': { lat: 4.2333, lng: 13.4500 },
+        'Dschang': { lat: 5.4500, lng: 10.0667 },
+        'Fang': { lat: 5.7000, lng: 10.8833 },
+        'Fokoué': { lat: 5.5833, lng: 10.6000 },
+        'Fokoue': { lat: 5.5833, lng: 10.6000 },
+        'Foumbot': { lat: 5.5000, lng: 10.6333 },
+        'Galim': { lat: 6.4000, lng: 11.4167 },
+        'Garoua': { lat: 9.3000, lng: 13.4000 },
+        'Gashiga': { lat: 10.5167, lng: 13.9833 },
+        'Goulfey': { lat: 12.0833, lng: 14.9833 },
+        'Guider': { lat: 9.9333, lng: 13.9500 },
+        'Guider': { lat: 9.9333, lng: 13.9500 },
+        'Idabato': { lat: 4.9000, lng: 8.9000 },
+        'Idenau': { lat: 4.2500, lng: 8.9833 },
+        'Kaele': { lat: 10.1000, lng: 14.4500 },
+        'Kontcha': { lat: 7.9833, lng: 12.2333 },
+        'Kribi': { lat: 2.9373, lng: 9.9077 },
+        'Kumbo': { lat: 6.2000, lng: 10.6667 },
+        'Lagdo': { lat: 9.0500, lng: 13.6667 },
+        'Lolodorf': { lat: 3.2333, lng: 10.7333 },
+        'Mamfe': { lat: 5.7500, lng: 9.2833 },
+        'Mbankomo': { lat: 3.7833, lng: 11.3833 },
+        'Mbandjock': { lat: 4.4500, lng: 11.9000 },
+        'Mbalmayo': { lat: 3.5167, lng: 11.5000 },
+        'Mbanga': { lat: 4.5000, lng: 9.5667 },
+        'Mbouda': { lat: 5.6333, lng: 10.2500 },
+        'Melong': { lat: 5.1167, lng: 9.9500 },
+        'Mfou': { lat: 3.8667, lng: 11.6333 },
+        'Mindif': { lat: 10.4000, lng: 14.4333 },
+        'Minta': { lat: 4.5833, lng: 12.8000 },
+        'Mokolo': { lat: 10.7333, lng: 13.8000 },
+        'Mora': { lat: 11.0500, lng: 14.1333 },
+        'Mundemba': { lat: 4.9500, lng: 8.8667 },
+        'Mutengene': { lat: 4.1000, lng: 9.3167 },
+        'Nanga-Eboko': { lat: 4.6833, lng: 12.3667 },
+        'Ndelele': { lat: 4.0333, lng: 14.9333 },
+        'Ndikiniméki': { lat: 4.7667, lng: 10.8333 },
+        'Ndikinimeki': { lat: 4.7667, lng: 10.8333 },
+        'Ndom': { lat: 4.5000, lng: 9.8167 },
+        'Ngambe': { lat: 4.2333, lng: 10.6167 },
+        'Ngomedzap': { lat: 3.2500, lng: 11.2167 },
+        'Ngou': { lat: 5.2000, lng: 10.3833 },
+        'Nguti': { lat: 5.3167, lng: 9.4167 },
+        'Nkambe': { lat: 6.6167, lng: 10.8333 },
+        'Nkongsamba': { lat: 4.9500, lng: 9.9333 },
+        'Nkoteng': { lat: 4.5167, lng: 12.0333 },
+        'Ntui': { lat: 4.4500, lng: 11.6333 },
+        'Nyambaka': { lat: 7.2000, lng: 13.5833 },
+        'Oku': { lat: 6.2000, lng: 10.4667 },
+        'Poli': { lat: 8.4833, lng: 13.2500 },
+        'Pouma': { lat: 3.5167, lng: 10.1667 },
+        'Rey Bouba': { lat: 8.6667, lng: 14.1833 },
+        'Saa': { lat: 4.3667, lng: 11.4500 },
+        'Sangmélima': { lat: 2.9333, lng: 11.9833 },
+        'Tcholliré': { lat: 8.4000, lng: 14.1667 },
+        'Tibati': { lat: 6.4667, lng: 12.6333 },
+        'Tiko': { lat: 4.0833, lng: 9.3667 },
+        'Tombel': { lat: 4.5833, lng: 9.6667 },
+        'Tonga': { lat: 4.9667, lng: 10.7000 },
+        'Touboro': { lat: 7.7833, lng: 15.3667 },
+        'Wum': { lat: 6.3833, lng: 10.0667 },
+        'Yabassi': { lat: 4.4500, lng: 9.9667 },
+        'Yagoua': { lat: 10.3500, lng: 15.2333 },
+        'Yokadouma': { lat: 3.5167, lng: 15.0500 },
+        'Zou': { lat: 4.8167, lng: 11.1333 }
     };
 
     const normalizedInput = originalInput ? originalInput.trim() : '';
@@ -597,11 +753,108 @@ function findNearestCity(lat, lng) {
     return 'In Transit';
 }
 
-function calculateAutomaticProgression(shipment) {
+// Cache pour les routes calculées (évite de recalculer à chaque fois)
+const routeCache = new Map();
+
+// Fonction pour obtenir la route depuis OSRM (Open Source Routing Machine)
+function getRouteFromOSRM(originLat, originLng, destLat, destLng) {
+    const cacheKey = `${originLat},${originLng}-${destLat},${destLng}`;
+    
+    // Vérifier le cache
+    if (routeCache.has(cacheKey)) {
+        return Promise.resolve(routeCache.get(cacheKey));
+    }
+    
+    return new Promise((resolve) => {
+        try {
+            // Utiliser l'API publique OSRM (gratuite, sans clé API)
+            // Format: /route/v1/driving/{coordinates}?overview=full&geometries=geojson
+            const url = `https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}?overview=full&geometries=geojson&alternatives=false`;
+            
+            console.log(`🛣️ Fetching route from OSRM: ${originLat},${originLng} → ${destLat},${destLng}`);
+            
+            https.get(url, (res) => {
+                let data = '';
+                
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                
+                res.on('end', () => {
+                    try {
+                        const jsonData = JSON.parse(data);
+                        
+                        if (jsonData.code !== 'Ok' || !jsonData.routes || jsonData.routes.length === 0) {
+                            console.warn('⚠️ OSRM returned no route, using direct line');
+                            resolve(null);
+                            return;
+                        }
+                        
+                        const route = jsonData.routes[0];
+                        const routeData = {
+                            geometry: route.geometry.coordinates.map(coord => [coord[1], coord[0]]), // Convertir [lng, lat] en [lat, lng]
+                            distance: route.distance / 1000, // Convertir mètres en kilomètres
+                            duration: route.duration, // en secondes
+                            distanceMiles: (route.distance / 1000) * 0.621371 // Convertir en miles
+                        };
+                        
+                        // Mettre en cache
+                        routeCache.set(cacheKey, routeData);
+                        console.log(`✅ Route calculated: ${routeData.distanceMiles.toFixed(2)} miles, ${routeData.geometry.length} points`);
+                        
+                        resolve(routeData);
+                    } catch (parseError) {
+                        console.error('❌ Error parsing OSRM response:', parseError.message);
+                        resolve(null);
+                    }
+                });
+            }).on('error', (error) => {
+                console.error('❌ Error fetching route from OSRM:', error.message);
+                // En cas d'erreur, retourner null pour utiliser la ligne droite
+                resolve(null);
+            });
+        } catch (error) {
+            console.error('❌ Error in getRouteFromOSRM:', error.message);
+            resolve(null);
+        }
+    });
+}
+
+// Fonction pour trouver le point le plus proche sur la route selon le pourcentage de progression
+function getPointOnRoute(routeGeometry, progress) {
+    if (!routeGeometry || routeGeometry.length === 0) {
+        return null;
+    }
+    
+    // Clamp progress entre 0 et 1
+    progress = Math.max(0, Math.min(1, progress));
+    
+    // Calculer l'index exact sur la route
+    const exactIndex = progress * (routeGeometry.length - 1);
+    const index = Math.floor(exactIndex);
+    const fraction = exactIndex - index;
+    
+    // Si on est à la fin de la route
+    if (index >= routeGeometry.length - 1) {
+        return routeGeometry[routeGeometry.length - 1];
+    }
+    
+    // Interpoler entre deux points consécutifs
+    const point1 = routeGeometry[index];
+    const point2 = routeGeometry[index + 1];
+    
+    const lat = point1[0] + (point2[0] - point1[0]) * fraction;
+    const lng = point1[1] + (point2[1] - point1[1]) * fraction;
+    
+    return [lat, lng];
+}
+
+async function calculateAutomaticProgression(shipment) {
     if (!shipment.autoProgress?.enabled || shipment.status === 'delivered') {
         return null;
     }
     if (!shipment.sender?.address?.lat || !shipment.recipient?.address?.lat) {
+        console.log(`⚠️ Missing coordinates for ${shipment.trackingId}: sender=${!!shipment.sender?.address?.lat}, recipient=${!!shipment.recipient?.address?.lat}`);
         return null;
     }
 
@@ -609,6 +862,22 @@ function calculateAutomaticProgression(shipment) {
     const originLng = shipment.sender.address.lng;
     const destLat = shipment.recipient.address.lat;
     const destLng = shipment.recipient.address.lng;
+    
+    // Obtenir ou utiliser la route en cache
+    let routeGeometry = shipment.routeGeometry;
+    let routeDistanceMiles = shipment.routeDistanceMiles;
+    
+    // Si pas de route stockée, la calculer
+    if (!routeGeometry) {
+        const routeData = await getRouteFromOSRM(originLat, originLng, destLat, destLng);
+        if (routeData) {
+            routeGeometry = routeData.geometry;
+            routeDistanceMiles = routeData.distanceMiles;
+            // Stocker dans le shipment pour éviter de recalculer
+            shipment.routeGeometry = routeGeometry;
+            shipment.routeDistanceMiles = routeDistanceMiles;
+        }
+    }
 
     let startedAt = shipment.autoProgress.startedAt
         ? new Date(shipment.autoProgress.startedAt)
@@ -644,8 +913,23 @@ function calculateAutomaticProgression(shipment) {
     if (effectiveElapsedHours <= HANDLING_DELAY_HOURS) {
         // Au lieu de retourner progress: 0, calculer une progression minimale basée sur le temps
         const minProgress = Math.min(0.05, effectiveElapsedHours / HANDLING_DELAY_HOURS * 0.05);
-        const lat = originLat + (destLat - originLat) * minProgress;
-        const lng = originLng + (destLng - originLng) * minProgress;
+        
+        // Utiliser la route réelle si disponible
+        let lat, lng;
+        if (routeGeometry && routeGeometry.length > 0) {
+            const pointOnRoute = getPointOnRoute(routeGeometry, minProgress);
+            if (pointOnRoute) {
+                lat = pointOnRoute[0];
+                lng = pointOnRoute[1];
+            } else {
+                lat = originLat + (destLat - originLat) * minProgress;
+                lng = originLng + (destLng - originLng) * minProgress;
+            }
+        } else {
+            lat = originLat + (destLat - originLat) * minProgress;
+            lng = originLng + (destLng - originLng) * minProgress;
+        }
+        
         const nearestCity = findNearestCity(lat, lng);
         return {
             lat,
@@ -660,7 +944,8 @@ function calculateAutomaticProgression(shipment) {
     const remainderHours = drivingWindowHours - fullDays * 24;
     const drivingHours = fullDays * DAILY_DRIVING_HOURS + Math.min(DAILY_DRIVING_HOURS, remainderHours);
 
-    const totalDistanceMiles = calculateHaversineDistance(originLat, originLng, destLat, destLng);
+    // Utiliser la distance de la route si disponible, sinon distance directe
+    const totalDistanceMiles = routeDistanceMiles || calculateHaversineDistance(originLat, originLng, destLat, destLng);
     if (!totalDistanceMiles || Number.isNaN(totalDistanceMiles)) {
         return null;
     }
@@ -686,8 +971,24 @@ function calculateAutomaticProgression(shipment) {
         };
     }
 
-    const lat = originLat + (destLat - originLat) * progress;
-    const lng = originLng + (destLng - originLng) * progress;
+    // Utiliser la route réelle si disponible, sinon ligne droite
+    let lat, lng;
+    if (routeGeometry && routeGeometry.length > 0) {
+        const pointOnRoute = getPointOnRoute(routeGeometry, progress);
+        if (pointOnRoute) {
+            lat = pointOnRoute[0];
+            lng = pointOnRoute[1];
+        } else {
+            // Fallback sur ligne droite
+            lat = originLat + (destLat - originLat) * progress;
+            lng = originLng + (destLng - originLng) * progress;
+        }
+    } else {
+        // Ligne droite si pas de route disponible
+        lat = originLat + (destLat - originLat) * progress;
+        lng = originLng + (destLng - originLng) * progress;
+    }
+    
     const nearestCity = findNearestCity(lat, lng);
 
     return { lat, lng, city: nearestCity, progress };
@@ -695,12 +996,20 @@ function calculateAutomaticProgression(shipment) {
 
 // ==================== API ROUTES ====================
 
+// Swagger UI - Documentation API
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument, {
+    customCss: '.swagger-ui .topbar { display: none }',
+    customSiteTitle: 'CargoWatch API Docs'
+}));
+
 // GET /api
 app.get('/api', (req, res) => {
+    const baseUrl = `${req.protocol}://${req.get('host')}`;
     res.json({
         name: 'CargoWatch API',
         version: '1.0.0',
         description: 'Professional shipment tracking system API',
+        docs: `${baseUrl}/api-docs`,
         endpoints: {
             public: {
                 'GET /api': 'API information',
@@ -779,6 +1088,49 @@ app.get('/api/auth/me', (req, res) => {
     }
 });
 
+
+// Reviews API (public - lecture et écriture sans auth)
+app.get('/api/reviews', async (req, res) => {
+    try {
+        const reviews = await readReviews();
+        const limit = parseInt(req.query.limit) || 50;
+        const sorted = reviews
+            .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+            .slice(0, limit);
+        res.json({ reviews: sorted });
+    } catch (error) {
+        console.error('Error fetching reviews:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+app.post('/api/reviews', async (req, res) => {
+    try {
+        const { author, rating, comment } = req.body || {};
+        if (!author || typeof author !== 'string' || !author.trim()) {
+            return res.status(400).json({ error: 'Author name is required' });
+        }
+        const r = Number(rating);
+        if (isNaN(r) || r < 1 || r > 5) {
+            return res.status(400).json({ error: 'Rating must be a number between 1 and 5' });
+        }
+        const reviews = await readReviews();
+        const review = {
+            id: uuidv4(),
+            author: String(author).trim().slice(0, 100),
+            rating: Math.round(r),
+            comment: typeof comment === 'string' ? comment.trim().slice(0, 1000) : '',
+            createdAt: new Date().toISOString()
+        };
+        reviews.push(review);
+        await writeReviews(reviews);
+        console.log(`📝 New review from ${review.author} (${review.rating}/5)`);
+        res.status(201).json({ success: true, review });
+    } catch (error) {
+        console.error('Error adding review:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
 
 // Stats route
 app.get('/api/stats', async (req, res) => {
@@ -866,15 +1218,8 @@ app.get('/api/shipments/recent', async (req, res) => {
 app.get('/api/shipments/:trackingId', async (req, res) => {
     try {
         const { trackingId } = req.params;
-        let shipment;
-        
-        // Use Supabase if available
-        if (db && db.getShipmentByTrackingId) {
-            shipment = await db.getShipmentByTrackingId(trackingId.toUpperCase());
-        } else {
-            const shipments = await readShipments();
-            shipment = shipments.find(s => s.trackingId === trackingId.toUpperCase());
-        }
+        const shipments = await readShipments();
+        const shipment = shipments.find(s => s.trackingId === trackingId.toUpperCase());
         
         if (!shipment) {
             return res.status(404).json({ error: 'Shipment not found', message: `No shipment found with tracking ID: ${trackingId}` });
@@ -900,31 +1245,95 @@ app.get('/api/shipments/:trackingId', async (req, res) => {
         }
         */
 
+        // Calculer la route si elle n'existe pas encore (même sans autoProgress)
+        if (!shipment.routeGeometry && 
+            shipment.sender?.address?.lat && shipment.recipient?.address?.lat) {
+            console.log(`🛣️ Calculating route for ${trackingId}...`);
+            const routeData = await getRouteFromOSRM(
+                shipment.sender.address.lat,
+                shipment.sender.address.lng,
+                shipment.recipient.address.lat,
+                shipment.recipient.address.lng
+            );
+            if (routeData) {
+                shipment.routeGeometry = routeData.geometry;
+                shipment.routeDistanceMiles = routeData.distanceMiles;
+                console.log(`✅ Route calculated and saved for ${trackingId}: ${routeData.geometry.length} points`);
+                // Sauvegarder immédiatement
+                const shipmentIndex = shipments.findIndex(s => s.trackingId === trackingId);
+                if (shipmentIndex !== -1) {
+                    shipments[shipmentIndex].routeGeometry = shipment.routeGeometry;
+                    shipments[shipmentIndex].routeDistanceMiles = shipment.routeDistanceMiles;
+                    await writeShipments(shipments);
+                    // Mettre à jour shipment pour qu'il contienne la route dans la réponse
+                    shipment.routeGeometry = routeData.geometry;
+                    shipment.routeDistanceMiles = routeData.distanceMiles;
+                }
+            } else {
+                console.log(`⚠️ Failed to calculate route for ${trackingId}`);
+            }
+        }
+
         // Calculer la progression même pour "pending" si autoProgress est activé
         if (shipment.autoProgress?.enabled && !shipment.autoProgress?.paused && 
             shipment.status !== 'delivered' &&
             shipment.sender?.address?.lat && shipment.recipient?.address?.lat) {
-            const autoPos = calculateAutomaticProgression(shipment);
+            
+            // S'assurer que startedAt est défini si autoProgress est activé
+            if (!shipment.autoProgress.startedAt && shipment.createdAt) {
+                shipment.autoProgress.startedAt = shipment.createdAt;
+                console.log(`🚀 Auto-progression démarrée pour ${trackingId} (utilise createdAt)`);
+            }
+            
+            const autoPos = await calculateAutomaticProgression(shipment);
             if (autoPos) {
                 const oldCity = shipment.currentLocation?.city || 'Unknown';
                 shipment.currentLocation = { lat: autoPos.lat, lng: autoPos.lng, city: autoPos.city };
                 shipment.autoProgress.lastUpdate = new Date().toISOString();
                 if (oldCity !== autoPos.city) {
                     console.log(`📍 ${trackingId}: Position updated - ${oldCity} → ${autoPos.city} (Progress: ${(autoPos.progress * 100).toFixed(1)}%)`);
+                } else {
+                    console.log(`📍 ${trackingId}: Position updated - ${autoPos.city} (Progress: ${(autoPos.progress * 100).toFixed(1)}%)`);
                 }
                 shipment.updatedAt = new Date().toISOString();
-
-                if (db && db.updateShipment) {
-                    const persistedShipment = await db.updateShipment(trackingId.toUpperCase(), shipment);
-                    if (persistedShipment) {
-                        Object.assign(shipment, persistedShipment);
+                
+                // Sauvegarder la route si elle vient d'être calculée
+                const existingShipment = shipments.find(s => s.trackingId === trackingId);
+                if (shipment.routeGeometry && (!existingShipment || !existingShipment.routeGeometry)) {
+                    console.log(`🛣️ Route sauvegardée pour ${trackingId}: ${shipment.routeGeometry.length} points`);
+                    // Mettre à jour le shipment dans le tableau
+                    const shipmentIndex = shipments.findIndex(s => s.trackingId === trackingId);
+                    if (shipmentIndex !== -1) {
+                        shipments[shipmentIndex].routeGeometry = shipment.routeGeometry;
+                        shipments[shipmentIndex].routeDistanceMiles = shipment.routeDistanceMiles;
                     }
-                } else {
-                    await writeShipments(shipments);
                 }
+
+                // Update in database (JSON files)
+                await writeShipments(shipments);
+                
+                // Mettre à jour shipment avec les données sauvegardées pour s'assurer que routeGeometry est inclus
+                const updatedShipment = shipments.find(s => s.trackingId === trackingId);
+                if (updatedShipment) {
+                    shipment.routeGeometry = updatedShipment.routeGeometry;
+                    shipment.routeDistanceMiles = updatedShipment.routeDistanceMiles;
+                }
+            } else {
+                console.log(`⚠️ calculateAutomaticProgression returned null for ${trackingId}`);
+            }
+        } else {
+            if (!shipment.autoProgress?.enabled) {
+                console.log(`⚠️ Auto-progression désactivée pour ${trackingId}`);
+            } else if (shipment.autoProgress?.paused) {
+                console.log(`⚠️ Auto-progression en pause pour ${trackingId}`);
+            } else if (!shipment.sender?.address?.lat || !shipment.recipient?.address?.lat) {
+                console.log(`⚠️ Coordonnées manquantes pour ${trackingId}`);
             }
         }
-        res.json(shipment);
+        
+        // S'assurer que routeGeometry est inclus dans la réponse
+        const finalShipment = shipments.find(s => s.trackingId === trackingId) || shipment;
+        res.json(finalShipment);
     } catch (error) {
         console.error('Error fetching shipment:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -952,7 +1361,7 @@ app.post('/api/shipments', async (req, res) => {
                     city: req.body.sender?.address?.city || '',
                     state: req.body.sender?.address?.state || '',
                     zipCode: req.body.sender?.address?.zipCode || '',
-                    country: req.body.sender?.address?.country || 'US',
+                    country: req.body.sender?.address?.country || 'CM',
                     lat: null,
                     lng: null
                 }
@@ -966,7 +1375,7 @@ app.post('/api/shipments', async (req, res) => {
                     city: req.body.recipient?.address?.city || '',
                     state: req.body.recipient?.address?.state || '',
                     zipCode: req.body.recipient?.address?.zipCode || '',
-                    country: req.body.recipient?.address?.country || 'US',
+                    country: req.body.recipient?.address?.country || 'CM',
                     lat: null,
                     lng: null
                 }
@@ -981,7 +1390,7 @@ app.post('/api/shipments', async (req, res) => {
                 },
                 description: req.body.package?.description || '',
                 value: req.body.package?.value || 0,
-                currency: req.body.package?.currency || 'USD',
+                currency: req.body.package?.currency || 'XAF',
                 vehicle: req.body.package?.vehicle || {}
             },
             service: {
@@ -1004,7 +1413,7 @@ app.post('/api/shipments', async (req, res) => {
                 shipping: parseFloat(req.body.cost?.shipping) || 0,
                 insurance: parseFloat(req.body.cost?.insurance) || 0,
                 total: (parseFloat(req.body.cost?.base) || 0) + (parseFloat(req.body.cost?.shipping) || 0) + (parseFloat(req.body.cost?.insurance) || 0),
-                currency: req.body.cost?.currency || 'USD'
+                currency: req.body.cost?.currency || 'XAF'
             },
             estimatedDelivery: req.body.estimatedDelivery || null,
             currentLocation: {
@@ -1025,7 +1434,7 @@ app.post('/api/shipments', async (req, res) => {
 
         const senderCity = req.body.sender?.address?.city || '';
         const senderState = req.body.sender?.address?.state || '';
-        const senderCountry = req.body.sender?.address?.country || 'US';
+        const senderCountry = req.body.sender?.address?.country || 'CM';
         const senderZip = req.body.sender?.address?.zipCode || '';
         const senderLocation = senderCity + (senderState ? ', ' + senderState : '') + (senderCountry ? ', ' + senderCountry : '');
         const senderCoords = getCityCoordinates({
@@ -1042,7 +1451,7 @@ app.post('/api/shipments', async (req, res) => {
 
         const recipientCity = req.body.recipient?.address?.city || '';
         const recipientState = req.body.recipient?.address?.state || '';
-        const recipientCountry = req.body.recipient?.address?.country || 'US';
+        const recipientCountry = req.body.recipient?.address?.country || 'CM';
         const recipientZip = req.body.recipient?.address?.zipCode || '';
         const recipientLocation = recipientCity + (recipientState ? ', ' + recipientState : '') + (recipientCountry ? ', ' + recipientCountry : '');
         const recipientCoords = getCityCoordinates({
@@ -1065,6 +1474,12 @@ app.post('/api/shipments', async (req, res) => {
             };
         }
 
+        // Initialiser startedAt si autoProgress est activé et que les coordonnées sont disponibles
+        if (newShipment.autoProgress.enabled && senderCoords && recipientCoords) {
+            newShipment.autoProgress.startedAt = new Date().toISOString();
+            console.log(`🚀 Auto-progression démarrée pour ${trackingId}`);
+        }
+
         if (!newShipment.estimatedDelivery && senderCoords && recipientCoords) {
             const distance = calculateHaversineDistance(
                 senderCoords.lat, senderCoords.lng,
@@ -1076,33 +1491,21 @@ app.post('/api/shipments', async (req, res) => {
             newShipment.estimatedDelivery = deliveryDate.toISOString();
         }
 
-        // Save to database (Supabase or JSON files)
-        let savedShipment;
+        // Save to database (JSON files)
+        const shipments = await readShipments();
+        shipments.push(newShipment);
+        const writeSuccess = await writeShipments(shipments);
+        if (!writeSuccess) {
+            throw new Error('Failed to save shipment to database');
+        }
         
-        if (db && db.createShipment) {
-            // Use Supabase
-            savedShipment = await db.createShipment(newShipment);
-            if (!savedShipment) {
-                throw new Error('Failed to create shipment in Supabase');
-            }
-            console.log(`✅ Shipment created in Supabase: ${newShipment.trackingId}`);
+        // Verify the shipment was written
+        const verifyShipments = await readShipments();
+        const savedShipment = verifyShipments.find(s => s.trackingId === newShipment.trackingId);
+        if (!savedShipment) {
+            console.error('⚠️ Warning: Shipment was not found after write!');
         } else {
-            // Fallback to JSON files
-            const shipments = await readShipments();
-            shipments.push(newShipment);
-            const writeSuccess = await writeShipments(shipments);
-            if (!writeSuccess) {
-                throw new Error('Failed to save shipment to database');
-            }
-            
-            // Verify the shipment was written
-            const verifyShipments = await readShipments();
-            savedShipment = verifyShipments.find(s => s.trackingId === newShipment.trackingId);
-            if (!savedShipment) {
-                console.error('⚠️ Warning: Shipment was not found after write!');
-            } else {
-                console.log(`✅ Shipment created and verified: ${newShipment.trackingId} (Total shipments: ${verifyShipments.length})`);
-            }
+            console.log(`✅ Shipment created and verified: ${newShipment.trackingId} (Total shipments: ${verifyShipments.length})`);
         }
         
         res.status(201).json(savedShipment || newShipment);
@@ -1204,7 +1607,7 @@ app.put('/api/shipments/:trackingId/status', requireAuth, requireAdmin, async (r
             if (!shipment.autoProgress.startedAt) {
                 shipment.autoProgress.startedAt = new Date().toISOString();
             }
-            const autoPos = calculateAutomaticProgression(shipment);
+            const autoPos = await calculateAutomaticProgression(shipment);
             if (autoPos) {
                 shipment.currentLocation = { lat: autoPos.lat, lng: autoPos.lng, city: autoPos.city };
                 shipment.autoProgress.lastUpdate = new Date().toISOString();
@@ -1217,20 +1620,9 @@ app.put('/api/shipments/:trackingId/status', requireAuth, requireAdmin, async (r
             shipment.deliveredAt = new Date().toISOString();
         }
         
-        // Update in database (Supabase or JSON files)
-        let updatedShipment;
-        if (db && db.updateShipment) {
-            // Use Supabase
-            updatedShipment = await db.updateShipment(trackingId.toUpperCase(), shipment);
-            if (!updatedShipment) {
-                throw new Error('Failed to update shipment in Supabase');
-            }
-            console.log(`✅ Shipment status updated in Supabase: ${trackingId} → ${status}`);
-        } else {
-            // Fallback to JSON files
-            await writeShipments(shipments);
-            updatedShipment = shipment;
-        }
+        // Update in database (JSON files)
+        await writeShipments(shipments);
+        const updatedShipment = shipment;
         
         res.json(updatedShipment);
     } catch (error) {
@@ -1306,20 +1698,9 @@ app.put('/api/shipments/:trackingId/pause', requireAuth, requireAdmin, async (re
         }
         shipment.updatedAt = new Date().toISOString();
         
-        // Update in database (Supabase or JSON files)
-        let updatedShipment;
-        if (db && db.updateShipment) {
-            // Use Supabase
-            updatedShipment = await db.updateShipment(trackingId.toUpperCase(), shipment);
-            if (!updatedShipment) {
-                throw new Error('Failed to update shipment in Supabase');
-            }
-            console.log(`✅ Shipment pause/resume updated in Supabase: ${trackingId}`);
-        } else {
-            // Fallback to JSON files
-            await writeShipments(shipments);
-            updatedShipment = shipment;
-        }
+        // Update in database (JSON files)
+        await writeShipments(shipments);
+        const updatedShipment = shipment;
         
         res.json(updatedShipment);
     } catch (error) {
@@ -1367,21 +1748,10 @@ app.post('/api/shipments/:trackingId/receipt/generate', requireAuth, requireAdmi
         shipment.receiptUploadedAt = new Date().toISOString();
         shipment.updatedAt = new Date().toISOString();
 
-        // Update in database (Supabase or JSON files)
-        let updatedShipment;
-        if (db && db.updateShipment) {
-            // Use Supabase
-            updatedShipment = await db.updateShipment(trackingId.toUpperCase(), shipment);
-            if (!updatedShipment) {
-                throw new Error('Failed to update shipment receipt in Supabase');
-            }
-            console.log(`✅ Receipt PDF generated and updated in Supabase for shipment ${trackingId}`);
-        } else {
-            // Fallback to JSON files
-            shipments[shipmentIndex] = shipment;
-            await writeShipments(shipments);
-            updatedShipment = shipment;
-        }
+        // Update in database (JSON files)
+        shipments[shipmentIndex] = shipment;
+        await writeShipments(shipments);
+        const updatedShipment = shipment;
         
         res.json({ success: true, receipt: receiptUrl, shipment: updatedShipment });
     } catch (error) {
@@ -3215,14 +3585,43 @@ app.use('/api/*', (req, res) => {
     res.status(404).json({ error: 'API endpoint not found' });
 });
 
-// DÃ©marrer le serveur
+// Démarrer le serveur
 async function startServer() {
     await ensureDataDir();
+
+    if (process.env.MONGODB_URI) {
+        try {
+            await dbModule.connect();
+            USE_MONGO = true;
+            console.log('📦 Using MongoDB');
+            // Migrer les données JSON vers MongoDB si les collections sont vides
+            const usersCol = dbModule.getCollection('users');
+            const shipmentsCol = dbModule.getCollection('shipments');
+            const usersCount = await usersCol.countDocuments();
+            const shipmentsCount = await shipmentsCol.countDocuments();
+            if (usersCount === 0 || shipmentsCount === 0) {
+                const users = await fs.readFile(USERS_FILE, 'utf8').then(d => JSON.parse(d)).catch(() => []);
+                const shipments = await fs.readFile(SHIPMENTS_FILE, 'utf8').then(d => JSON.parse(d)).catch(() => []);
+                const chats = await fs.readFile(CHATS_FILE, 'utf8').then(d => JSON.parse(d)).catch(() => []);
+                const reviews = await fs.readFile(REVIEWS_FILE, 'utf8').then(d => JSON.parse(d)).catch(() => []);
+                if (users.length && usersCount === 0) { await usersCol.insertMany(users); console.log(`📥 Migré ${users.length} utilisateur(s)`); }
+                if (shipments.length && shipmentsCount === 0) { await shipmentsCol.insertMany(shipments); console.log(`📥 Migré ${shipments.length} expédition(s)`); }
+                if (chats.length && (await dbModule.getCollection('chats').countDocuments()) === 0) { await dbModule.getCollection('chats').insertMany(chats); }
+                if (Array.isArray(reviews) && reviews.length && (await dbModule.getCollection('reviews').countDocuments()) === 0) { await dbModule.getCollection('reviews').insertMany(reviews); }
+            }
+        } catch (err) {
+            console.error('❌ MongoDB connection failed:', err.message);
+            console.log('📄 Falling back to JSON file storage');
+        }
+    } else {
+        console.log('📄 Using JSON file storage (set MONGODB_URI for MongoDB)');
+    }
+
     server.listen(PORT, () => {
-        console.log(`ðŸš€ CargoWatch Server running on http://localhost:${PORT}`);
-        console.log(`ðŸ“¦ API available at http://localhost:${PORT}/api`);
-        console.log(`ðŸ’¬ Chat system enabled (Socket.io)`);
-        console.log(`ðŸ“ Data stored in: ${DATA_DIR}`);
+        console.log(`🚀 CargoWatch Server running on http://localhost:${PORT}`);
+        console.log(`📡 API available at http://localhost:${PORT}/api`);
+        console.log(`💬 Chat system enabled (Socket.io)`);
+        console.log(`📁 Data: ${USE_MONGO ? 'MongoDB' : DATA_DIR}`);
         
         setInterval(async () => {
             try {
@@ -3233,7 +3632,7 @@ async function startServer() {
                         shipment.status !== 'delivered' && shipment.status !== 'pending' &&
                         shipment.sender?.address?.lat && shipment.recipient?.address?.lat &&
                         shipment.estimatedDelivery) {
-                        const autoPos = calculateAutomaticProgression(shipment);
+                        const autoPos = await calculateAutomaticProgression(shipment);
                         if (autoPos) {
                             const oldCity = shipment.currentLocation?.city || 'Unknown';
                             shipment.currentLocation = {
@@ -3251,18 +3650,9 @@ async function startServer() {
                     }
                 }
                 if (updatedShipments.length > 0) {
-                    // Update in database (Supabase or JSON files)
-                    if (db && db.updateShipment) {
-                        // Use Supabase - update each shipment individually
-                        for (const shipment of updatedShipments) {
-                            await db.updateShipment(shipment.trackingId, shipment);
-                        }
-                        console.log(`✅ Updated ${updatedShipments.length} shipment positions automatically in Supabase`);
-                    } else {
-                        // Fallback to JSON files
-                        await writeShipments(shipments);
-                        console.log(`📍 Updated ${updatedShipments.length} shipment positions automatically`);
-                    }
+                    // Update in database (JSON files)
+                    await writeShipments(shipments);
+                    console.log(`📍 Updated ${updatedShipments.length} shipment positions automatically`);
                 }
             } catch (error) {
                 console.error('Error in automatic position update:', error);

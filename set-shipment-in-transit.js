@@ -5,13 +5,34 @@
 
 require('dotenv').config();
 const { v4: uuidv4 } = require('uuid');
-const { getShipmentByTrackingId, updateShipment } = require('./supabase-db');
+const fs = require('fs').promises;
+const path = require('path');
+
+const DATA_DIR = path.join(__dirname, 'data');
+const SHIPMENTS_FILE = path.join(DATA_DIR, 'shipments.json');
+
+async function readShipments() {
+    try {
+        const data = await fs.readFile(SHIPMENTS_FILE, 'utf8');
+        return JSON.parse(data);
+    } catch (error) {
+        if (error.code === 'ENOENT') {
+            return [];
+        }
+        throw error;
+    }
+}
+
+async function writeShipments(shipments) {
+    await fs.writeFile(SHIPMENTS_FILE, JSON.stringify(shipments, null, 2));
+}
 
 async function setInTransit(trackingId) {
     const normalizedId = trackingId.trim().toUpperCase();
-    const shipment = await getShipmentByTrackingId(normalizedId);
+    const shipments = await readShipments();
+    const shipment = shipments.find(s => s.trackingId === normalizedId);
     if (!shipment) {
-        throw new Error(`Shipment ${normalizedId} introuvable dans Supabase`);
+        throw new Error(`Shipment ${normalizedId} introuvable dans la base de données`);
     }
 
     const now = new Date().toISOString();
@@ -56,10 +77,15 @@ async function setInTransit(trackingId) {
         }
     }
 
-    const updated = await updateShipment(normalizedId, shipment);
-    if (!updated) {
-        throw new Error('La mise à jour Supabase a échoué');
+    // Trouver l'index du shipment dans le tableau
+    const shipmentIndex = shipments.findIndex(s => s.trackingId === normalizedId);
+    if (shipmentIndex === -1) {
+        throw new Error(`Shipment ${normalizedId} introuvable`);
     }
+    
+    // Mettre à jour le shipment
+    shipments[shipmentIndex] = shipment;
+    await writeShipments(shipments);
 
     console.log(`✅ Shipment ${normalizedId} mis à jour en "in_transit" et auto-progression démarrée.`);
 }

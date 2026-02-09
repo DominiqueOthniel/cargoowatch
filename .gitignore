@@ -17,7 +17,7 @@ public/receipts/
 # Environment variables
 .env
 .env.local
-config/supabase.js
+config/mongodb.js
 
 # Logs
 logs/

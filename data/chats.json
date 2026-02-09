@@ -1,74 +1,30 @@
 [
   {
-    "id": "5a6b6a83-dfd3-4b2b-a8ce-042214dc347c",
-    "clientName": "doro",
-    "clientEmail": "john@gmail.com",
-    "subject": "NO",
-    "trackingId": null,
-    "status": "active",
-    "createdAt": "2025-11-02T17:18:55.787Z",
-    "updatedAt": "2025-11-02T19:26:39.724Z",
-    "messages": [
-      {
-        "id": "b0ab2d34-3beb-41be-aae5-faf6c6aaa4da",
-        "text": "yeah",
-        "image": null,
-        "senderType": "client",
-        "senderName": "doro",
-        "timestamp": "2025-11-02T17:18:59.599Z",
-        "read": true
-      },
-      {
-        "id": "679d40e4-693a-4ce8-bb1c-11ca80391a24",
-        "text": "yes",
-        "image": null,
-        "senderType": "admin",
-        "senderName": "admin",
-        "timestamp": "2025-11-02T19:16:01.909Z",
-        "read": false
-      }
-    ],
-    "assignedTo": "46432134-7ab8-45ce-a2cf-dc0dc2df43cc"
-  },
-  {
-    "id": "dfd0fcd2-b0d1-4d99-a584-29058e2e1e3b",
-    "clientName": "doro",
-    "clientEmail": "merciel2006@icloud.com",
+    "id": "e1378c8e-0857-4efe-8dd2-8276b1c7d076",
+    "clientName": "admin",
+    "clientEmail": "admin@cargowatch.com",
     "subject": "General Inquiry",
     "trackingId": null,
     "status": "active",
-    "createdAt": "2025-11-03T15:07:31.694Z",
-    "updatedAt": "2025-11-10T15:04:18.667Z",
+    "createdAt": "2026-02-08T17:57:49.985Z",
+    "updatedAt": "2026-02-08T17:58:50.887Z",
     "messages": [
       {
-        "id": "351bf476-4583-481a-b53b-602608ed5af3",
-        "text": "yo",
+        "id": "697d4bf3-247f-426c-bb7a-509de6047c8f",
+        "text": "bonjour",
         "image": null,
         "senderType": "client",
-        "senderName": "Dau",
-        "timestamp": "2025-11-10T15:04:18.667Z",
+        "senderName": "admin",
+        "timestamp": "2026-02-08T17:57:58.070Z",
         "read": false
-      }
-    ],
-    "assignedTo": null
-  },
-  {
-    "id": "e0d93425-e9e7-46d5-860f-9826ae23b737",
-    "clientName": "GOJO",
-    "clientEmail": "TODOROKI",
-    "subject": "Pls why is my product stuck on the way?",
-    "trackingId": null,
-    "status": "active",
-    "createdAt": "2025-11-03T20:38:29.743Z",
-    "updatedAt": "2025-11-03T20:38:39.421Z",
-    "messages": [
+      },
       {
-        "id": "df16ce39-8c34-402c-92a1-e28bbbde52e4",
-        "text": "I am confused",
+        "id": "0cf4d6db-0720-40e6-82ff-855832c90b40",
+        "text": "oui",
         "image": null,
-        "senderType": "client",
-        "senderName": "GOJO",
-        "timestamp": "2025-11-03T20:38:39.421Z",
+        "senderType": "admin",
+        "senderName": "admin@cargowatch.com",
+        "timestamp": "2026-02-08T17:58:50.887Z",
         "read": false
       }
     ],

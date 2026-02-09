@@ -20,19 +20,21 @@ Les données disparaissent après chaque redéploiement sur Render car :
 
 ## Solutions recommandées pour la production
 
-### Option 1 : Base de données Supabase (Recommandé) ⭐
+### Option 1 : Base de données MongoDB (Recommandé) ⭐
 
 **Avantages** :
 - Persistance garantie
 - Sauvegardes automatiques
 - Scalable
-- Gratuit jusqu'à 500MB
+- Gratuit jusqu'à 512MB avec MongoDB Atlas
+- NoSQL flexible
 
 **Comment faire** :
-1. Créer un projet Supabase (gratuit)
-2. Configurer les tables (users, shipments, chats)
-3. Modifier `server.js` pour utiliser Supabase au lieu de JSON
-4. Ajouter les variables d'environnement dans Render
+1. Créer un compte MongoDB Atlas (gratuit)
+2. Créer un cluster gratuit
+3. Obtenir l'URI de connexion
+4. Modifier `server.js` pour utiliser MongoDB au lieu de JSON
+5. Ajouter `MONGODB_URI` dans les variables d'environnement Render
 
 ### Option 2 : PostgreSQL sur Render
 
@@ -40,6 +42,7 @@ Les données disparaissent après chaque redéploiement sur Render car :
 - Base de données dédiée
 - Persistance garantie
 - Performances élevées
+- SQL standard
 
 **Comment faire** :
 1. Créer une base PostgreSQL sur Render
@@ -47,14 +50,7 @@ Les données disparaissent après chaque redéploiement sur Render car :
 3. Modifier le code pour utiliser PostgreSQL
 4. Ajouter la connexion dans les variables d'environnement
 
-### Option 3 : MongoDB Atlas (Gratuit)
-
-**Avantages** :
-- Base NoSQL
-- Gratuit jusqu'à 512MB
-- Facile à migrer
-
-### Option 4 : Volume persistant (si disponible sur Render)
+### Option 3 : Volume persistant (si disponible sur Render)
 
 **Avantages** :
 - Conserve les fichiers locaux
@@ -68,7 +64,6 @@ Les données disparaissent après chaque redéploiement sur Render car :
 
 Pour l'instant, la solution temporaire est en place. Les données seront préservées lors des redéploiements.
 
-**Pour une solution durable**, je recommande d'implémenter Supabase ou PostgreSQL.
+**Pour une solution durable**, je recommande d'implémenter MongoDB Atlas.
 
-Souhaitez-vous que je vous aide à configurer une base de données persistante ?
-
+Souhaitez-vous que je vous aide à configurer MongoDB ?
