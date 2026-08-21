@@ -1,12 +1,19 @@
-import { type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { type NextRequest, NextResponse } from "next/server";
+import { adminCookie, readSessionToken } from "@/lib/admin-auth";
 
 export async function middleware(request: NextRequest) {
-  return updateSession(request);
+  const path = request.nextUrl.pathname;
+  const isAdminArea = path.startsWith("/admin") && path !== "/admin/login";
+  if (!isAdminArea) return NextResponse.next();
+
+  const session = await readSessionToken(request.cookies.get(adminCookie.name)?.value);
+  if (session) return NextResponse.next();
+
+  const url = request.nextUrl.clone();
+  url.pathname = "/admin/login";
+  return NextResponse.redirect(url);
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/admin/:path*"],
 };

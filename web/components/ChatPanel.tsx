@@ -2,6 +2,7 @@
 
 import { FormEvent, useEffect, useRef, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { useI18n } from "@/lib/i18n/context";
 import type { ChatMessage } from "@/lib/types";
 
 interface ChatPanelProps {
@@ -19,17 +20,19 @@ export default function ChatPanel({
   senderName,
   onClose,
 }: ChatPanelProps) {
+  const { t } = useI18n();
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMessages(initialMessages);
   }, [initialMessages, conversationId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages]);
 
   useEffect(() => {
@@ -76,7 +79,7 @@ export default function ChatPanel({
         body: JSON.stringify({ text: text.trim(), senderType, senderName }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Envoi échoué");
+      if (!res.ok) throw new Error(data.error || "Envoi impossible");
       setText("");
       if (data.message) {
         setMessages((prev) =>
@@ -91,44 +94,54 @@ export default function ChatPanel({
   }
 
   return (
-    <div className="flex h-full min-h-[400px] flex-col">
-      <div className="mb-3 flex items-center justify-between">
-        <h3 className="font-semibold text-emerald-950">Conversation</h3>
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="mb-2 flex shrink-0 items-center justify-between">
+        <h3 className="font-semibold text-text-primary">{t("chat.conversation")}</h3>
         {onClose && (
-          <button onClick={onClose} className="text-xs text-emerald-700 hover:underline">
-            Fermer le chat
+          <button type="button" onClick={onClose} className="text-xs text-primary hover:underline">
+            {senderType === "client" ? t("chat.newConversation") : t("chat.close")}
           </button>
         )}
       </div>
-      <div className="flex-1 space-y-3 overflow-y-auto rounded-xl bg-emerald-50/40 p-3">
+      <div
+        ref={listRef}
+        className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain rounded-xl bg-surface/60 p-3"
+      >
         {messages.map((m) => (
           <div
             key={m.id}
             className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${
               m.senderType === senderType
-                ? "ml-auto bg-emerald-700 text-white"
-                : "bg-white border border-emerald-900/10 text-emerald-950"
+                ? "ml-auto bg-primary text-white"
+                : "border border-border bg-panel text-text-primary"
             }`}
           >
-            <p className="text-[10px] opacity-70">{m.senderName || m.senderType}</p>
-            <p>{m.text}</p>
+            <p className="text-[10px] opacity-70">
+              {m.senderName || (m.senderType === "admin" ? "Agent" : "Client")}
+            </p>
+            <p className="break-words">{m.text}</p>
           </div>
         ))}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={send} className="mt-3 flex gap-2">
+      <form
+        onSubmit={send}
+        className="mt-2 flex shrink-0 gap-2 border-t border-border/60 bg-panel pt-3"
+      >
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Votre message…"
-          className="flex-1 rounded-xl border border-emerald-900/15 px-3 py-2 outline-none ring-emerald-600 focus:ring-2"
+          placeholder={t("chat.placeholder")}
+          enterKeyHint="send"
+          autoComplete="off"
+          className="input-field min-w-0 flex-1 px-3 py-3 text-base"
         />
         <button
           type="submit"
           disabled={sending}
-          className="rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white disabled:opacity-60"
+          className="btn-primary shrink-0 px-4 py-3 text-sm disabled:opacity-60"
         >
-          Envoyer
+          {t("chat.send")}
         </button>
       </form>
     </div>

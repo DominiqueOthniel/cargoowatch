@@ -1,11 +1,10 @@
+# Used when Netlify base directory is already set to "web"
 [build]
   command = "npm run build"
   publish = ".next"
 
+[build.environment]
+  NODE_VERSION = "20"
+
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-# Optional: schedule via Netlify Dashboard > Site > Functions > Scheduled functions
-# Target: GET/POST https://YOUR_SITE.netlify.app/api/cron/auto-progress
-# Header: Authorization: Bearer $CRON_SECRET
-# Recommended: every 1 minute

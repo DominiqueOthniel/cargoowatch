@@ -1,8 +1,12 @@
-# CargoWatch — déploie l'app Next.js (web/)
+# Aurex Logistics Next.js on Netlify (monorepo: app lives in web/)
 [build]
   base = "web"
   command = "npm run build"
+  # Relative to base. Required for @netlify/plugin-nextjs
   publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "20"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"

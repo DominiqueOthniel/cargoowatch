@@ -15,7 +15,7 @@ export async function GET(_request: Request, { params }: Params) {
       .eq("id", chatId)
       .maybeSingle();
     if (error) throw error;
-    if (!conv) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    if (!conv) return NextResponse.json({ error: "Introuvable" }, { status: 404 });
 
     const { data: messages } = await supabase
       .from("chat_messages")

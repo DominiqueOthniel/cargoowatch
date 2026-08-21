@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { transformShipmentFromDB, transformShipmentToDB } from "@/lib/shipments";
 import { calculateAutomaticProgression } from "@/lib/auto-progress";
+import { buildStatusEvent, statusFromProgress } from "@/lib/shipment-status";
 
 export async function GET(request: Request) {
   return runCron(request);
@@ -30,27 +31,31 @@ async function runCron(request: Request) {
         !shipment.autoProgress?.enabled ||
         shipment.autoProgress?.paused ||
         shipment.status === "delivered" ||
-        shipment.status === "pending"
+        shipment.status === "pending" ||
+        shipment.status === "exception"
       ) {
         continue;
+      }
+
+      if (!shipment.autoProgress.startedAt) {
+        shipment.autoProgress.startedAt = new Date().toISOString();
       }
 
       const autoPos = await calculateAutomaticProgression(shipment);
       if (!autoPos) continue;
 
-      const nextStatus =
-        autoPos.progress >= 1
-          ? "delivered"
-          : autoPos.progress >= 0.9
-            ? "out_for_delivery"
-            : shipment.status === "picked_up"
-              ? "in_transit"
-              : shipment.status;
-
-      const autoProgress = {
-        ...shipment.autoProgress,
-        lastUpdate: new Date().toISOString(),
-      };
+      const nextStatus = statusFromProgress(autoPos.progress, shipment.status);
+      const statusChanged = nextStatus !== shipment.status;
+      const events = statusChanged
+        ? [...(shipment.events || []), buildStatusEvent(nextStatus, {
+            ...shipment,
+            currentLocation: {
+              lat: autoPos.lat,
+              lng: autoPos.lng,
+              city: autoPos.city,
+            },
+          })]
+        : shipment.events;
 
       const patch = transformShipmentToDB({
         currentLocation: {
@@ -58,8 +63,12 @@ async function runCron(request: Request) {
           lng: autoPos.lng,
           city: autoPos.city,
         },
-        autoProgress,
-        status: nextStatus as never,
+        autoProgress: {
+          ...shipment.autoProgress,
+          lastUpdate: new Date().toISOString(),
+        },
+        status: nextStatus,
+        events,
         updatedAt: new Date().toISOString(),
         ...(nextStatus === "delivered" ? { deliveredAt: new Date().toISOString() } : {}),
       });

@@ -50,7 +50,7 @@ export async function POST(request: Request, { params }: Params) {
     });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to send message" },
+      { error: err instanceof Error ? err.message : "Impossible d’envoyer le message" },
       { status: 500 }
     );
   }

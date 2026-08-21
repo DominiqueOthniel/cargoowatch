@@ -1,4 +1,4 @@
--- CargoWatch Next.js — schéma Supabase (Auth + RLS)
+-- Aurex Logistics Next.js — schéma Supabase (Auth + RLS)
 -- Exécuter dans Supabase SQL Editor
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
@@ -202,18 +202,24 @@ ALTER PUBLICATION supabase_realtime ADD TABLE public.chat_messages;
 -- If already added, ignore the error.
 
 -- =====================================================
--- SEED ADMIN (manual steps)
+-- STORAGE (receipts PDF)
 -- =====================================================
+-- In Supabase Dashboard > Storage > New bucket:
+--   Name: receipts
+--   Public: YES
+-- Or run (requires storage admin):
+-- insert into storage.buckets (id, name, public) values ('receipts', 'receipts', true)
+--   on conflict (id) do update set public = true;
 -- 1. Authentication > Users > Add user
---    email: admin@cargowatch.com
+--    email: admin@aurexlogistics.com
 --    password: (choose a strong password)
 --    Auto Confirm: ON
 -- 2. Then run (replace UUID):
 --
 -- UPDATE public.users SET role = 'admin', username = 'admin'
--- WHERE email = 'admin@cargowatch.com';
+-- WHERE email = 'admin@aurexlogistics.com';
 --
 -- If the trigger did not create the row yet:
 -- INSERT INTO public.users (id, email, username, role)
--- SELECT id, email, 'admin', 'admin' FROM auth.users WHERE email = 'admin@cargowatch.com'
+-- SELECT id, email, 'admin', 'admin' FROM auth.users WHERE email = 'admin@aurexlogistics.com'
 -- ON CONFLICT (id) DO UPDATE SET role = 'admin';

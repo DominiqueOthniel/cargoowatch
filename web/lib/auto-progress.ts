@@ -1,9 +1,20 @@
 import type { Shipment } from "./types";
+import { STATUS_META, statusFromProgress } from "./shipment-status";
 
-const TRUCK_SPEED_MPH = 55;
-const MIN_MILES_PER_MINUTE = 1;
-const DAILY_DRIVING_HOURS = 11;
-const HANDLING_DELAY_HOURS = 4;
+/** Pickup / depot handling before the marker leaves origin */
+const HANDLING_DELAY_SEC = 45 * 60;
+
+/** Average road freight speed, including stops and urban segments */
+const AVG_SPEED_MPH = 43.5;
+
+/** Shortest realistic journey once the vehicle is moving */
+const MIN_TRAVEL_SEC = 2 * 60 * 60;
+
+function journeyDurationSec(distanceMiles: number) {
+  const miles = Math.max(1, Number(distanceMiles) || 1);
+  const travelSec = (miles / AVG_SPEED_MPH) * 3600;
+  return Math.max(MIN_TRAVEL_SEC, travelSec);
+}
 
 function haversineMiles(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R = 3959;
@@ -19,7 +30,7 @@ function haversineMiles(lat1: number, lon1: number, lat2: number, lon2: number) 
   return R * c;
 }
 
-function getPointOnRoute(routeGeometry: [number, number][], progress: number) {
+export function getPointOnRoute(routeGeometry: [number, number][], progress: number) {
   if (!routeGeometry.length) return null;
   const p = Math.max(0, Math.min(1, progress));
   const exactIndex = p * (routeGeometry.length - 1);
@@ -42,16 +53,21 @@ export async function fetchOsrmRoute(
 ) {
   try {
     const url = `https://router.project-osrm.org/route/v1/driving/${originLng},${originLat};${destLng},${destLat}?overview=full&geometries=geojson&alternatives=false`;
-    const res = await fetch(url, { next: { revalidate: 3600 } });
+    const res = await fetch(url, {
+      cache: "force-cache",
+      next: { revalidate: 86400 },
+    });
     if (!res.ok) return null;
     const json = await res.json();
     if (json.code !== "Ok" || !json.routes?.[0]) return null;
     const route = json.routes[0];
+    const geometry = route.geometry.coordinates.map((coord: [number, number]) => [
+      coord[1],
+      coord[0],
+    ]) as [number, number][];
+    if (geometry.length < 2) return null;
     return {
-      geometry: route.geometry.coordinates.map((coord: [number, number]) => [
-        coord[1],
-        coord[0],
-      ]) as [number, number][],
+      geometry,
       distanceMiles: (route.distance / 1000) * 0.621371,
     };
   } catch {
@@ -59,15 +75,68 @@ export async function fetchOsrmRoute(
   }
 }
 
+export function resolveProgressStart(shipment: Shipment): Date | null {
+  if (shipment.autoProgress?.startedAt) return new Date(shipment.autoProgress.startedAt);
+  if (shipment.events?.length) {
+    const firstActive = shipment.events.find((e) => e.status && e.status !== "pending");
+    if (firstActive?.timestamp) return new Date(firstActive.timestamp);
+  }
+  if (shipment.status !== "pending" && shipment.updatedAt) return new Date(shipment.updatedAt);
+  return null;
+}
+
+/** Pure progress 0–1 from elapsed wall time (same formula client + server). */
+export function computeProgressFraction(
+  startedAt: Date,
+  distanceMiles: number,
+  pausedDurationMs = 0,
+  pausedAt: string | null = null,
+  now = new Date()
+) {
+  let elapsedMs = now.getTime() - startedAt.getTime() - pausedDurationMs;
+  if (pausedAt) {
+    elapsedMs -= Math.max(0, now.getTime() - new Date(pausedAt).getTime());
+  }
+  elapsedMs = Math.max(0, elapsedMs);
+
+  const handlingMs = HANDLING_DELAY_SEC * 1000;
+  if (elapsedMs <= handlingMs) {
+    return Math.min(0.02, (elapsedMs / handlingMs) * 0.02);
+  }
+
+  const travelMs = elapsedMs - handlingMs;
+  const durationMs = journeyDurationSec(distanceMiles) * 1000;
+  return Math.min(1, Math.max(0, travelMs / durationMs));
+}
+
+export function interpolatePosition(
+  progress: number,
+  originLat: number,
+  originLng: number,
+  destLat: number,
+  destLng: number,
+  routeGeometry?: [number, number][] | null
+) {
+  if (routeGeometry?.length) {
+    const point = getPointOnRoute(routeGeometry, progress);
+    if (point) return { lat: point[0], lng: point[1] };
+  }
+  return {
+    lat: originLat + (destLat - originLat) * progress,
+    lng: originLng + (destLng - originLng) * progress,
+  };
+}
+
 export async function calculateAutomaticProgression(shipment: Shipment) {
   if (!shipment.autoProgress?.enabled || shipment.status === "delivered") return null;
   if (shipment.autoProgress?.paused) return null;
+  if (shipment.status === "pending" || shipment.status === "exception") return null;
 
-  const originLat = shipment.sender?.address?.lat;
-  const originLng = shipment.sender?.address?.lng;
-  const destLat = shipment.recipient?.address?.lat;
-  const destLng = shipment.recipient?.address?.lng;
-  if (originLat == null || originLng == null || destLat == null || destLng == null) return null;
+  const originLat = Number(shipment.sender?.address?.lat);
+  const originLng = Number(shipment.sender?.address?.lng);
+  const destLat = Number(shipment.recipient?.address?.lat);
+  const destLng = Number(shipment.recipient?.address?.lng);
+  if (![originLat, originLng, destLat, destLng].every((n) => Number.isFinite(n))) return null;
 
   let routeGeometry = shipment.routeGeometry;
   let routeDistanceMiles = shipment.routeDistanceMiles;
@@ -80,69 +149,23 @@ export async function calculateAutomaticProgression(shipment: Shipment) {
     }
   }
 
-  let startedAt = shipment.autoProgress.startedAt
-    ? new Date(shipment.autoProgress.startedAt)
-    : shipment.createdAt
-      ? new Date(shipment.createdAt)
-      : null;
+  const startedAt = resolveProgressStart(shipment);
+  if (!startedAt || Number.isNaN(startedAt.getTime())) return null;
 
-  if (!startedAt && shipment.events?.length) {
-    const firstActive = shipment.events.find((e) => e.status && e.status !== "pending");
-    if (firstActive?.timestamp) startedAt = new Date(firstActive.timestamp);
-  }
-  if (!startedAt) return null;
-
-  const now = new Date();
-  let elapsedHours = (now.getTime() - startedAt.getTime()) / (1000 * 60 * 60);
-  if (elapsedHours < 0) return null;
-
-  let pausedDurationHours = (shipment.autoProgress.pausedDuration || 0) / (1000 * 60 * 60);
-  if (shipment.autoProgress.paused && shipment.autoProgress.pausedAt) {
-    const pauseStart = new Date(shipment.autoProgress.pausedAt);
-    pausedDurationHours += Math.max(0, (now.getTime() - pauseStart.getTime()) / (1000 * 60 * 60));
-  }
-
-  const effectiveElapsedHours = Math.max(0, elapsedHours - pausedDurationHours);
-
-  const interpolate = (progress: number) => {
-    if (routeGeometry?.length) {
-      const point = getPointOnRoute(routeGeometry, progress);
-      if (point) return { lat: point[0], lng: point[1] };
-    }
-    return {
-      lat: originLat + (destLat - originLat) * progress,
-      lng: originLng + (destLng - originLng) * progress,
-    };
-  };
-
-  if (effectiveElapsedHours <= HANDLING_DELAY_HOURS) {
-    const minProgress = Math.min(0.05, (effectiveElapsedHours / HANDLING_DELAY_HOURS) * 0.05);
-    const pos = interpolate(minProgress);
-    return {
-      ...pos,
-      city: shipment.sender?.address?.city || "Origin",
-      progress: minProgress,
-      routeGeometry,
-      routeDistanceMiles,
-    };
-  }
-
-  const drivingWindowHours = effectiveElapsedHours - HANDLING_DELAY_HOURS;
-  const fullDays = Math.floor(drivingWindowHours / 24);
-  const remainderHours = drivingWindowHours - fullDays * 24;
-  const drivingHours = fullDays * DAILY_DRIVING_HOURS + Math.min(DAILY_DRIVING_HOURS, remainderHours);
   const totalDistanceMiles =
     routeDistanceMiles || haversineMiles(originLat, originLng, destLat, destLng);
   if (!totalDistanceMiles) return null;
 
-  const drivingHoursRequired = totalDistanceMiles / TRUCK_SPEED_MPH;
-  const defaultProgress = Math.min(1, Math.max(0, drivingHours / drivingHoursRequired));
-  const elapsedMinutesSinceStart = Math.max(0, drivingWindowHours * 60);
-  const minProgressFromSpeed =
-    totalDistanceMiles > 0
-      ? Math.min(1, (elapsedMinutesSinceStart * MIN_MILES_PER_MINUTE) / totalDistanceMiles)
-      : 0;
-  const progress = Math.min(1, Math.max(defaultProgress, minProgressFromSpeed));
+  const timed = computeProgressFraction(
+    startedAt,
+    totalDistanceMiles,
+    shipment.autoProgress.pausedDuration || 0,
+    shipment.autoProgress.paused ? shipment.autoProgress.pausedAt : null
+  );
+
+  const floor = STATUS_META[shipment.status as keyof typeof STATUS_META]?.progressFloor ?? 0;
+  const progress = Math.min(1, Math.max(timed, floor));
+  const suggestedStatus = statusFromProgress(progress, shipment.status);
 
   if (progress >= 1) {
     return {
@@ -150,17 +173,34 @@ export async function calculateAutomaticProgression(shipment: Shipment) {
       lng: destLng,
       city: shipment.recipient?.address?.city || "Destination",
       progress: 1,
+      suggestedStatus: "delivered" as const,
       routeGeometry,
-      routeDistanceMiles,
+      routeDistanceMiles: totalDistanceMiles,
     };
   }
 
-  const pos = interpolate(progress);
+  const pos = interpolatePosition(
+    progress,
+    originLat,
+    originLng,
+    destLat,
+    destLng,
+    routeGeometry
+  );
+
   return {
     ...pos,
-    city: "In Transit",
+    city:
+      progress < 0.05
+        ? shipment.sender?.address?.city || "Origine"
+        : progress >= 0.88
+          ? shipment.recipient?.address?.city
+            ? `Près de ${shipment.recipient.address.city}`
+            : "Près de la destination"
+          : "En transit",
     progress,
+    suggestedStatus,
     routeGeometry,
-    routeDistanceMiles,
+    routeDistanceMiles: totalDistanceMiles,
   };
 }

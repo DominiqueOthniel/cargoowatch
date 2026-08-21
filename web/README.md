@@ -1,4 +1,4 @@
-# CargoWatch Web (Next.js + Supabase + Netlify)
+# Aurex Logistics Web (Next.js + Supabase + Netlify)
 
 Application full-stack sans serveur Express : UI + API Routes Next.js, données/auth/realtime Supabase, hébergement Netlify.
 
@@ -28,6 +28,9 @@ Ouvrir http://localhost:3000
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Clé anon (publique) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Clé service role (serveur uniquement) |
 | `CRON_SECRET` | Bearer token pour `/api/cron/auto-progress` |
+| `ADMIN_EMAIL` | Email de connexion admin (sans Supabase Auth) |
+| `ADMIN_PASSWORD` | Mot de passe admin |
+| `ADMIN_SESSION_SECRET` | Secret de session cookie (optionnel si `ADMIN_PASSWORD` est défini) |
 
 ## Schéma Supabase
 
@@ -37,24 +40,7 @@ Ouvrir http://localhost:3000
 
 ### Créer un admin
 
-1. **Authentication → Users → Add user**  
-   - Email : `admin@cargowatch.com`  
-   - Mot de passe fort  
-   - Auto Confirm : ON  
-2. Dans SQL Editor :
-
-```sql
-UPDATE public.users
-SET role = 'admin', username = 'admin'
-WHERE email = 'admin@cargowatch.com';
-
--- Si la ligne n'existe pas encore :
-INSERT INTO public.users (id, email, username, role)
-SELECT id, email, 'admin', 'admin'
-FROM auth.users
-WHERE email = 'admin@cargowatch.com'
-ON CONFLICT (id) DO UPDATE SET role = 'admin';
-```
+Le login admin n'utilise plus Supabase Auth. Définir `ADMIN_EMAIL`, `ADMIN_PASSWORD` et `ADMIN_SESSION_SECRET` dans `.env.local` et dans Netlify (Site configuration → Environment variables), puis redéployer.
 
 ## Pages
 
@@ -77,6 +63,17 @@ ON CONFLICT (id) DO UPDATE SET role = 'admin';
 | GET/PATCH | `/api/chat/:chatId` | Détail / fermer |
 | POST | `/api/chat/:chatId/message` | Envoyer un message |
 | GET/POST | `/api/cron/auto-progress` | Progression auto (auth Bearer) |
+
+## Receipts PDF
+
+1. Create a **public** Storage bucket named `receipts` in Supabase (Storage → New bucket).
+2. In Admin → Shipments, click **PDF Receipt** on a shipment.
+3. Files appear in the **Receipts** tab.
+
+## Live chat
+
+A floating chat bubble appears on all public pages (hidden on `/admin`).
+Admin replies from **Admin → Chat**.
 
 ## Cron (progression automatique)
 

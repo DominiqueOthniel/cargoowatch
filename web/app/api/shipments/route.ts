@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { generateTrackingId, transformShipmentFromDB, transformShipmentToDB } from "@/lib/shipments";
+import { shipmentCostFromPackage } from "@/lib/pricing";
 import type { Shipment } from "@/lib/types";
 
 export async function GET() {
@@ -16,7 +17,7 @@ export async function GET() {
     });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to list shipments" },
+      { error: err instanceof Error ? err.message : "Impossible de lister les envois" },
       { status: 500 }
     );
   }
@@ -28,9 +29,10 @@ export async function POST(request: Request) {
     const now = new Date().toISOString();
     const trackingId = generateTrackingId();
 
+    // New shipments always start as pending — status advances via admin / auto-progress
     const shipment: Partial<Shipment> = {
       trackingId,
-      status: body.status || "pending",
+      status: "pending",
       createdAt: now,
       updatedAt: now,
       sender: body.sender || {},
@@ -39,25 +41,25 @@ export async function POST(request: Request) {
       service: body.service || {},
       events: [
         {
-          status: body.status || "pending",
-          title: "Shipment created",
-          description: "Your shipment has been registered in CargoWatch.",
+          status: "pending",
+          title: "Envoi créé",
+          description: "Votre envoi a été enregistré et attend d’être ramassé.",
           location: body.sender?.address?.city,
           timestamp: now,
         },
       ],
-      cost: body.cost || {
-        base: 0,
-        shipping: 0,
-        insurance: 0,
-        total: 0,
-        currency: body.package?.currency || "USD",
-      },
+      cost: body.cost || shipmentCostFromPackage({
+        packageValue: body.package?.value,
+        currency: body.package?.currency || "EUR",
+        insured: Boolean(body.service?.insurance),
+      }),
       estimatedDelivery: body.estimatedDelivery || null,
       currentLocation: {
         lat: body.sender?.address?.lat,
         lng: body.sender?.address?.lng,
-        city: body.sender?.address?.city || "Origin",
+        city: body.sender?.address?.city || "Origine",
+        zip: body.sender?.address?.zip,
+        country: body.sender?.address?.country || "France",
       },
       autoProgress: {
         enabled: true,
@@ -65,7 +67,7 @@ export async function POST(request: Request) {
         pausedAt: null,
         pauseReason: null,
         pausedDuration: 0,
-        startedAt: now,
+        startedAt: null,
         lastUpdate: now,
       },
     };
@@ -82,7 +84,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ shipment: transformShipmentFromDB(data) }, { status: 201 });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to create shipment" },
+      { error: err instanceof Error ? err.message : "Impossible de créer l’envoi" },
       { status: 500 }
     );
   }

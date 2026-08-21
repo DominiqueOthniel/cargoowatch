@@ -54,7 +54,7 @@ export async function GET() {
     return NextResponse.json({ chats });
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to list chats" },
+      { error: err instanceof Error ? err.message : "Impossible de lister les discussions" },
       { status: 500 }
     );
   }
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
         conversation_id: conv.id,
         text: `Bonjour ${body.clientName}, comment pouvons-nous vous aider ?`,
         sender_type: "admin",
-        sender_name: "CargoWatch Support",
+        sender_name: "Aurex Logistics Support",
         read: false,
       },
     ]);
@@ -124,7 +124,7 @@ export async function POST(request: Request) {
     );
   } catch (err) {
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : "Failed to start chat" },
+      { error: err instanceof Error ? err.message : "Impossible de démarrer le chat" },
       { status: 500 }
     );
   }
